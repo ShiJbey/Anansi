@@ -403,3 +403,7 @@ ASALocalRun/
 
 # Local History for Visual Studio
 .localhistory/
+
+# Keep the following
+!Documentation~/
+!Samples~/
