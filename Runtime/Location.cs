@@ -1,5 +1,4 @@
-﻿using System;
-namespace Calypso
+﻿namespace Calypso
 {
 	/// <summary>
 	/// A place where characters and items may be

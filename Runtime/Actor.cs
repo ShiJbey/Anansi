@@ -1,5 +1,4 @@
-﻿using System;
-namespace Calypso
+﻿namespace Calypso
 {
 	/// <summary>
 	/// Actors represent characters in the story world. 
