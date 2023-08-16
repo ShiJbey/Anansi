@@ -2120,7 +2120,19 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4551820207367804823, guid: 01741ba775384c04a8203c7a4c889aca, type: 3}
+      propertyPath: _conversationScripts.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 4551820207367804823, guid: 01741ba775384c04a8203c7a4c889aca, type: 3}
       propertyPath: _inkConversations.Array.data[0]
+      value: 
+      objectReference: {fileID: 4900000, guid: 58c0a0ee4bbc69f42866a7506c1532dc, type: 3}
+    - target: {fileID: 4551820207367804823, guid: 01741ba775384c04a8203c7a4c889aca, type: 3}
+      propertyPath: _conversationScripts.Array.data[0]
+      value: 
+      objectReference: {fileID: 4900000, guid: 58c0a0ee4bbc69f42866a7506c1532dc, type: 3}
+    - target: {fileID: 4551820207367804823, guid: 01741ba775384c04a8203c7a4c889aca, type: 3}
+      propertyPath: _conversationScripts.Array.data[1]
       value: 
       objectReference: {fileID: 4900000, guid: 58c0a0ee4bbc69f42866a7506c1532dc, type: 3}
     - target: {fileID: 6354242567576627970, guid: 01741ba775384c04a8203c7a4c889aca, type: 3}

@@ -62,7 +62,7 @@ namespace Calypso
         
         private static int ExtractWeight(Story story)
         {
-            foreach (string line in story.currentTags)
+            foreach (string line in story.globalTags)
             {
                 if (line.StartsWith("weight"))
                 {
@@ -74,7 +74,7 @@ namespace Calypso
 
         private static string ExtractID(Story story)
         {
-            foreach (string line in story.currentTags)
+            foreach (string line in story.globalTags)
             {
                 if (line.StartsWith("id"))
                 {

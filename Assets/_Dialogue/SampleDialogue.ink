@@ -4,6 +4,14 @@ VAR ChoseRedPill = false
 VAR HealthPoints = 50
 VAR Speaker = "Astrid"
 
+// Global Tags
+#id:default_convo
+#weight:10
+#precond: ^Rival, ^Speaker, ^Player
+#   ^Rival.relationships.Astrid.tags."rival"
+#endprecond
+
+
 -> start_knot
 
 === start_knot ===
