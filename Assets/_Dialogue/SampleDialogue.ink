@@ -3,13 +3,14 @@ VAR PlayerName = "John"
 VAR ChoseRedPill = false
 VAR HealthPoints = 50
 VAR Speaker = "Astrid"
+VAR rivalName = ""
 
 // Global Tags
-#id:default_convo
-#weight:10
-#precond: ^Rival, ^Speaker, ^Player
-#   ^Rival.relationships.Astrid.tags."rival"
-#endprecond
+# id: default_convo
+# weight: 1
+// # WHERE: ?Rival.relationships.astrid.tags.rival
+// # WHERE: ?Rival.relationships.player.friendship >= 20
+// # SET: rivalName to ?Rival.name
 
 
 -> start_knot
@@ -22,7 +23,7 @@ Now, we'll go to knot 2! #speaker: {Speaker}
 === knot_2 ===
 Hello from knot 2! #speaker: {Speaker}
 Time for a personality test. #speaker: {Speaker}
-Red pill or blue pill? #speaker: {Speaker}
+Red pill or blue pill? #speaker: {rivalName}
 *** Red pill
 ~ChoseRedPill = true // update variable value
 -> red_pill
