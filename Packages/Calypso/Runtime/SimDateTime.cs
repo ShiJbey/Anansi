@@ -1,5 +1,13 @@
+using System.Runtime.ConstrainedExecution;
+using System;
+using UnityEngine.XR;
+
 namespace Calypso
 {
+    /// <summary>
+    /// A custom date/time implementation that represents years as 12 months
+    /// with 4, 7-day weeks per month. The smallest unit of time is one minute.
+    /// </summary>
     [System.Serializable]
     public struct SimDateTime
     {
@@ -27,9 +35,9 @@ namespace Calypso
 
         #region Properties
         public Days Day => (Days)(_date % DAYS_PER_WEEK);
-        public int Date => _date;
+        public int Date => _date + 1;
         public Months Month => (Months)_month;
-        public int Year => _year;
+        public int Year => _year + 1;
         public int Hour => _hour;
         public int Minutes => _minutes;
         public int TotalNumDays => _totalNumDays;
@@ -40,7 +48,7 @@ namespace Calypso
             {
                 return _hour
                     + (_date * HOURS_PER_DAY)
-                    + ((int)_month * HOURS_PER_DAY * DAYS_PER_MONTH)
+                    + (_month * HOURS_PER_DAY * DAYS_PER_MONTH)
                     + (_year * HOURS_PER_DAY * DAYS_PER_YEAR);
             }
         }
@@ -50,9 +58,9 @@ namespace Calypso
             {
                 return _minutes
                     + (_hour * MINUTES_PER_HOUR)
-                    + (_date * HOURS_PER_DAY)
-                    + ((int)_month * HOURS_PER_DAY * DAYS_PER_MONTH)
-                    + (_year * HOURS_PER_DAY * DAYS_PER_YEAR);
+                    + (_date * MINUTES_PER_HOUR * HOURS_PER_DAY)
+                    + (_month * MINUTES_PER_HOUR * HOURS_PER_DAY * DAYS_PER_MONTH)
+                    + (_year * MINUTES_PER_HOUR * HOURS_PER_DAY * DAYS_PER_YEAR);
             }
         }
         public int Week
@@ -69,25 +77,21 @@ namespace Calypso
         public TimeOfDay TimeOfDay { 
             get
             {
-                if (_hour < 6)
-                {
-                    return TimeOfDay.EarlyMorning;
-                }
-                else if (_hour < 11)
+                if (_hour >= 5 && _hour < 12)
                 {
                     return TimeOfDay.Morning;
                 }
-                else if (_hour < 14)
+                else if (_hour >= 12 && _hour < 17)
                 {
-                    return TimeOfDay.MidDay;
+                    return TimeOfDay.Afternoon;
                 }
-                else if (_hour < 19)
+                else if (_hour >= 17 && _hour < 21)
                 {
                     return TimeOfDay.Evening;
                 }
                 else
                 {
-                    return TimeOfDay.LateEvening;
+                    return TimeOfDay.Night;
                 }
             } 
         }
@@ -123,9 +127,9 @@ namespace Calypso
             // Set the date
             _date = date - 1;
             _month = month - 1;
-            _year = year;
+            _year = year - 1;
                        
-            _totalNumDays = _date + ((int)_month * DAYS_PER_MONTH) + ((year - 1) * DAYS_PER_YEAR);
+            _totalNumDays = _date + (_month * DAYS_PER_MONTH) + ((year - 1) * DAYS_PER_YEAR);
             _totalNumWeeks = _totalNumDays / DAYS_PER_WEEK;
 
             // No delta time when created
@@ -137,6 +141,10 @@ namespace Calypso
         {
 
         }
+
+        public SimDateTime(int date, int month, int year)
+            :this(date, month, year, 0, 0)
+        { }
         #endregion
 
         #region Methods
@@ -176,7 +184,7 @@ namespace Calypso
         public override string ToString()
         {
             return string.Format(
-                "{0}, {1} {2:02d}, {3:yyyy} @ {4:02d}:{5:02d}",
+                "{0}, {1} {2:D2}, {3:D4} @ {4:D2}:{5:D2}",
                 Day, Month, Date, Year, Hour, Minutes
                 );
         }
@@ -192,15 +200,15 @@ namespace Calypso
 
             // Convert minutes back to the various date components
             int remainder = diffMinutes;
-            int years = remainder / (MONTHS_PER_YEAR * DAYS_PER_MONTH * HOURS_PER_DAY);
+            int years = remainder / (MINUTES_PER_HOUR * HOURS_PER_DAY * DAYS_PER_YEAR);
             
-            remainder = remainder % (MONTHS_PER_YEAR * DAYS_PER_MONTH * HOURS_PER_DAY);
-            int months = remainder / (DAYS_PER_MONTH * HOURS_PER_DAY);
+            remainder = remainder % (MINUTES_PER_HOUR * HOURS_PER_DAY * DAYS_PER_YEAR);
+            int months = remainder / (MINUTES_PER_HOUR * HOURS_PER_DAY * DAYS_PER_MONTH);
 
-            remainder = remainder % (DAYS_PER_MONTH * HOURS_PER_DAY);
-            int days = remainder / HOURS_PER_DAY;
+            remainder = remainder % (MINUTES_PER_HOUR * HOURS_PER_DAY * DAYS_PER_MONTH);
+            int days = remainder / (MINUTES_PER_HOUR * HOURS_PER_DAY);
 
-            remainder = remainder % MINUTES_PER_HOUR;
+            remainder = remainder % (MINUTES_PER_HOUR * HOURS_PER_DAY);
             int hours = remainder / MINUTES_PER_HOUR;
 
             int minutes = remainder;
@@ -360,10 +368,9 @@ namespace Calypso
 
     public enum  TimeOfDay
     {
-        EarlyMorning = 0,
         Morning = 1,
-        MidDay = 2,
+        Afternoon = 2,
         Evening = 3,
-        LateEvening = 4
+        Night = 4,
     }
 }
