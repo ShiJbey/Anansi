@@ -14,7 +14,7 @@ namespace Calypso.Unity
         public List<Actor> Actors { get { return _actors; } }
 
         // Start is called before the first frame update
-        void Start()
+        void Awake()
         {
             _actors = new List<Actor>();
 
