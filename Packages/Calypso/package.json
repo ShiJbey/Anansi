@@ -2,8 +2,11 @@
     "name": "io.github.shijbey.calypso",
     "version": "0.0.1",
     "displayName": "Calypso",
-    "description": "Tool for simulating character social relationships",
+    "description": "Create simulation-driven visual novels in Unity",
     "unity": "2022.1",
+    "documentationUrl": "https://github.com/ShiJbey/Calypso/wiki",
+    "changelogUrl": "https://github.com/ShiJbey/Calypso/blob/main/CHANGELOG.md",
+    "licensesUrl": "https://github.com/ShiJbey/Calypso/blob/main/LICENSE.md",
     "keywords": [
         "Social Simulation",
         "AI",

@@ -13,8 +13,12 @@ namespace Calypso
     /// </summary>
     public class DialogueManager : MonoBehaviour
     {
+        #region Fields
         [SerializeField]
         private TMP_Text _dialogText;
+
+        [SerializeField]
+        private GameObject _dialoguePanel;
 
         [SerializeField]
         private TMP_Text _speakerName;
@@ -34,6 +38,9 @@ namespace Calypso
         [SerializeField]
         private List<TextStyle> _textStyles = new List<TextStyle>();
 
+        [SerializeField]
+        private Image _backgroundImage;
+
         /// <summary>
         /// A copy of the textStyles list indexed by name
         /// </summary>
@@ -43,7 +50,14 @@ namespace Calypso
         /// The current conversation presented to the player
         /// </summary>
         private Conversation _currentConversation;
+        #endregion
 
+        #region Actions and Events
+        public static UnityAction OnConversationStart;
+        public static UnityAction OnConversationEnd;
+        #endregion
+
+        #region Unity Lifecycle Methods
         private void Awake()
         {
             foreach (var textStyle in _textStyles)
@@ -51,12 +65,33 @@ namespace Calypso
                 _textStylesDictionary[textStyle.name] = textStyle;
             }
         }
+        #endregion
 
         public void StartConversation(Conversation conversation)
         {
+            OnConversationStart?.Invoke();
+            ShowDialoguePanel();
             Debug.Log($"Started conversation ({conversation.ID}) with {conversation.Speaker.DisplayName}.");
             _currentConversation = conversation;
             AdvanceDialogue();
+        }
+
+        public void EndConversation()
+        {
+            Debug.Log($"Started conversation ({_currentConversation.ID}) with {_currentConversation.Speaker.DisplayName}.");
+            _currentConversation = null;
+            HideDialoguePanel();
+            OnConversationEnd?.Invoke();
+        }
+
+        /// <summary>
+        /// Returns true if we are at the end of the dialogue
+        /// </summary>
+        /// <returns></returns>
+        public bool AtDialogueEnd()
+        {
+            var hasChoices = _currentConversation.Story.currentChoices.Count > 0;
+            return !hasChoices && !_currentConversation.Story.canContinue;
         }
 
         /// <summary>
@@ -69,6 +104,13 @@ namespace Calypso
             {
                 return false;
             }
+
+            if (AtDialogueEnd())
+            {
+                // Yes, this means we have reached the end of the convo
+                return true;
+            }
+
             return _currentConversation.Story.canContinue;
         }
 
@@ -109,7 +151,11 @@ namespace Calypso
         /// </summary>
         public void AdvanceDialogue()
         {
-            if (CanAdvanceDialogue())
+            if (AtDialogueEnd())
+            {
+                EndConversation();
+            }
+            else if (CanAdvanceDialogue())
             {
                 string text = _currentConversation.Story.Continue(); // gets next line
 
@@ -265,6 +311,21 @@ namespace Calypso
 
             var sprite = _currentConversation.Speaker.GetSprite(name);
             _speakerSprite.sprite = sprite;
+        }
+
+        public void HideDialoguePanel()
+        {
+            _dialoguePanel.SetActive(false);
+        }
+
+        public void ShowDialoguePanel()
+        {
+            _dialoguePanel.SetActive(true);
+        }
+
+        public void SetBackground(Sprite image)
+        {
+            _backgroundImage.sprite = image;
         }
     }
 

@@ -20,6 +20,8 @@ namespace Calypso.Unity
 
             foreach(var actor in gameObject.GetComponentsInChildren<Actor>())
             {
+                if (actor.name.Equals("Player")) continue;
+
                 _actors.Add(actor);
                 Debug.Log($"Added {actor.DisplayName} to the CharacterGroup.");
             }

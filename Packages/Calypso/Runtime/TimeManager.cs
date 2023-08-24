@@ -43,7 +43,7 @@ namespace Calypso.Unity
         public SimDateTime Date { get { return new SimDateTime(_date); } }
         #endregion
 
-        #region Actions
+        #region Actions and Events
         public static UnityAction<SimDateTime> OnTimeChanged;
         #endregion
 
