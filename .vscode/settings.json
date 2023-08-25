@@ -1,3 +1,14 @@
 {
-    "dotnet.defaultSolution": "Calypso.sln"
+    "dotnet.defaultSolution": "Calypso.sln",
+    "files.exclude": {
+        ".vs": true,
+        ".vsconfig": true,
+        "**/*.meta": true,
+        "Library/": true,
+        "Logs/": true,
+        "obj/": true,
+        "ProjectSettings/": true,
+        "Temp/": true,
+        "UserSettings/": true
+    }
 }

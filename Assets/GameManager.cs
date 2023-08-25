@@ -23,13 +23,25 @@ namespace Calypso
 
         [SerializeField]
         private Calypso.Unity.Actor _player;
+
+        private Calypso.Unity.Actor _displayedCharacter;
         #endregion
 
         #region Actions and Events
         public static UnityAction<Unity.Location> OnPlayerLocationChanged;
         #endregion
 
-        #region Unity Lifecylce Methods
+        #region Unity Lifecycle Methods
+        private void OnEnable()
+        {
+            DialogueManager.OnConversationEnd += ClearDisplayedCharacter;
+        }
+
+        private void OnDisable()
+        {
+            DialogueManager.OnConversationEnd -= ClearDisplayedCharacter;
+        }
+
         private void Awake()
         {
             _timeManager = GetComponent<TimeManager>();
@@ -42,30 +54,42 @@ namespace Calypso
             _player.OnLocationChanged += (location) =>
             {
                 Debug.Log($"Player moved to location, {location.DisplayName}");
-                UpdateBackgroundImage(location);
+                _dialogueManager.SetBackground(location.GetCurrentBackground());
                 OnPlayerLocationChanged?.Invoke(location);
+
+                // Select character they could talk to
+                var character = SelectDisplayedActor(location);
+
+                if (character == null) return;
+
+                _dialogueManager.ShowCharacter(character);
+
+                _displayedCharacter = character;
+
+                var conversation = character.GetComponent<ConversationManager>().SelectConversation(_storyDatabase);
+
+                _dialogueManager.StartConversation(conversation);
             };
         }
 
-        // Start is called before the first frame update
-        void Start()
+        private void Update()
         {
-            // TESTING CODE
-            // Select a character at random and initiate a conversation
-
-            int selectedIndex = UnityEngine.Random.Range(0, _actors.Actors.Count);
-            var selectedActor = _actors.Actors[selectedIndex];
-
-            var conversation = selectedActor.GetComponent<ConversationManager>().SelectConversation(_storyDatabase);
-
-            _dialogueManager.StartConversation(conversation);
-        }
-
-        private void FixedUpdate()
-        {
-            if (Input.GetKeyUp(KeyCode.Space))
+            if (_displayedCharacter == null)
             {
-                _timeManager.AdvanceTime();
+                if (Input.GetKeyDown(KeyCode.C))
+                {
+                    var character = SelectDisplayedActor(_player.Location);
+
+                    if (character == null) return;
+
+                    _dialogueManager.ShowCharacter(character);
+
+                    _displayedCharacter = character;
+
+                    var conversation = character.GetComponent<ConversationManager>().SelectConversation(_storyDatabase);
+
+                    _dialogueManager.StartConversation(conversation);
+                }
             }
         }
         #endregion
@@ -90,9 +114,10 @@ namespace Calypso
             return selectedActor;
         }
 
-        private void UpdateBackgroundImage(Unity.Location location)
+        private void ClearDisplayedCharacter()
         {
-            _dialogueManager.SetBackground(location.GetCurrentBackground());
+            _dialogueManager.HideCharacter();
+            _displayedCharacter = null;
         }
     }
 }

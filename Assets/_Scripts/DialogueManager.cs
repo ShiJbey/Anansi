@@ -67,6 +67,7 @@ namespace Calypso
         }
         #endregion
 
+        #region Dialogue Management Methods
         public void StartConversation(Conversation conversation)
         {
             OnConversationStart?.Invoke();
@@ -78,7 +79,9 @@ namespace Calypso
 
         public void EndConversation()
         {
-            Debug.Log($"Started conversation ({_currentConversation.ID}) with {_currentConversation.Speaker.DisplayName}.");
+            Debug.Log(
+                $"Started conversation ({_currentConversation.ID}) with {_currentConversation.Speaker.DisplayName}.");
+            _currentConversation.Story.ResetState();
             _currentConversation = null;
             HideDialoguePanel();
             OnConversationEnd?.Invoke();
@@ -107,43 +110,11 @@ namespace Calypso
 
             if (AtDialogueEnd())
             {
-                // Yes, this means we have reached the end of the convo
+                // Yes, this means we have reached the end of the conversation
                 return true;
             }
 
             return _currentConversation.Story.canContinue;
-        }
-
-        /// <summary>
-        /// Display the current choices available to the player
-        /// </summary>
-        private bool DisplayChoices()
-        {
-            // checks if choices are already being displayed
-            if (_choiceButtonContainer.GetComponentsInChildren<Button>().Length > 0)
-            {
-                Debug.Log("Choices already displayed.");
-                return false;
-            }
-
-            ShowChoicePanel();
-
-            for (int i = 0; i < _currentConversation.Story.currentChoices.Count; i++) // iterates through all choices
-            {
-                var choice = _currentConversation.Story.currentChoices[i];
-                Debug.Log(choice.text);
-                var button = AddChoice(choice.text, () => OnClickChoiceButton(choice)); // creates a choice button
-            }
-
-            return true;
-        }
-
-        void OnClickChoiceButton(Choice choice)
-        {
-            _currentConversation.Story.ChooseChoiceIndex(choice.index); // tells ink which choice was selected
-            ClearChoices(); // removes choices from the screen
-            HideChoicePanel();
-            AdvanceDialogue();
         }
 
         /// <summary>
@@ -177,7 +148,7 @@ namespace Calypso
                         continue;
                     }
                 }
-                
+
                 SetDialogText(text, style);
 
                 if (_currentConversation.Story.currentChoices.Count > 0)
@@ -189,6 +160,74 @@ namespace Calypso
             {
                 DisplayChoices();
             }
+        }
+        #endregion
+
+        #region Character Sprite Methods
+        /// <summary>
+        /// Display the speaker's sprite
+        /// </summary>
+        public void ShowCharacter(Unity.Actor actor)
+        {
+            _speakerSprite.sprite = actor.Sprite;
+            _speakerSprite.gameObject.SetActive(true);
+        }
+
+        /// <summary>
+        /// Hide the speaker's sprite
+        /// </summary>
+        public void HideCharacter()
+        {
+            _speakerSprite.sprite = null;
+            _speakerSprite.gameObject.SetActive(false);
+        }
+        #endregion
+
+        #region Dialog HUD Methods
+        /// <summary>
+        /// Hide the dialog box
+        /// </summary>
+        public void HideDialoguePanel()
+        {
+            _dialoguePanel.SetActive(false);
+        }
+
+        /// <summary>
+        /// Display the dialog box
+        /// </summary>
+        public void ShowDialoguePanel()
+        {
+            _dialoguePanel.SetActive(true);
+        }
+
+        /// <summary>
+        /// Display the current choices available to the player
+        /// </summary>
+        private bool DisplayChoices()
+        {
+            // checks if choices are already being displayed
+            if (_choiceButtonContainer.GetComponentsInChildren<Button>().Length > 0)
+            {
+                Debug.Log("Choices already displayed.");
+                return false;
+            }
+
+            ShowChoicePanel();
+
+            for (int i = 0; i < _currentConversation.Story.currentChoices.Count; i++) // iterates through all choices
+            {
+                var choice = _currentConversation.Story.currentChoices[i];
+                Debug.Log(choice.text);
+                var button = AddChoice(choice.text, () =>
+                {
+                    _currentConversation.Story.ChooseChoiceIndex(choice.index); // tells ink which choice was selected
+                    ClearChoices(); // removes choices from the screen
+                    HideChoicePanel();
+                    AdvanceDialogue();
+                }); // creates a choice button
+            }
+
+            return true;
         }
 
         /// <summary>
@@ -214,7 +253,7 @@ namespace Calypso
         }
 
         /// <summary>
-        /// Destory all current choice buttons
+        /// Destroy all current choice buttons
         /// </summary>
         public void ClearChoices()
         {
@@ -247,7 +286,7 @@ namespace Calypso
         /// <param name="style"></param>
         public void SetDialogText(string text, string style = "default")
         {
-            SetTextStyle(style); 
+            SetTextStyle(style);
             _dialogText.text = text;
         }
 
@@ -266,7 +305,7 @@ namespace Calypso
             else
             {
                 Debug.LogWarning(
-                    $"Uknown text style '{styleName}'. Reverting to defaults.");
+                    $"Unknown text style '{styleName}'. Reverting to defaults.");
                 _dialogText.fontStyle = FontStyles.Normal;
                 _dialogText.color = Color.white;
             }
@@ -280,53 +319,18 @@ namespace Calypso
         {
             _speakerName.text = name;
         }
+        #endregion
 
+        #region Background Image Methods
         /// <summary>
-        /// Display the speaker's sprite
+        /// Set the displayed background image
         /// </summary>
-        public void ShowSpeaker()
-        {
-            _speakerSprite.gameObject.SetActive(true);
-        }
-
-        /// <summary>
-        /// Hide the speaker's sprite
-        /// </summary>
-        public void HideSpeaker()
-        {
-            _speakerSprite.gameObject.SetActive(false);
-        }
-
-        /// <summary>
-        /// Set the speaker sprite for the current conversation
-        /// </summary>
-        /// <param name="name"></param>
-        public void SetSpeakerSprite(string name)
-        {
-            if (_currentConversation == null)
-            {
-                Debug.LogError("Cannot set speaker sprite. No active conversation.");
-                return;
-            }
-
-            var sprite = _currentConversation.Speaker.GetSprite(name);
-            _speakerSprite.sprite = sprite;
-        }
-
-        public void HideDialoguePanel()
-        {
-            _dialoguePanel.SetActive(false);
-        }
-
-        public void ShowDialoguePanel()
-        {
-            _dialoguePanel.SetActive(true);
-        }
-
+        /// <param name="image"></param>
         public void SetBackground(Sprite image)
         {
             _backgroundImage.sprite = image;
         }
+        #endregion
     }
 
     [System.Serializable]
