@@ -5,7 +5,8 @@
         "github.shijbey.calypso.Runtime",
         "github.shijbey.calypso.Editor",
         "UnityEngine.TestRunner",
-        "UnityEditor.TestRunner"
+        "UnityEditor.TestRunner",
+        "RePraxis"
     ],
     "includePlatforms": [
         "Editor"

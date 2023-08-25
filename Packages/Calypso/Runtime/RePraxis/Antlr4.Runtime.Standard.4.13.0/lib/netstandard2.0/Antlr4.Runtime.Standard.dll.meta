@@ -1,7 +1,5 @@
 fileFormatVersion: 2
-guid: 16023132fb7491f47a9691a4902da6dc
-labels:
-- NuGetForUnity
+guid: 3fd358a048bcb064a89fa3d233524fe6
 PluginImporter:
   externalObjects: {}
   serializedVersion: 2
@@ -9,7 +7,7 @@ PluginImporter:
   executionOrder: {}
   defineConstraints: []
   isPreloaded: 0
-  isOverridable: 0
+  isOverridable: 1
   isExplicitlyReferenced: 0
   validateReferences: 1
   platformData:
@@ -18,6 +16,18 @@ PluginImporter:
     second:
       enabled: 1
       settings: {}
+  - first:
+      Editor: Editor
+    second:
+      enabled: 0
+      settings:
+        DefaultValueInitialized: true
+  - first:
+      Windows Store Apps: WindowsStoreApps
+    second:
+      enabled: 0
+      settings:
+        CPU: AnyCPU
   userData: 
   assetBundleName: 
   assetBundleVariant: 

@@ -1,9 +1,7 @@
 {
-    "name": "github.shijbey.calypso.Runtime",
+    "name": "RePraxis",
     "rootNamespace": "",
-    "references": [
-        "GUID:4983da87e61fe4446837efd8326cc321"
-    ],
+    "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
