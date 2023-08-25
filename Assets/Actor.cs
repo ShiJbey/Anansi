@@ -8,29 +8,47 @@ namespace Calypso.Unity
     public class Actor : MonoBehaviour
     {
         #region Fields
+
+        [Header("Identifier Information")]
         [SerializeField]
         private string _displayName;
 
         [SerializeField]
         private string _uniqueID;
 
+        [Space(5)]
+        [Header("Mood")]
         [SerializeField]
-        private List<ActorSprite> _sprites = new List<ActorSprite>();
+        private CharacterMood _mood = CharacterMood.Neutral;
 
+        [Space(5)]
+        [Header("Positioning")]
         [SerializeField]
         private Location _startingLocation;
 
         // Set within Start method
         private Location _currentLocation;
 
+        [Space(5)]
+        [Header("Sprite Settings")]
+        [SerializeField]
+        private string _spriteSet = "default";
+
+        [SerializeField]
+        private List<CharacterSpriteSet> _sprites;
+
+        private Sprite _currentSprite;
+
         // Filled within start using sprites provided in the inspector
-        private Dictionary<string, ActorSprite> _spriteDictionary = new Dictionary<string, ActorSprite>();
+        private Dictionary<string, Dictionary<CharacterMood, Sprite>> _spriteDictionary =
+            new Dictionary<string, Dictionary<CharacterMood, Sprite>>();
         #endregion
 
         #region Properties
-        public string DisplayName { get { return _displayName; } }
-
-        public string UniqueID { get { return _uniqueID;} }
+        public string DisplayName => _displayName;
+        public string UniqueID => _uniqueID;
+        public Sprite Sprite => _currentSprite;
+        public Unity.Location Location => _currentLocation;
         #endregion
 
         #region Actions and Events
@@ -40,9 +58,16 @@ namespace Calypso.Unity
         #region Unity Lifecycle Methods
         private void Awake()
         {
-            foreach(var sprite in _sprites)
+            foreach (var spriteSet in _sprites)
             {
-                _spriteDictionary[sprite.name] = sprite;
+                var moodDict = new Dictionary<CharacterMood, Sprite>();
+
+                foreach (var entry in spriteSet.sprites)
+                {
+                    moodDict[entry.mood] = entry.sprite;
+                }
+
+                _spriteDictionary[spriteSet.name] = moodDict;
             }
         }
 
@@ -52,20 +77,13 @@ namespace Calypso.Unity
             {
                 MoveToLocation(_startingLocation);
             }
+
+            SetSpriteSet(_spriteSet);
+            SetMood(_mood);
         }
         #endregion
 
         #region Methods
-        /// <summary>
-        /// Get the Sprite mapped to the given name
-        /// </summary>
-        /// <param name="name"></param>
-        /// <returns></returns>
-        public Sprite GetSprite(string name)
-        {
-            return _spriteDictionary[name].sprite;
-        }
-
         /// <summary>
         /// Move an Actor to a new location.
         /// </summary>
@@ -73,7 +91,7 @@ namespace Calypso.Unity
         public void MoveToLocation(Location location)
         {
             // Remove the character from their current location if they have one
-            if (_currentLocation !=  null)
+            if (_currentLocation != null)
             {
                 _currentLocation.RemoveActor(this);
             }
@@ -87,14 +105,71 @@ namespace Calypso.Unity
 
             OnLocationChanged?.Invoke(location);
         }
+
+        /// <summary>
+        /// Set the character's current mood and update their sprite
+        /// </summary>
+        /// <param name="mood"></param>
+        public void SetMood(CharacterMood mood)
+        {
+            _mood = mood;
+
+            if (_spriteDictionary[_spriteSet].ContainsKey(mood))
+            {
+                _currentSprite = _spriteDictionary[_spriteSet][mood];
+            }
+            else
+            {
+                Debug.LogError(
+                    $"Cannot find sprite for '{mood}' in set '{_spriteSet}'.");
+            }
+        }
+
+        /// <summary>
+        /// Set the current sprite set used by the character
+        /// </summary>
+        /// <param name="name"></param>
+        public void SetSpriteSet(string name)
+        {
+            if (_spriteDictionary.ContainsKey(name))
+            {
+                _spriteSet = name;
+                _currentSprite = _spriteDictionary[name][_mood];
+            }
+            else
+            {
+                Debug.LogError(
+                    $"Cannot find sprite set for '{name}'.");
+            }
+        }
         #endregion
     }
 
     [System.Serializable]
-    public struct ActorSprite
+    public struct CharacterSpriteSet
     {
         public string name;
+        public List<CharacterSprite> sprites;
+    }
+
+    [System.Serializable]
+    public struct CharacterSprite
+    {
+        public CharacterMood mood;
         public Sprite sprite;
+    }
+
+    public enum CharacterMood
+    {
+        Neutral = 0,
+        Smiling = 1,
+        Scowling = 2,
+        Sad = 3,
+        Surprised = 4,
+        Blushing = 5,
+        Angry = 6,
+        Laughing = 7,
+        Embarrassed = 8
     }
 }
 
