@@ -4,29 +4,34 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Calypso
+namespace Calypso.RePraxis
 {
     /// <summary>
     /// Returned by DBQueries indicating if they passed/failed
     /// </summary>
     public class QueryResult
     {
-        
+        #region Fields
         private bool _pass;
         private Dictionary<string, string>[] _bindings;
+        #endregion
 
+        #region Properties
         /// <summary>
         /// Did all statements in the query pass or evaluate to true
         /// </summary>
-        public bool Success { get {  return _pass; } set { _pass = value; } }
+        public bool Success { get { return _pass; } set { _pass = value; } }
 
         /// <summary>
         /// Bindings for any variables present in the query
         /// </summary>
-        public Dictionary<string, string>[] Bindings { 
+        public Dictionary<string, string>[] Bindings
+        {
             get { return _bindings; }
         }
+        #endregion
 
+        #region Constructors
         public QueryResult(bool pass, IEnumerable<Dictionary<string, string>> bindings)
         {
             _pass = pass;
@@ -34,7 +39,9 @@ namespace Calypso
         }
 
         public QueryResult() : this(true, new Dictionary<string, string>[0]) { }
+        #endregion
 
+        #region Methods
         /// <summary>
         /// Set the new bindings value
         /// </summary>
@@ -51,6 +58,7 @@ namespace Calypso
         {
             _bindings = new Dictionary<string, string>[0];
         }
+        #endregion
     }
 
     /// <summary>
@@ -62,12 +70,15 @@ namespace Calypso
     /// </para>
     /// </summary>
     public class DBQuery
-    {   
+    {
+        #region Fields
         /// <summary>
-        /// 'Where' expressions containted within this query
+        /// 'Where' expressions contained within this query
         /// </summary>
         private string[] _expressions;
+        #endregion
 
+        #region Constructors
         public DBQuery(IEnumerable<string> expressions)
         {
             _expressions = expressions.ToArray();
@@ -77,7 +88,9 @@ namespace Calypso
         {
             _expressions = new string[0];
         }
+        #endregion
 
+        #region Methods
         /// <summary>
         /// Adds a new expression to the query
         /// </summary>
@@ -101,7 +114,7 @@ namespace Calypso
         /// any variables within the query, it returns all valid bindings for those
         /// variables as an array of dictionaries.
         /// </returns>
-        public QueryResult Run(StoryDatabase db)
+        public QueryResult Run(RePraxisDatabase db)
         {
             var combined_expressions = string.Join("\n", _expressions);
             var input = new AntlrInputStream(combined_expressions);
@@ -113,103 +126,9 @@ namespace Calypso
             queryParser.Visit(parseTree);
             return queryParser.Result;
         }
-    }
+        #endregion
 
-
-    /// <summary>
-    /// Used internally to track bindings for a single sentence and the database.
-    /// </summary>
-    struct BindingContext
-    {
-        Dictionary<string, string> _binding;
-        DBNode _subtree;
-
-        public Dictionary<string, string> Binding { get { return _binding; } }
-        public DBNode SubTree { get { return _subtree; } }
-
-        public BindingContext(Dictionary<string, string> binding, DBNode subtree)
-        {
-            _binding = binding;
-            _subtree = subtree;
-        }
-
-        public BindingContext(DBNode subtree) : this(new Dictionary<string, string>(), subtree) { }
-    }
-
-    /// <summary>
-    /// Evaluates a parse tree of a query and produces the final query result
-    /// </summary>
-    public class QueryParser : RePraxisBaseVisitor<QueryResult>
-    {
-        private StoryDatabase _db;
-        private QueryResult _result;
-
-        public QueryResult Result { get { return _result; } }  
-
-        public QueryParser(StoryDatabase db)
-        {
-            _db = db;
-            _result = new QueryResult();
-        }
-
-        public override QueryResult VisitAssertionExpr([NotNull] RePraxisParser.AssertionExprContext context)
-        {
-            var sentence = context.sentence().GetText();
-
-            // Exit early if we already know the query has failed
-            if (_result.Success == false) return _result;
-            
-            // Generate new bindings for any variables in the sentence
-            var bindings = UnifyAll(new string[] { sentence });
-
-            // Store if the sentence has variables
-            var sentenceHasVariables = HasVariables(sentence);
-
-            // If the sentence has variables and no bindings were returned
-            // then this query has failed
-            if (bindings.Count() == 0 && sentenceHasVariables == true)
-            {
-                _result.Success = false;
-                _result.ClearBindings();
-                return _result;
-            }
-
-            // If the sentence does not have variables then just check 
-            // if the value in the database is Truthy
-            if (bindings.Count() == 0 && sentenceHasVariables == false) {
-                _result.Success = Convert.ToBoolean(_db[sentence]);
-                if (_result.Success == false)
-                {
-                    _result.ClearBindings();
-                }
-                return _result;
-            }
-
-            // If any bindings were returned filter them for ones whose
-            // bound sentences are mapped to Truthy values
-            if (bindings.Count() > 0) 
-            {
-                var filteredBindings = bindings
-                    .Where((binding) =>
-                    {
-                        return Convert.ToBoolean(_db[BindSentence(sentence, binding)]);
-                    });
-
-                if (filteredBindings.Count() == 0)
-                {
-                    _result.Success = false;
-                    _result.ClearBindings();
-                } else
-                {
-                    _result.UpdateBindings(filteredBindings.ToArray());
-                }
-
-                return _result;
-            }
-            
-            return _result;
-        }
-
+        #region Helper Methods
         /// <summary>
         /// Creates a new sentence by binding variables to entries within the bindings.
         /// </summary>
@@ -218,7 +137,7 @@ namespace Calypso
         /// <returns></returns>
         public static string BindSentence(string sentence, Dictionary<string, string> bindings)
         {
-            var tokens = StoryDatabase.ParseSentence(sentence);
+            var tokens = RePraxisDatabase.ParseSentence(sentence);
             var finalSentence = "";
 
             for (int i = 0; i < tokens.Length; ++i)
@@ -236,13 +155,230 @@ namespace Calypso
 
                 if (i < tokens.Length - 1)
                 {
-                    finalSentence += (token.isExclusive ? "!" : ".");
+                    finalSentence += token.isExclusive ? "!" : ".";
                 }
             }
 
             return finalSentence;
         }
+        #endregion
+    }
 
+    /// <summary>
+    /// Used internally to track bindings for a single sentence and the database.
+    /// </summary>
+    struct BindingContext
+    {
+        #region Fields
+        private Dictionary<string, string> _binding;
+        private DBNode _subtree;
+        #endregion
+
+        #region Properties
+        public Dictionary<string, string> Binding { get { return _binding; } }
+        public DBNode SubTree { get { return _subtree; } }
+        #endregion
+
+        #region Constructors
+        public BindingContext(Dictionary<string, string> binding, DBNode subtree)
+        {
+            _binding = binding;
+            _subtree = subtree;
+        }
+
+        public BindingContext(DBNode subtree) : this(new Dictionary<string, string>(), subtree) { }
+        #endregion
+    }
+
+    /// <summary>
+    /// Evaluates a parse tree of a query and produces the final query result
+    /// </summary>
+    class QueryParser : RePraxisBaseVisitor<QueryResult>
+    {
+        #region Fields
+        private RePraxisDatabase _db;
+        private QueryResult _result;
+        #endregion
+
+        #region Properties
+        public QueryResult Result { get { return _result; } }
+        #endregion
+
+        #region Constructors
+        public QueryParser(RePraxisDatabase db)
+        {
+            _db = db;
+            _result = new QueryResult();
+        }
+        #endregion
+
+        #region Visitor Method Overrides
+        public override QueryResult VisitAssertionExpr([NotNull] RePraxisParser.AssertionExprContext context)
+        {
+            var sentence = context.sentence().GetText();
+
+            // Exit early if we already know the query has failed
+            if (_result.Success == false) return _result;
+
+            // Generate new bindings for any variables in the sentence
+            var bindings = UnifyAll(new string[] { sentence });
+
+            // Store if the sentence has variables
+            var sentenceHasVariables = HasVariables(sentence);
+
+            // If the sentence has variables and no bindings were returned
+            // then this query has failed
+            if (bindings.Count() == 0 && sentenceHasVariables == true)
+            {
+                _result.Success = false;
+                _result.ClearBindings();
+                return _result;
+            }
+
+            // If the sentence does not have variables then just check 
+            // if the value in the database is Truthy
+            if (bindings.Count() == 0 && sentenceHasVariables == false)
+            {
+                _result.Success = Convert.ToBoolean(_db[sentence]);
+                if (_result.Success == false)
+                {
+                    _result.ClearBindings();
+                }
+                return _result;
+            }
+
+            // If any bindings were returned filter them for ones whose
+            // bound sentences are mapped to Truthy values
+            if (bindings.Count() > 0)
+            {
+                var filteredBindings = bindings
+                    .Where((binding) =>
+                    {
+                        return Convert.ToBoolean(_db[DBQuery.BindSentence(sentence, binding)]);
+                    });
+
+                if (filteredBindings.Count() == 0)
+                {
+                    _result.Success = false;
+                    _result.ClearBindings();
+                }
+                else
+                {
+                    _result.UpdateBindings(filteredBindings.ToArray());
+                }
+
+                return _result;
+            }
+
+            return _result;
+        }
+
+        public override QueryResult VisitRelationalExpr([NotNull] RePraxisParser.RelationalExprContext context)
+        {
+            var sentence = context.sentence(0).GetText();
+            var op = context.RELATIONAL_SYMBOL().GetText();
+
+            if (_result.Success == false) return _result;
+
+
+            if (context.constant() != null)
+            {
+                // We are comparing against a constant
+
+                var value = ParseConstant(context.constant());
+
+                var bindings = UnifyAll(new string[] { sentence });
+
+                if (bindings.Count() == 0 && HasVariables(sentence))
+                {
+                    _result.Success = false;
+                    _result.ClearBindings();
+                }
+                else if (bindings.Count() == 0 && HasVariables(sentence) == false)
+                {
+                    _result.Success = EvaluateRelation(_db[sentence], op, value);
+                    if (_result.Success == false)
+                    {
+                        _result.ClearBindings();
+                    }
+                }
+                else if (bindings.Count() > 0)
+                {
+                    var filteredBindings = bindings
+                        .Where((binding) =>
+                        {
+                            return EvaluateRelation(_db[DBQuery.BindSentence(sentence, binding)], op, value);
+                        });
+
+                    if (filteredBindings.Count() == 0)
+                    {
+                        _result.Success = false;
+                        _result.ClearBindings();
+                    }
+                    else
+                    {
+                        _result.UpdateBindings(filteredBindings.ToArray());
+                    }
+                }
+                else
+                {
+                    _result.Success = false;
+                    _result.ClearBindings();
+                }
+            }
+            else
+            {
+                // We are comparing against the value at another sentence
+                var other_sentence = context.sentence(1).GetText();
+
+                var bindings = UnifyAll(new string[] { sentence, other_sentence });
+
+                if (bindings.Count() == 0 && (HasVariables(sentence) || HasVariables(other_sentence)))
+                {
+                    _result.Success = false;
+                    _result.ClearBindings();
+                }
+                else if (bindings.Count() == 0 && HasVariables(sentence) == false && HasVariables(other_sentence) == false)
+                {
+                    _result.Success = EvaluateRelation(_db[sentence], op, _db[other_sentence]);
+                    if (_result.Success == false)
+                    {
+                        _result.ClearBindings();
+                    }
+                }
+                else if (bindings.Count() > 0)
+                {
+                    var filteredBindings = bindings
+                        .Where((binding) =>
+                        {
+                            return EvaluateRelation(
+                                _db[DBQuery.BindSentence(sentence, binding)],
+                                op,
+                                _db[DBQuery.BindSentence(other_sentence, binding)]);
+                        });
+
+                    if (filteredBindings.Count() == 0)
+                    {
+                        _result.Success = false;
+                        _result.ClearBindings();
+                    }
+                    else
+                    {
+                        _result.UpdateBindings(filteredBindings.ToArray());
+                    }
+                }
+                else
+                {
+                    _result.Success = false;
+                    _result.ClearBindings();
+                }
+            }
+
+            return _result;
+        }
+        #endregion
+
+        #region Helper Methods
         public object ParseConstant([NotNull] RePraxisParser.ConstantContext context)
         {
             if (context.NULL() != null)
@@ -275,7 +411,7 @@ namespace Calypso
         {
             if (rhValue == null)
             {
-                switch(op)
+                switch (op)
                 {
                     case "==":
                         return lhValue == null;
@@ -286,7 +422,7 @@ namespace Calypso
                 }
             }
             else if (rhValue is bool)
-            {   
+            {
                 switch (op)
                 {
                     case "==":
@@ -355,116 +491,13 @@ namespace Calypso
             }
         }
 
-        public override QueryResult VisitRelationalExpr([NotNull] RePraxisParser.RelationalExprContext context)
-        {
-            var sentence = context.sentence(0).GetText();
-            var op = context.RELATIONAL_SYMBOL().GetText();
-
-            if (_result.Success == false) return _result;
-
-
-            if (context.constant() != null)
-            {
-                // We are comparing against a constant
-
-                var value = ParseConstant(context.constant());
-
-                var bindings = UnifyAll(new string[] { sentence });
-
-                if (bindings.Count() == 0 && HasVariables(sentence))
-                {
-                    _result.Success = false;
-                    _result.ClearBindings();
-                }
-                else if (bindings.Count() == 0 && HasVariables(sentence) == false)
-                {
-                    _result.Success = EvaluateRelation(_db[sentence], op, value);
-                    if (_result.Success == false)
-                    {
-                        _result.ClearBindings();
-                    }
-                }
-                else if(bindings.Count() > 0)
-                {
-                    var filteredBindings = bindings
-                        .Where((binding) =>
-                        {
-                            return EvaluateRelation(_db[BindSentence(sentence, binding)], op, value);
-                        });
-
-                    if (filteredBindings.Count() == 0)
-                    {
-                        _result.Success = false;
-                        _result.ClearBindings();
-                    }
-                    else
-                    {
-                        _result.UpdateBindings(filteredBindings.ToArray());
-                    }
-                }
-                else
-                {
-                    _result.Success = false;
-                    _result.ClearBindings();
-                }
-            }
-            else
-            {
-                // We are comparing against the value at another sentence
-                var other_sentence = context.sentence(1).GetText();
-
-                var bindings = UnifyAll(new string[] { sentence, other_sentence });
-
-                if (bindings.Count() == 0 && (HasVariables(sentence) || HasVariables(other_sentence)))
-                {
-                    _result.Success = false;
-                    _result.ClearBindings();
-                }
-                else if (bindings.Count() == 0 && HasVariables(sentence) == false && HasVariables(other_sentence) == false)
-                {
-                    _result.Success = EvaluateRelation(_db[sentence], op, _db[other_sentence]);
-                    if (_result.Success == false)
-                    {
-                        _result.ClearBindings();
-                    }
-                }
-                else if (bindings.Count() > 0)
-                {
-                    var filteredBindings = bindings
-                        .Where((binding) =>
-                        {
-                            return EvaluateRelation(
-                                _db[BindSentence(sentence, binding)],
-                                op,
-                                _db[BindSentence(other_sentence, binding)]);
-                        });
-
-                    if (filteredBindings.Count() == 0)
-                    {
-                        _result.Success = false;
-                        _result.ClearBindings();
-                    }
-                    else
-                    {
-                        _result.UpdateBindings(filteredBindings.ToArray());
-                    }
-                }
-                else
-                {
-                    _result.Success = false;
-                    _result.ClearBindings();
-                }
-            }
-
-            return _result;
-        }
-
         private static bool HasVariables(string sentence)
         {
-            return StoryDatabase.ParseSentence(sentence).Where(t => t.type == TokenType.Variable).Count() > 0;
+            return RePraxisDatabase.ParseSentence(sentence).Where(t => t.type == TokenType.Variable).Count() > 0;
         }
+        #endregion
 
-
+        #region Unification Methods
         /// <summary>
         /// Generates potential bindings from the database for a single sentence
         /// 
@@ -480,7 +513,7 @@ namespace Calypso
                 new BindingContext(_db.Root)
             };
 
-            var tokens = StoryDatabase.ParseSentence(sentence);
+            var tokens = RePraxisDatabase.ParseSentence(sentence);
 
             foreach (var token in tokens)
             {
@@ -518,9 +551,9 @@ namespace Calypso
                 .Where(binding => binding.Count() > 0)
                 .ToList();
         }
-        
+
         /// <summary>
-        /// Generates potential bindings from the database unifying accross all sentences.
+        /// Generates potential bindings from the database unifying across all sentences.
         /// 
         /// This method takes into consideration the bindings from the current results.
         /// </summary>
@@ -583,5 +616,6 @@ namespace Calypso
 
             return possibleBindings.Where(bindings => bindings.Count() > 0).ToList();
         }
+        #endregion
     }
 }

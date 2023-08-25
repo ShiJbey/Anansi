@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 using System;
+using Calypso.RePraxis;
 
 namespace Calypso
 {
@@ -21,7 +22,7 @@ namespace Calypso
         /// <summary>
         /// Conversation objects constructed when the game starts
         /// </summary>
-        private List<Conversation> _converstations = new List<Conversation>();
+        private List<Conversation> _conversations = new List<Conversation>();
 
 
         void Awake()
@@ -39,7 +40,7 @@ namespace Calypso
             foreach (var script in _conversationScripts)
             {
                 var conversation = Conversation.FromInkScript(speaker, script);
-                _converstations.Add(conversation);
+                _conversations.Add(conversation);
                 Debug.Log($"Created conversation '{conversation.ID}' for {speaker.DisplayName}.");
             }
         }
@@ -48,10 +49,10 @@ namespace Calypso
         /// Randomly choose a conversation and return it
         /// </summary>
         /// <returns></returns>
-        public Conversation SelectConversation(StoryDatabase db)
+        public Conversation SelectConversation(RePraxisDatabase db)
         {
             // Select a random conversation
-            var selectedConversation  = _converstations.Select((c) =>
+            var selectedConversation = _conversations.Select((c) =>
                 {
                     var queryResult = c.PreconditionQuery.Run(db);
                     return Tuple.Create(c, queryResult);
@@ -68,9 +69,10 @@ namespace Calypso
         }
     }
 
-    public class Conversation {
+    public class Conversation
+    {
 
-        
+
         private Story _story;
         private int _weight;
         private string _id;
@@ -83,14 +85,14 @@ namespace Calypso
         public int Weight { get { return _weight; } }
 
         /// <summary>
-        /// A string identifier associated with this convertation
+        /// A string identifier associated with this conversation
         /// </summary>
-        public string ID { get { return _id;  } }
+        public string ID { get { return _id; } }
 
         /// <summary>
         /// Ink Runtime story object
         /// </summary>
-        public Story Story {  get { return _story; } }
+        public Story Story { get { return _story; } }
 
         /// <summary>
         /// Reference to the query for preconditions that need to be passed to
@@ -113,7 +115,8 @@ namespace Calypso
         {
             Story story = new Story(conversationScript.text);
 
-            story.onError += (msg, type) => {
+            story.onError += (msg, type) =>
+            {
                 if (type == Ink.ErrorType.Warning)
                     Debug.LogWarning(msg);
                 else
@@ -128,13 +131,14 @@ namespace Calypso
         {
             var tagData = new GlobalTagData();
 
-            foreach(string line in tags)
+            foreach (string line in tags)
             {
                 var parts = line.Split(':', 2);
                 var key = parts[0].Trim().ToLower();
                 var value = parts[1].Trim();
 
-                switch (key) {
+                switch (key)
+                {
                     case "id":
                         tagData.id = value;
                         break;
@@ -148,7 +152,7 @@ namespace Calypso
                         tagData.setCalls.Add(value);
                         break;
                     default:
-                        Debug.LogWarning($"Unkown global tag key, '{key}'");
+                        Debug.LogWarning($"Unknown global tag key, '{key}'");
                         break;
                 }
 

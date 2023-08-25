@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using Calypso.Unity;
+using Calypso.RePraxis;
 using System.Linq;
 
 namespace Calypso
@@ -17,7 +18,7 @@ namespace Calypso
         [SerializeField]
         private DialogueManager _dialogueManager;
 
-        private StoryDatabase _storyDatabase = new StoryDatabase();
+        private RePraxisDatabase _storyDatabase = new RePraxisDatabase();
 
         private TimeManager _timeManager;
 

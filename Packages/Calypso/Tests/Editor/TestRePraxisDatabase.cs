@@ -1,8 +1,7 @@
 using NUnit.Framework;
-using Calypso;
-using UnityEngine;
+using Calypso.RePraxis;
 
-public class TestStoryDatabase
+public class TestRePraxisDatabase
 {
     /// <summary>
     /// Test that create, retrieval, updating, and deletion (CRUD)
@@ -10,7 +9,7 @@ public class TestStoryDatabase
     [Test]
     public void TestDatabaseCRUD()
     {
-        var db = new StoryDatabase();
+        var db = new RePraxisDatabase();
 
         // Create values
         db["A.relationships.B.reputation"] = 10;
@@ -33,7 +32,7 @@ public class TestStoryDatabase
     [Test]
     public void TestQuery()
     {
-        var db = new StoryDatabase();
+        var db = new RePraxisDatabase();
 
         db["astrid.relationships.jordan.reputation"] = 30;
         db["astrid.relationships.jordan.type"] = "Rivalry";
