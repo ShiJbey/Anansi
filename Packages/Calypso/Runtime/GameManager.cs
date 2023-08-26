@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
@@ -13,9 +12,6 @@ namespace Calypso
     {
         #region Fields
         [SerializeField]
-        private ActorGroup _actors;
-
-        [SerializeField]
         private DialogueManager _dialogueManager;
 
         private RePraxisDatabase _storyDatabase = new RePraxisDatabase();
@@ -23,9 +19,15 @@ namespace Calypso
         private TimeManager _timeManager;
 
         [SerializeField]
-        private Calypso.Unity.Actor _player;
+        private Actor _player;
 
-        private Calypso.Unity.Actor _displayedCharacter;
+        private Actor _displayedCharacter;
+
+        private Dictionary<string, Actor> _characters = new Dictionary<string, Actor>();
+        #endregion
+
+        #region Properties
+        public RePraxisDatabase Database => _storyDatabase;
         #endregion
 
         #region Actions and Events
@@ -49,7 +51,7 @@ namespace Calypso
 
             if (_timeManager == null)
             {
-                throw new System.NullReferenceException("Cannot find time manager.");
+                throw new NullReferenceException("Cannot find time manager.");
             }
 
             _player.OnLocationChanged += (location) =>
@@ -71,6 +73,11 @@ namespace Calypso
 
                 _dialogueManager.StartConversation(conversation);
             };
+        }
+
+        private void Start()
+        {
+            // Need to update entries within the database?
         }
 
         private void Update()
@@ -119,6 +126,22 @@ namespace Calypso
         {
             _dialogueManager.HideCharacter();
             _displayedCharacter = null;
+        }
+
+
+        /// <summary>
+        /// Register a character as being a part of the story
+        /// </summary>
+        /// <param name="character"></param>
+        public void RegisterCharacter(Actor character)
+        {
+            if (_characters.ContainsKey(character.UniqueID))
+            {
+                Debug.LogWarning("Character already exists with id {}. Skipping.");
+                return;
+            }
+
+            _characters[character.UniqueID] = character;
         }
     }
 }

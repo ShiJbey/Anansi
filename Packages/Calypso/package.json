@@ -1,19 +1,23 @@
 {
-    "name": "io.github.shijbey.calypso",
-    "version": "0.0.1",
-    "displayName": "Calypso",
-    "description": "Create simulation-driven visual novels in Unity",
-    "unity": "2022.1",
-    "documentationUrl": "https://github.com/ShiJbey/Calypso/wiki",
-    "changelogUrl": "https://github.com/ShiJbey/Calypso/blob/main/CHANGELOG.md",
-    "licensesUrl": "https://github.com/ShiJbey/Calypso/blob/main/LICENSE.md",
-    "keywords": [
-        "Social Simulation",
-        "AI",
-        "NPC",
-        "Visual Novel",
-        "Dating Sim",
-        "Relationships"
-    ],
-    "author": "Shi Johnson-Bey <shijbey@gmail.com>"
+  "name": "io.github.shijbey.calypso",
+  "version": "0.0.1",
+  "displayName": "Calypso",
+  "description": "Create simulation-driven visual novels in Unity",
+  "unity": "2022.1",
+  "documentationUrl": "https://github.com/ShiJbey/Calypso/wiki",
+  "changelogUrl": "https://github.com/ShiJbey/Calypso/blob/main/CHANGELOG.md",
+  "licensesUrl": "https://github.com/ShiJbey/Calypso/blob/main/LICENSE.md",
+  "keywords": [
+    "Social Simulation",
+    "AI",
+    "NPC",
+    "Visual Novel",
+    "Dating Sim",
+    "Relationships"
+  ],
+  "author": "Shi Johnson-Bey <shijbey@gmail.com>",
+  "dependencies": {
+    "com.unity.textmeshpro": "3.0.6",
+    "com.inkle.ink-unity-integration": "1.1.8"
+  }
 }
