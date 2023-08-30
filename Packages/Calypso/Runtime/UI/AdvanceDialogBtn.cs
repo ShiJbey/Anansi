@@ -1,7 +1,8 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Calypso {
+namespace Calypso.UI
+{
     /// <summary>
     /// A button that signals to the dialog manager to advance the dialogue
     /// </summary>

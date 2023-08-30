@@ -1,34 +1,36 @@
 ﻿using System.Collections.Generic;
+using UnityEngine;
 
-namespace Calypso
+namespace Calypso.Unity
 {
 	/// <summary>
 	/// Tracks relationships between characters
 	/// </summary>
-	public class RelationshipManager
+	public class RelationshipManager : MonoBehaviour
 	{
-		private Dictionary<Actor, Dictionary<Actor, Relationship>> _relationships;
+		#region Fields
+		// The following prefab is used to create new relationship instances
+		[SerializeField]
+		private GameObject relationshipPrefab;
 
-		public RelationshipManager()
+		private Dictionary<Actor, Dictionary<Actor, Relationship>> _relationships
+			 = new Dictionary<Actor, Dictionary<Actor, Relationship>>();
+		#endregion
+
+		public void RegisterRelationship(Relationship relationship)
 		{
-			_relationships = new Dictionary<Actor, Dictionary<Actor, Relationship>>();
-		}
-
-        public void OnUpdate(GameWorld world)
-        {
-			foreach (KeyValuePair<Actor, Dictionary<Actor, Relationship>> actorRelationships in _relationships)
+			if (_relationships.ContainsKey(relationship.Owner) == false)
 			{
-				foreach (KeyValuePair<Actor, Relationship> entry in actorRelationships.Value)
-				{
-					entry.Value.OnUpdate(world);
-				}
+				_relationships[relationship.Target] = new Dictionary<Actor, Relationship>();
 			}
-        }
+
+			_relationships[relationship.Owner][relationship.Target] = relationship;
+		}
 
 		public bool RelationshipExists(Actor owner, Actor target)
 		{
 			return _relationships.ContainsKey(owner) && _relationships[owner].ContainsKey(target);
-        }
+		}
 
 		public Relationship GetRelationship(Actor owner, Actor target)
 		{
@@ -38,7 +40,7 @@ namespace Calypso
 			}
 			else
 			{
-				Relationship relationship = new Relationship(owner, target);
+				var relationship = Instantiate(relationshipPrefab).GetComponent<Relationship>();
 
 				if (_relationships.ContainsKey(owner) == false)
 				{
@@ -50,6 +52,6 @@ namespace Calypso
 				return relationship;
 			}
 		}
-    }
+	}
 }
 

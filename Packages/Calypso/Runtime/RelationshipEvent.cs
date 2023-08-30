@@ -1,9 +1,8 @@
-﻿using System;
-namespace Calypso
+﻿namespace Calypso
 {
 	/// <summary>
 	/// Something that happened between two characters to cause a change in
-	/// their repuation
+	/// their reputation
 	/// </summary>
 	public abstract class RelationshipEvent
 	{
@@ -18,8 +17,8 @@ namespace Calypso
 		protected int _reputationChange;
 
 
-		public string EventType { get { return _eventType; } }
-		public int RepuationChange { get { return _reputationChange; } }
+		public string EventType => _eventType;
+		public int ReputationChange => _reputationChange;
 
 
 		public RelationshipEvent(string eventType, int reputationChange)
@@ -28,17 +27,17 @@ namespace Calypso
 			_reputationChange = reputationChange;
 		}
 
-        public override string ToString()
-        {
-			return $"{this.GetDescription()}: {this.RepuationChange.ToString()}";
+		public override string ToString()
+		{
+			return $"{GetDescription()}: {ReputationChange}";
 
 		}
 
-        /// <summary>
-        /// Generate a text description of this event.
-        /// </summary>
-        /// <returns></returns>
-        public abstract string GetDescription();
+		/// <summary>
+		/// Generate a text description of this event.
+		/// </summary>
+		/// <returns></returns>
+		public abstract string GetDescription();
 
 
 		/// <summary>
@@ -47,12 +46,12 @@ namespace Calypso
 		/// Some events may have timeouts that cause them to expire.
 		/// </summary>
 		/// <returns></returns>
-		public abstract bool IsValid(GameWorld world);
+		public abstract bool IsValid();
 
 		/// <summary>
 		/// Updates the event
 		/// </summary>
-		public abstract void OnUpdate(GameWorld world);
+		public abstract void OnUpdate();
 	}
 }
 

@@ -243,7 +243,10 @@
       "version": "file:Calypso",
       "depth": 0,
       "source": "embedded",
-      "dependencies": {}
+      "dependencies": {
+        "com.unity.textmeshpro": "3.0.6",
+        "com.inkle.ink-unity-integration": "1.1.8"
+      }
     },
     "com.unity.modules.ai": {
       "version": "1.0.0",

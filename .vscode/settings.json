@@ -3,7 +3,10 @@
     "files.exclude": {
         ".vs": true,
         ".vsconfig": true,
+        "**/*.asmdef": true,
+        "**/*.csproj*": true,
         "**/*.meta": true,
+        "**/*.sln": true,
         "Library/": true,
         "Logs/": true,
         "obj/": true,
