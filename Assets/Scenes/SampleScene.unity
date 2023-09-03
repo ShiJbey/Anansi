@@ -2700,6 +2700,7 @@ GameObject:
   - component: {fileID: 1075693840}
   - component: {fileID: 1075693839}
   - component: {fileID: 1075693841}
+  - component: {fileID: 1075693842}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -2719,7 +2720,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3529e563af9ba954d97a4be2bc292943, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _actors: {fileID: 0}
   _dialogueManager: {fileID: 254575246}
   _player: {fileID: 1538215031}
 --- !u!4 &1075693840
@@ -2760,6 +2760,37 @@ MonoBehaviour:
     _days: 0
     _hours: 4
     _minutes: 0
+--- !u!114 &1075693842
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1075693838}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ed799c0fc6592c040b79cf19b704391b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _serializedNodes:
+  - id: 0
+    symbol: root
+    isExclusive: 0
+    children: 
+    valueType: 0
+    intValue: 0
+    floatValue: 0
+    stringValue: 
+  _serializedDatabase:
+    nodes:
+    - id: 0
+      symbol: root
+      isExclusive: 0
+      children: 
+      valueType: 0
+      intValue: 0
+      floatValue: 0
+      stringValue: 
 --- !u!1 &1095505044
 GameObject:
   m_ObjectHideFlags: 0

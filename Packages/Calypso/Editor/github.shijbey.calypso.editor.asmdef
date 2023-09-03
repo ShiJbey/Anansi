@@ -1,0 +1,17 @@
+{
+    "name": "github.shijbey.calypso.editor",
+    "rootNamespace": "",
+    "references": [
+        "GUID:61145d7fd2b3f79489385fa169f41c11",
+        "GUID:4983da87e61fe4446837efd8326cc321"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

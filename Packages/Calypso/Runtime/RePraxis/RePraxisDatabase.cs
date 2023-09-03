@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 namespace Calypso.RePraxis
 {
@@ -14,6 +15,7 @@ namespace Calypso.RePraxis
         private object _value;
         private string _symbol;
         private bool _isExclusive;
+        private DBNode _parent;
         private Dictionary<string, DBNode> _children;
         #endregion
 
@@ -43,6 +45,29 @@ namespace Calypso.RePraxis
                 return _children.Values.ToList();
             }
         }
+
+        public string Path
+        {
+            get
+            {
+                string path = $"{Symbol}";
+
+                var parentNode = _parent;
+
+                while (parentNode != null)
+                {
+                    // The current node is the root node and should be skipped.
+                    if (parentNode._parent == null)
+                    {
+                        break;
+                    }
+                    path = $"{parentNode.Symbol}{(parentNode.IsExclusive ? "!" : ".")}" + path;
+                    parentNode = parentNode._parent;
+                }
+
+                return path;
+            }
+        }
         #endregion
 
         #region Constructors
@@ -52,6 +77,7 @@ namespace Calypso.RePraxis
             _symbol = symbol;
             _isExclusive = isExclusive;
             _children = new Dictionary<string, DBNode>();
+            _parent = null;
         }
         #endregion
 
@@ -63,6 +89,7 @@ namespace Calypso.RePraxis
         public void AddChild(DBNode term)
         {
             _children[term.Symbol] = term;
+            term._parent = this;
         }
 
         /// <summary>
@@ -72,7 +99,14 @@ namespace Calypso.RePraxis
         /// <returns>True if successful</returns>
         public bool RemoveChild(string symbol)
         {
-            return _children.Remove(symbol);
+            if (_children.ContainsKey(symbol))
+            {
+                var child = _children[symbol];
+                child._parent = null;
+                _children.Remove(symbol);
+                return true;
+            }
+            return false;
         }
 
         /// <summary>
@@ -161,6 +195,11 @@ namespace Calypso.RePraxis
             = new Dictionary<string, SentenceObserver>();
         #endregion
 
+        #region Events and Actions
+        public static Action<string, object> OnEntryAdded;
+        public static Action<string> OnEntryRemoved;
+        #endregion
+
         #region Properties
         public DBNode Root { get { return _db; } }
         #endregion
@@ -204,6 +243,8 @@ namespace Calypso.RePraxis
             }
 
             currentNode.Value = value;
+
+            OnEntryAdded?.Invoke(sentence, value);
 
             if (_sentenceObservers.ContainsKey(sentence))
             {
@@ -284,6 +325,8 @@ namespace Calypso.RePraxis
             }
 
             var last = tokens[tokens.Length - 1];
+
+            OnEntryRemoved?.Invoke(sentence);
 
             return currentNode.RemoveChild(last.symbol);
         }
