@@ -34,7 +34,32 @@ namespace Calypso.Editor
             };
 
             treeView.bindItem = (VisualElement element, int index) =>
-                (element as Label).text = treeView.GetItemDataForIndex<NodeData>(index).symbol;
+            {
+                var itemData = treeView.GetItemDataForIndex<NodeData>(index);
+                var labelText = itemData.symbol;
+
+                if (itemData.isTerminal)
+                {
+                    switch (itemData.valueType)
+                    {
+                        case RePraxisEntryType.Store_True:
+                            labelText += " = true";
+                            break;
+                        case RePraxisEntryType.Int:
+                            labelText += $" = {itemData.intValue.intValue}";
+                            break;
+                        case RePraxisEntryType.Float:
+                            labelText += $" = {itemData.floatValue.floatValue}";
+                            break;
+                        case RePraxisEntryType.String:
+                            labelText += $" = \"{itemData.stringValue.stringValue}\"";
+                            break;
+                    }
+                }
+
+                (element as Label).text = labelText;
+            };
+
 
 
             CreateTreeData();
@@ -148,7 +173,8 @@ namespace Calypso.Editor
                 intValue = serializedNode.FindPropertyRelative("intValue"),
                 floatValue = serializedNode.FindPropertyRelative("floatValue"),
                 stringValue = serializedNode.FindPropertyRelative("stringValue"),
-
+                valueType = (RePraxisEntryType)serializedNode.FindPropertyRelative("valueType").enumValueIndex,
+                isTerminal = serializedNode.FindPropertyRelative("children").arraySize == 0,
             }, childNodes);
             item = newItem;
         }
@@ -157,6 +183,8 @@ namespace Calypso.Editor
     public struct NodeData
     {
         public string symbol;
+        public RePraxisEntryType valueType;
+        public bool isTerminal;
         public SerializedProperty intValue;
         public SerializedProperty floatValue;
         public SerializedProperty stringValue;
