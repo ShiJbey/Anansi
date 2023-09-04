@@ -13,25 +13,20 @@ namespace Calypso
         #region Fields
         [SerializeField]
         private DialogueManager _dialogueManager;
-
-        private RePraxisDatabase _storyDatabase = new RePraxisDatabase();
-
         private TimeManager _timeManager;
-
         [SerializeField]
         private Actor _player;
-
         private Actor _displayedCharacter;
-
         private Dictionary<string, Actor> _characters = new Dictionary<string, Actor>();
+        private StoryDatabase _storyDatabase;
         #endregion
 
         #region Properties
-        public RePraxisDatabase Database => _storyDatabase;
+        public RePraxisDatabase Database => _storyDatabase.db;
         #endregion
 
         #region Actions and Events
-        public static UnityAction<Unity.Location> OnPlayerLocationChanged;
+        public static UnityAction<Location> OnPlayerLocationChanged;
         #endregion
 
         #region Unity Lifecycle Methods
@@ -48,6 +43,7 @@ namespace Calypso
         private void Awake()
         {
             _timeManager = GetComponent<TimeManager>();
+            _storyDatabase = GetComponent<StoryDatabase>();
 
             if (_timeManager == null)
             {
@@ -69,7 +65,7 @@ namespace Calypso
 
                 _displayedCharacter = character;
 
-                var conversation = character.GetComponent<ConversationManager>().SelectConversation(_storyDatabase);
+                var conversation = character.GetComponent<ConversationManager>().SelectConversation(Database);
 
                 _dialogueManager.StartConversation(conversation);
             };
@@ -94,7 +90,7 @@ namespace Calypso
 
                     _displayedCharacter = character;
 
-                    var conversation = character.GetComponent<ConversationManager>().SelectConversation(_storyDatabase);
+                    var conversation = character.GetComponent<ConversationManager>().SelectConversation(Database);
 
                     _dialogueManager.StartConversation(conversation);
                 }

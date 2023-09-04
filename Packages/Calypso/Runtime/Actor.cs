@@ -118,6 +118,7 @@ namespace Calypso.Unity
             if (_currentLocation != null)
             {
                 _currentLocation.RemoveActor(this);
+                _gameManager.Database.Remove($"{UniqueID}.location");
             }
 
             // Add the character to the new location
@@ -125,8 +126,7 @@ namespace Calypso.Unity
             {
                 _currentLocation = location;
                 location.AddActor(this);
-                _gameManager.Database[$"{UniqueID}.location"] = _currentLocation.UniqueID;
-
+                _gameManager.Database[$"{UniqueID}.location!{_currentLocation.UniqueID}"] = true;
             }
 
             OnLocationChanged?.Invoke(location);
