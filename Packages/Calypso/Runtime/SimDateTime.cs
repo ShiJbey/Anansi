@@ -74,7 +74,8 @@ namespace Calypso
             }
         }
         public DeltaTime DeltaTime => _deltaTime;
-        public TimeOfDay TimeOfDay { 
+        public TimeOfDay TimeOfDay
+        {
             get
             {
                 if (_hour >= 5 && _hour < 12)
@@ -93,7 +94,7 @@ namespace Calypso
                 {
                     return TimeOfDay.Night;
                 }
-            } 
+            }
         }
         #endregion
 
@@ -128,14 +129,14 @@ namespace Calypso
             _date = date - 1;
             _month = month - 1;
             _year = year - 1;
-                       
+
             _totalNumDays = _date + (_month * DAYS_PER_MONTH) + ((year - 1) * DAYS_PER_YEAR);
             _totalNumWeeks = _totalNumDays / DAYS_PER_WEEK;
 
             // No delta time when created
             _deltaTime = new DeltaTime(0, 0, 0, 0, 0);
         }
-        
+
         public SimDateTime(SimDateTime original)
             : this(original.Date, (int)original.Month + 1, original.Year, original.Hour, original.Minutes)
         {
@@ -143,7 +144,7 @@ namespace Calypso
         }
 
         public SimDateTime(int date, int month, int year)
-            :this(date, month, year, 0, 0)
+            : this(date, month, year, 0, 0)
         { }
         #endregion
 
@@ -154,7 +155,7 @@ namespace Calypso
 
             int totalMinutes = _minutes + deltaTime.Minutes;
             int carriedHours = totalMinutes / MINUTES_PER_HOUR;
-            
+
             _minutes = totalMinutes % MINUTES_PER_HOUR;
 
             int totalHours = _hour + deltaTime.Hours + carriedHours;
@@ -166,7 +167,7 @@ namespace Calypso
             int carriedMonths = totalDays / DAYS_PER_MONTH;
 
             _date = totalDays % DAYS_PER_MONTH;
-            
+
             int totalMonths = _month + deltaTime.Months + carriedMonths;
             int carriedYears = totalMonths / MONTHS_PER_YEAR;
 
@@ -201,7 +202,7 @@ namespace Calypso
             // Convert minutes back to the various date components
             int remainder = diffMinutes;
             int years = remainder / (MINUTES_PER_HOUR * HOURS_PER_DAY * DAYS_PER_YEAR);
-            
+
             remainder = remainder % (MINUTES_PER_HOUR * HOURS_PER_DAY * DAYS_PER_YEAR);
             int months = remainder / (MINUTES_PER_HOUR * HOURS_PER_DAY * DAYS_PER_MONTH);
 
@@ -218,7 +219,7 @@ namespace Calypso
 
         public static SimDateTime operator +(SimDateTime time, DeltaTime deltaTime)
         {
-            time.AdvanceTime(deltaTime); 
+            time.AdvanceTime(deltaTime);
             return time;
         }
 
@@ -292,14 +293,15 @@ namespace Calypso
         public int Days => _days;
         public int Hours => _hours;
         public int Minutes => _minutes;
-        public int TotalHours { 
-            get 
-            { 
+        public int TotalHours
+        {
+            get
+            {
                 return _hours
                     + (_days * SimDateTime.HOURS_PER_DAY)
                     + (_months * SimDateTime.HOURS_PER_DAY * SimDateTime.DAYS_PER_MONTH)
                     + (_years * SimDateTime.HOURS_PER_DAY * SimDateTime.DAYS_PER_YEAR);
-            } 
+            }
         }
         public int TotalDays
         {
@@ -341,20 +343,20 @@ namespace Calypso
 
     public enum Days
     {
-        Monday = 0, 
-        Tuesday = 1, 
-        Wednesday = 2, 
-        Thursday = 3, 
-        Friday = 4, 
-        Saturday = 5, 
+        Monday = 0,
+        Tuesday = 1,
+        Wednesday = 2,
+        Thursday = 3,
+        Friday = 4,
+        Saturday = 5,
         Sunday = 6
     }
 
     public enum Months
     {
         January = 0,
-        February = 1, 
-        March = 2, 
+        February = 1,
+        March = 2,
         April = 3,
         May = 4,
         June = 5,
@@ -366,7 +368,7 @@ namespace Calypso
         December = 11,
     }
 
-    public enum  TimeOfDay
+    public enum TimeOfDay
     {
         Morning = 1,
         Afternoon = 2,
