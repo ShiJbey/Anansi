@@ -25,12 +25,11 @@ Each character in Calypso is given a collection of conversation scripts, and the
 
 ## Planned features
 
-- [ ] NPC schedule
+- [x] NPC schedule System
 - [x] Simulation calendar
 - [ ] Tick-update system
 - [x] Weighted-random conversation selection
 - [x] Precondition query language
 - [ ] Location selection menu
-- [ ] Background events
 - [ ] Relationship system
 - [ ] Support for dynamic NPC sprites
