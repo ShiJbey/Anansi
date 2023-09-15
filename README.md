@@ -28,8 +28,9 @@ Each character in Calypso is given a collection of conversation scripts, and the
 - [x] NPC schedule System
 - [x] Simulation calendar
 - [ ] Tick-update system
+- [x] Author new conversation dialogue using Ink
 - [x] Weighted-random conversation selection
 - [x] Precondition query language
 - [ ] Location selection menu
-- [ ] Relationship system
-- [ ] Support for dynamic NPC sprites
+- [x] Relationship system
+- [ ] Control the simulation from within conversations
