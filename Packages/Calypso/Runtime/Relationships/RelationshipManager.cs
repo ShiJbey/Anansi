@@ -1,7 +1,8 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using Calypso.Unity;
 
-namespace Calypso.Unity
+namespace Calypso.Relationships
 {
 	/// <summary>
 	/// Tracks relationships between characters
@@ -21,7 +22,7 @@ namespace Calypso.Unity
 		{
 			if (_relationships.ContainsKey(relationship.Owner) == false)
 			{
-				_relationships[relationship.Target] = new Dictionary<Actor, Relationship>();
+				_relationships[relationship.Owner] = new Dictionary<Actor, Relationship>();
 			}
 
 			_relationships[relationship.Owner][relationship.Target] = relationship;
