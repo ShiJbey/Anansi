@@ -240,7 +240,7 @@
       "url": "https://packages.unity.com"
     },
     "io.github.shijbey.calypso": {
-      "version": "file:Calypso",
+      "version": "file:io.github.shijbey.calypso",
       "depth": 0,
       "source": "embedded",
       "dependencies": {
