@@ -19,5 +19,12 @@
   "dependencies": {
     "com.unity.textmeshpro": "3.0.6",
     "com.inkle.ink-unity-integration": "1.1.8"
-  }
+  },
+  "samples": [
+    {
+      "displayName": "Assets",
+      "description": "Basic Assets",
+      "path": "Assets"
+    }
+  ]
 }

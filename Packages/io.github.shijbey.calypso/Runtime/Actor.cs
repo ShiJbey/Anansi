@@ -7,7 +7,7 @@ namespace Calypso.Unity
 {
     /// <summary>
     /// User-facing MonoBehavior for defining basic metadata for characters
-    /// 
+    ///
     /// <para>
     /// The fields available in the inspector supply values at the start of
     /// the game and should not be relied on to change the state of the
@@ -17,188 +17,161 @@ namespace Calypso.Unity
     /// </summary>
     public class Actor : MonoBehaviour
     {
-        #region Fields
+        #region Protected Fields
 
-        [Header("Identifier Information")]
+        /// <summary>
+        /// The name of this character for display in the UI when speaking
+        /// </summary>
         [SerializeField]
-        private string _displayName;
+        protected string _displayName;
 
+        /// <summary>
+        /// A unique ID for this character to be identified as within the StoryDatabase
+        /// </summary>
         [SerializeField]
-        private string _uniqueID;
+        protected string _uniqueID;
 
-        [Space(5)]
-        [Header("Mood")]
+        /// <summary>
+        /// The location to start the character
+        /// </summary>
         [SerializeField]
-        private CharacterMood _mood = CharacterMood.Neutral;
+        protected Location _startingLocation;
 
-        [Space(5)]
-        [Header("Positioning")]
+        /// <summary>
+        /// The current location of the character
+        /// </summary>
+        protected Location _currentLocation;
+
+        /// <summary>
+        /// Sprites used to display the character
+        /// </summary>
         [SerializeField]
-        private Location _startingLocation;
+        protected CharacterSprite[] _sprites;
 
-        // Set within Start method
-        private Location _currentLocation;
-
-        [Space(5)]
-        [Header("Sprite Settings")]
+        /// <summary>
+        /// A reference to the story database
+        /// </summary>
         [SerializeField]
-        private string _spriteSet = "default";
+        protected StoryDatabase _storyDatabase;
 
-        [SerializeField]
-        private List<CharacterSpriteSet> _sprites;
-
-        private Sprite _currentSprite;
-
-        // Filled within start using sprites provided in the inspector
-        private Dictionary<string, Dictionary<CharacterMood, Sprite>> _spriteDictionary =
-            new Dictionary<string, Dictionary<CharacterMood, Sprite>>();
-
-        // We use this to sync information
-        private GameManager _gameManager;
         #endregion
 
-        #region Properties
+        #region Public Properties
+
+        /// <summary>
+        /// The characters name displayed in the UI
+        /// </summary>
         public string DisplayName => _displayName;
+
+        /// <summary>
+        /// The character's unique ID
+        /// </summary>
         public string UniqueID => _uniqueID;
-        public Sprite Sprite => _currentSprite;
+
+        /// <summary>
+        /// The character's current location.
+        /// </summary>
         public Location Location => _currentLocation;
+
         #endregion
 
-        #region Actions and Events
+        #region Unity Actions
+
+        /// <summary>
+        /// Action invoked whenever the character changes their location
+        /// </summary>
         public UnityAction<Location> OnLocationChanged;
+
         #endregion
 
         #region Unity Lifecycle Methods
-        private void Awake()
-        {
-            foreach (var spriteSet in _sprites)
-            {
-                var moodDict = new Dictionary<CharacterMood, Sprite>();
-
-                foreach (var entry in spriteSet.sprites)
-                {
-                    moodDict[entry.mood] = entry.sprite;
-                }
-
-                _spriteDictionary[spriteSet.name] = moodDict;
-            }
-
-            _gameManager = FindObjectOfType<GameManager>();
-
-            if (_gameManager == null)
-            {
-                throw new System.NullReferenceException(
-                    "Cannot find GameManager.");
-            }
-
-            // Register the character with the GameManager
-            _gameManager.RegisterCharacter(this);
-        }
 
         private void Start()
         {
+            _storyDatabase.db.Add($"{UniqueID}", true);
             if (_startingLocation != null)
             {
                 MoveToLocation(_startingLocation);
             }
-
-            SetSpriteSet(_spriteSet);
-            SetMood(_mood);
         }
+
         #endregion
 
-        #region Methods
+        #region Public Methods
+
         /// <summary>
         /// Move an Actor to a new location.
         /// </summary>
         /// <param name="location"></param>
         public void MoveToLocation(Location location)
         {
-            // Remove the character from their current location if they have one
+            // Remove the character from their current location
             if (_currentLocation != null)
             {
-                _currentLocation.RemoveActor(this);
-                _gameManager.Database.Remove($"{UniqueID}.location");
+                location.RemoveCharacter(this);
+                _storyDatabase.db.Remove($"{_currentLocation.UniqueID}.characters.{UniqueID}");
+                _storyDatabase.db.Remove($"{UniqueID}.location.{_currentLocation.UniqueID}");
+                _currentLocation = null;
             }
 
-            // Add the character to the new location
             if (location != null)
             {
+                location.AddCharacter(this);
                 _currentLocation = location;
-                location.AddActor(this);
-                _gameManager.Database[$"{UniqueID}.location!{_currentLocation.UniqueID}"] = true;
+                _storyDatabase.db.Add($"{location.UniqueID}.characters.{UniqueID}", true);
+                _storyDatabase.db.Add($"{UniqueID}.location.{location.UniqueID}", true);
             }
 
-            OnLocationChanged?.Invoke(location);
+            if (OnLocationChanged != null) OnLocationChanged.Invoke(location);
         }
 
         /// <summary>
-        /// Set the character's current mood and update their sprite
+        /// Get a sprite with the given tags
         /// </summary>
-        /// <param name="mood"></param>
-        public void SetMood(CharacterMood mood)
+        /// <param name="tags"></param>
+        /// <returns></returns>
+        public Sprite GetSprite(params string[] tags)
         {
-            _mood = mood;
-            // Sync this information with the database
-            _gameManager.Database[$"{UniqueID}.mood"] = _mood.ToString();
-
-
-            if (_spriteDictionary[_spriteSet].ContainsKey(mood))
+            foreach (var entry in _sprites)
             {
-                _currentSprite = _spriteDictionary[_spriteSet][mood];
+                var spriteTags = new HashSet<string>(entry.tags);
+
+                foreach (string t in tags)
+                {
+                    if (!t.Contains(t))
+                    {
+                        return null;
+                    }
+                }
+
+                return entry.sprite;
             }
-            else
-            {
-                Debug.LogError(
-                    $"Cannot find sprite for '{mood}' in set '{_spriteSet}'.");
-            }
+
+            return null;
         }
+
+        #endregion
+
+        #region Helper Classes
 
         /// <summary>
-        /// Set the current sprite set used by the character
+        /// Associates a sprite image with a set of descriptive tags for the sprite.
         /// </summary>
-        /// <param name="name"></param>
-        public void SetSpriteSet(string name)
+        [System.Serializable]
+        public class CharacterSprite
         {
-            if (_spriteDictionary.ContainsKey(name))
-            {
-                _spriteSet = name;
-                _currentSprite = _spriteDictionary[name][_mood];
-            }
-            else
-            {
-                Debug.LogError(
-                    $"Cannot find sprite set for '{name}'.");
-            }
+            /// <summary>
+            /// The sprite image to display.
+            /// </summary>
+            public Sprite sprite;
+
+            /// <summary>
+            /// Tags used to retrieve the image.
+            /// Examples: neutral, smiling, scowling, sad, blushing, laughing
+            /// </summary>
+            public string[] tags;
         }
+
         #endregion
     }
-
-    [System.Serializable]
-    public struct CharacterSpriteSet
-    {
-        public string name;
-        public List<CharacterSprite> sprites;
-    }
-
-    [System.Serializable]
-    public struct CharacterSprite
-    {
-        public CharacterMood mood;
-        public Sprite sprite;
-    }
-
-    public enum CharacterMood
-    {
-        Neutral = 0,
-        Smiling = 1,
-        Scowling = 2,
-        Sad = 3,
-        Surprised = 4,
-        Blushing = 5,
-        Angry = 6,
-        Laughing = 7,
-        Embarrassed = 8
-    }
 }
-

@@ -6,7 +6,7 @@ using UnityEngine;
 namespace Calypso.RePraxis
 {
     /// <summary>
-    /// Each token within a database sentence is assigned to a node 
+    /// Each token within a database sentence is assigned to a node
     /// within the database.
     /// </summary>
     public class DBNode
@@ -120,7 +120,7 @@ namespace Calypso.RePraxis
         }
 
         /// <summary>
-        /// Check if the node has a child 
+        /// Check if the node has a child
         /// </summary>
         /// <param name="symbol"></param>
         /// <returns>
@@ -175,7 +175,7 @@ namespace Calypso.RePraxis
     /// <summary>
     /// A database that operates like a Dictionary and enables
     /// users to query for information using logical queries.
-    /// 
+    ///
     /// <para>
     /// This class is inspired by the Praxis logic language created by
     /// Emily Short and Richard Evans for the Versu interactive fiction
@@ -441,4 +441,3 @@ namespace Calypso.RePraxis
         #endregion
     }
 }
-

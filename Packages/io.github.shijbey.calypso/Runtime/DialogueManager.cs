@@ -41,6 +41,12 @@ namespace Calypso
         [SerializeField]
         private Image _backgroundImage;
 
+        [SerializeField]
+        private GameObject _interactionPanel;
+
+        [SerializeField]
+        private Button _talkButton;
+
         /// <summary>
         /// A copy of the textStyles list indexed by name
         /// </summary>
@@ -64,6 +70,12 @@ namespace Calypso
             {
                 _textStylesDictionary[textStyle.name] = textStyle;
             }
+        }
+
+        private void Start()
+        {
+            // _interactionPanel.SetActive(true);
+            // _talkButton.onClick.AddListener(StartConversation)
         }
         #endregion
 
@@ -169,7 +181,7 @@ namespace Calypso
         /// </summary>
         public void ShowCharacter(Unity.Actor actor)
         {
-            _speakerSprite.sprite = actor.Sprite;
+            _speakerSprite.sprite = actor.GetSprite();
             _speakerSprite.gameObject.SetActive(true);
         }
 
@@ -189,7 +201,7 @@ namespace Calypso
         /// </summary>
         public void HideDialoguePanel()
         {
-            _dialoguePanel.SetActive(false);
+            // _dialoguePanel.SetActive(false);
         }
 
         /// <summary>
@@ -197,7 +209,7 @@ namespace Calypso
         /// </summary>
         public void ShowDialoguePanel()
         {
-            _dialoguePanel.SetActive(true);
+            // _dialoguePanel.SetActive(true);
         }
 
         /// <summary>

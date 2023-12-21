@@ -40,7 +40,7 @@ namespace Calypso.Relationships
 
 
 		// Reference to GameManager singleton
-		private GameManager _gameManager;
+		private StoryDatabase _storyDatabase;
 
 		private RelationshipManager _relationshipManager;
 
@@ -66,13 +66,7 @@ namespace Calypso.Relationships
 		#region Unity Lifecycle Methods
 		private void Awake()
 		{
-			_gameManager = FindObjectOfType<GameManager>();
-			if (_gameManager == null)
-			{
-				throw new NullReferenceException(
-					"Cannot find GameManager.");
-			}
-
+			_storyDatabase = FindAnyObjectByType<StoryDatabase>();
 			_relationshipManager = FindObjectOfType<RelationshipManager>();
 			if (_relationshipManager == null)
 			{
@@ -102,13 +96,13 @@ namespace Calypso.Relationships
 
 		private void InvokeFriendshipCallbacks(int newValue)
 		{
-			_gameManager.Database[$"{DBStringBase}.friendship"] = newValue;
+			_storyDatabase.db[$"{DBStringBase}.friendship"] = newValue;
 			OnFriendshipChanged?.Invoke(newValue);
 		}
 
 		private void InvokeRomanceCallbacks(int newValue)
 		{
-			_gameManager.Database[$"{DBStringBase}.romance"] = newValue;
+			_storyDatabase.db[$"{DBStringBase}.romance"] = newValue;
 			OnRomanceChanged?.Invoke(newValue);
 		}
 		#endregion
@@ -142,4 +136,3 @@ namespace Calypso.Relationships
 		#endregion
 	}
 }
-

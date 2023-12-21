@@ -43,7 +43,6 @@ namespace Calypso
 
         private void ValueAddedForceRepaint(string sentence, object value)
         {
-            Debug.Log("Repainting on add");
             SerializeDatabase();
         }
 
@@ -154,8 +153,8 @@ namespace Calypso
             // (1) Clear the previous serialized data
             _serializedNodes.Clear();
 
-            // (2) Perform a depth-first traversal over the database and 
-            // populate a list of all the nodes 
+            // (2) Perform a depth-first traversal over the database and
+            // populate a list of all the nodes
             SerializeSubTree(db.Root);
             _serializedDatabase = new SerializedDatabase()
             {

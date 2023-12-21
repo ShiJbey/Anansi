@@ -79,3 +79,5 @@ crashlytics-build.properties
 # Keep the following
 !Documentation~/
 !Samples~/
+
+dist/

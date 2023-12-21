@@ -1,14 +1,18 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 
 namespace Calypso
 {
     public static class IEnumerableExtensions
     {
-
+        /// <summary>
+        /// Perform weighted random selection over items in an IEnumerable
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="sequence"></param>
+        /// <param name="weightSelector"></param>
+        /// <returns></returns>
         public static T RandomElementByWeight<T>(this IEnumerable<T> sequence, Func<T, float> weightSelector)
         {
             float totalWeight = sequence.Sum(weightSelector);

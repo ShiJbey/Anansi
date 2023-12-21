@@ -6,98 +6,76 @@ using Calypso.Unity;
 using Calypso.RePraxis;
 using System.Linq;
 
-namespace Calypso
+namespace Calypso.Unity
 {
     public class GameManager : MonoBehaviour
     {
-        #region Fields
+        #region Protected Fields
+
+        /// <summary>
+        /// A reference to the player's character.
+        /// </summary>
         [SerializeField]
-        private DialogueManager _dialogueManager;
-        private TimeManager _timeManager;
+        protected Actor _player;
+
+        /// <summary>
+        /// A reference to the character currently displayed on the screen that the player has
+        /// the option to talk to.
+        /// </summary>
+        protected Actor _displayedCharacter;
+
         [SerializeField]
-        private Actor _player;
-        private Actor _displayedCharacter;
-        private Dictionary<string, Actor> _characters = new Dictionary<string, Actor>();
-        private StoryDatabase _storyDatabase;
+        protected DialogueManager _dialogueManager;
+
         #endregion
 
-        #region Properties
-        public RePraxisDatabase Database => _storyDatabase.db;
-        #endregion
+        #region Unity Actions
 
-        #region Actions and Events
+        /// <summary>
+        /// An action invoked whenever the player changes location.
+        /// </summary>
         public static UnityAction<Location> OnPlayerLocationChanged;
+
         #endregion
 
         #region Unity Lifecycle Methods
-        private void OnEnable()
-        {
-            DialogueManager.OnConversationEnd += ClearDisplayedCharacter;
-        }
-
-        private void OnDisable()
-        {
-            DialogueManager.OnConversationEnd -= ClearDisplayedCharacter;
-        }
-
-        private void Awake()
-        {
-            _timeManager = GetComponent<TimeManager>();
-            _storyDatabase = GetComponent<StoryDatabase>();
-
-            if (_timeManager == null)
-            {
-                throw new NullReferenceException("Cannot find time manager.");
-            }
-
-            _player.OnLocationChanged += (location) =>
-            {
-                Debug.Log($"Player moved to location, {location.DisplayName}");
-                _dialogueManager.SetBackground(location.GetCurrentBackground());
-                OnPlayerLocationChanged?.Invoke(location);
-
-                // Select character they could talk to
-                var character = SelectDisplayedActor(location);
-
-                if (character == null) return;
-
-                _dialogueManager.ShowCharacter(character);
-
-                _displayedCharacter = character;
-
-                var conversation = character.GetComponent<ConversationManager>().SelectConversation(Database);
-
-                _dialogueManager.StartConversation(conversation);
-            };
-        }
 
         private void Start()
         {
-            // Need to update entries within the database?
+            // _player.OnLocationChanged += (location) =>
+            // {
+            //     // Debug.Log($"Player moved to location, {location.DisplayName}");
+            //     _dialogueManager.SetBackground(location.GetBackground());
+            //     if (OnPlayerLocationChanged != null) OnPlayerLocationChanged.Invoke(location);
+
+            //     // Select character they could talk to
+            //     var character = SelectDisplayedActor(location);
+
+            //     if (character == null) return;
+
+            //     _dialogueManager.ShowCharacter(character);
+
+            //     _displayedCharacter = character;
+            // };
         }
 
         private void Update()
         {
-            if (_displayedCharacter == null)
-            {
-                if (Input.GetKeyDown(KeyCode.C))
-                {
-                    var character = SelectDisplayedActor(_player.Location);
+            // if (_displayedCharacter == null && _player.Location != null)
+            // {
+            //     var character = SelectDisplayedActor(_player.Location);
 
-                    if (character == null) return;
+            //     if (character == null) return;
 
-                    _dialogueManager.ShowCharacter(character);
+            //     _dialogueManager.ShowCharacter(character);
 
-                    _displayedCharacter = character;
-
-                    var conversation = character.GetComponent<ConversationManager>().SelectConversation(Database);
-
-                    _dialogueManager.StartConversation(conversation);
-                }
-            }
+            //     _displayedCharacter = character;
+            // }
         }
+
         #endregion
 
+        #region Private Methods
 
         /// <summary>
         /// Choose a random character at the location that the player
@@ -105,9 +83,9 @@ namespace Calypso
         /// </summary>
         /// <param name="location"></param>
         /// <returns></returns>
-        private Unity.Actor SelectDisplayedActor(Unity.Location location)
+        private Actor SelectDisplayedActor(Location location)
         {
-            var potentialCharacters = location.ActorsPresent
+            var potentialCharacters = location.Characters
                 .Where((a) => !a.name.Equals("Player")).ToList();
 
             if (potentialCharacters.Count == 0) return null;
@@ -118,27 +96,6 @@ namespace Calypso
             return selectedActor;
         }
 
-        private void ClearDisplayedCharacter()
-        {
-            _dialogueManager.HideCharacter();
-            _displayedCharacter = null;
-        }
-
-
-        /// <summary>
-        /// Register a character as being a part of the story
-        /// </summary>
-        /// <param name="character"></param>
-        public void RegisterCharacter(Actor character)
-        {
-            if (_characters.ContainsKey(character.UniqueID))
-            {
-                Debug.LogWarning("Character already exists with id {}. Skipping.");
-                return;
-            }
-
-            _characters[character.UniqueID] = character;
-        }
+        #endregion
     }
 }
-

@@ -6,12 +6,12 @@
         "**/*.asmdef": true,
         "**/*.csproj*": true,
         "**/*.meta": true,
-        "**/*.sln": true,
         "Library/": true,
         "Logs/": true,
         "obj/": true,
         "ProjectSettings/": true,
         "Temp/": true,
         "UserSettings/": true
-    }
+    },
+    "cSpell.words": ["cooldown", "Cooldowns", "Storylets", "VNUI"]
 }
