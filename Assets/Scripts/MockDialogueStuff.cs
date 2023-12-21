@@ -28,6 +28,11 @@ public class MockDialogueStuff : MonoBehaviour
                 sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.");
         }
 
+        if (Input.GetKeyUp(KeyCode.Space))
+        {
+            dialoguePanelController.JumpToEndOfText();
+        }
+
         if (Input.GetKeyUp(KeyCode.S))
         {
             if (!dialoguePanelController.IsHidden)

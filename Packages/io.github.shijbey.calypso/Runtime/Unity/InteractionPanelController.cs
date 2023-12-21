@@ -61,6 +61,9 @@ namespace Calypso.Unity
             Show();
         }
 
+        /// <summary>
+        /// Show the interaction panel
+        /// </summary>
         public void Show()
         {
             if (panelSlideCoroutine != null)
@@ -71,6 +74,9 @@ namespace Calypso.Unity
             panelSlideCoroutine = StartCoroutine(SlidePanelIn());
         }
 
+        /// <summary>
+        /// Hide the interaction panel
+        /// </summary>
         public void Hide()
         {
             if (panelSlideCoroutine != null)
@@ -81,6 +87,10 @@ namespace Calypso.Unity
             panelSlideCoroutine = StartCoroutine(SlidePanelOut());
         }
 
+        /// <summary>
+        /// Slide the interaction panel off screen
+        /// </summary>
+        /// <returns></returns>
         private IEnumerator SlidePanelOut()
         {
             Vector3 initialPosition = rectTransform.position;
@@ -95,6 +105,10 @@ namespace Calypso.Unity
             }
         }
 
+        /// <summary>
+        /// Slide the interaction panel onto the screen
+        /// </summary>
+        /// <returns></returns>
         private IEnumerator SlidePanelIn()
         {
             Vector3 initialPosition = rectTransform.position;

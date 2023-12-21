@@ -54,6 +54,14 @@ namespace Calypso.Unity
         private Coroutine panelSlideCoroutine = null;
 
         /// <summary>
+        /// A reference to the coroutine that handles displaying dialogue using the typewriter
+        /// effect.
+        /// </summary>
+        private Coroutine typingCoroutine = null;
+
+        private bool skipTypewriterEffect = false;
+
+        /// <summary>
         /// Tracks if the panel is hidden or moving into the hidden state.
         /// </summary>
         private bool panelHidden = false;
@@ -71,16 +79,43 @@ namespace Calypso.Unity
         protected float slideInSeconds;
 
         [SerializeField]
+        protected float typingSpeed = 0.04f;
+
+        [SerializeField]
         private RectTransform rectTransform;
 
         #endregion
 
+        #region Public Properties
+
+        /// <summary>
+        /// Is the controller currently typing text to the dialogue box.
+        /// </summary>
+        public bool IsTyping { get; private set; }
+
+        #endregion
+
+
         #region Unity Events
 
+        /// <summary>
+        /// Event invoked when the advance text button is clicked
+        /// </summary>
         public UnityEvent OnAdvanceText;
 
+        /// <summary>
+        /// Event invoked when all the current line's text has been displayed.
+        /// </summary>
+        public UnityEvent OnTextFinished;
+
+        /// <summary>
+        /// Event invoked when the panel's Show() method is called.
+        /// </summary>
         public UnityEvent OnShow;
 
+        /// <summary>
+        /// Event invoked when the panel's Hide() method is called.
+        /// </summary>
         public UnityEvent OnHide;
 
         #endregion
@@ -137,23 +172,38 @@ namespace Calypso.Unity
         {
             if (panelHidden) Show();
 
-            _dialogueText.SetText(text);
+            IsTyping = true;
+            SetContinueButtonVisible(false);
+
+            if (typingCoroutine != null) StopCoroutine(typingCoroutine);
+
+            StartCoroutine(TextTypeWriterEffect(text));
         }
 
         /// <summary>
-        /// Make it so the advance button can advance the dialogue
+        /// Tell the controller to bypass the typewriter effect and display the full line of text.
         /// </summary>
-        public void EnableContinueButton()
+        public void JumpToEndOfText()
         {
-            advanceDialogueButton.gameObject.SetActive(true);
+            if (IsTyping) skipTypewriterEffect = true;
         }
 
         /// <summary>
-        /// Make it so the advance button does not advance the dialogue.
+        /// Set the visibility of the continue button
         /// </summary>
-        public void DisableContinueButton()
+        /// <param name="visible"></param>
+        public void SetContinueButtonVisible(bool visible)
         {
-            advanceDialogueButton.gameObject.SetActive(false);
+            advanceDialogueButton.gameObject.SetActive(visible);
+        }
+
+        /// <summary>
+        /// Set if the continue button is clickable
+        /// </summary>
+        /// <param name="interactable"></param>
+        public void SetContinueButtonInteractable(bool interactable)
+        {
+            advanceDialogueButton.interactable = interactable;
         }
 
         /// <summary>
@@ -209,9 +259,24 @@ namespace Calypso.Unity
         /// Displays text using a typewriter effect where each character appears once at a time.
         /// </summary>
         /// <returns></returns>
-        private IEnumerator TextTypeWriterEffect()
+        private IEnumerator TextTypeWriterEffect(string text)
         {
-            yield return null;
+            _dialogueText.text = "";
+
+            foreach (char letter in text.ToCharArray())
+            {
+                if (skipTypewriterEffect)
+                {
+                    _dialogueText.text = text;
+                    skipTypewriterEffect = false;
+                    break;
+                }
+
+                _dialogueText.text += letter;
+                yield return new WaitForSeconds(typingSpeed);
+            }
+
+            IsTyping = false;
         }
 
         private IEnumerator SlidePanelOut()
