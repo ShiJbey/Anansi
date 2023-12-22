@@ -11,36 +11,17 @@ namespace Calypso
     /// </summary>
     public class Storylet
     {
-        #region Protected Attributes
-
-        /// <summary>
-        /// The ID of the knot within an Ink Story.
-        /// </summary>
-        protected readonly string _knotID;
-
-        /// <summary>
-        /// A reference to the story that this storylet belongs to.
-        /// </summary>
-        protected readonly Story _story;
-
-        /// <summary>
-        /// The number of Storylets that must elapse before this storylet may be used again.
-        /// </summary>
-        protected int _cooldownTimeRemaining;
-
-        #endregion
-
         #region Public Properties
 
         /// <summary>
         /// The ID of the knot within an Ink Story.
         /// </summary>
-        public string KnotID => _knotID;
+        public string KnotID { get; }
 
         /// <summary>
         /// The Ink Story this storylet belongs to.
         /// </summary>
-        public Story Story => _story;
+        public Story Story { get; }
 
         /// <summary>
         /// The number of Storylets that must elapse before this storylet may be used again.
@@ -66,7 +47,7 @@ namespace Calypso
         /// Tags associated with this storylet, used when filtering storylets during
         /// content selection.
         /// </summary>
-        public HashSet<string> Tags { get; private set; }
+        public HashSet<string> Tags { get; }
 
         /// <summary>
         /// A query that needs to pass before the storylet is allowed to run.
@@ -76,7 +57,7 @@ namespace Calypso
         /// <summary>
         /// Variable substitutions to apply from the bindings retrieved from the _preconditionQuery.
         /// </summary>
-        public Dictionary<string, string> VariableSubstitutions { get; private set; }
+        public Dictionary<string, string> VariableSubstitutions { get; }
 
         #endregion
 
@@ -84,30 +65,11 @@ namespace Calypso
 
         public Storylet(
             string knotID,
-            Story story,
-            int cooldown,
-            bool isRepeatable,
-            IEnumerable<string> tags,
-            DBQuery preconditionQuery,
-            Dictionary<string, string> variableSubstitutions
-        )
-        {
-            _knotID = knotID;
-            _story = story;
-            Cooldown = cooldown;
-            IsRepeatable = isRepeatable;
-            Tags = new HashSet<string>(tags);
-            Query = preconditionQuery;
-            VariableSubstitutions = new Dictionary<string, string>(variableSubstitutions);
-        }
-
-        public Storylet(
-            string knotID,
             Story story
         )
         {
-            _knotID = knotID;
-            _story = story;
+            KnotID = knotID;
+            Story = story;
             Cooldown = 0;
             IsRepeatable = true;
             Tags = new HashSet<string>();
@@ -125,8 +87,8 @@ namespace Calypso
         /// <returns></returns>
         public int DecrementCooldown()
         {
-            _cooldownTimeRemaining -= 1;
-            return _cooldownTimeRemaining;
+            CooldownTimeRemaining -= 1;
+            return CooldownTimeRemaining;
         }
 
         /// <summary>
@@ -135,8 +97,8 @@ namespace Calypso
         /// <returns></returns>
         public int ResetCooldown()
         {
-            _cooldownTimeRemaining = Cooldown;
-            return _cooldownTimeRemaining;
+            CooldownTimeRemaining = Cooldown;
+            return CooldownTimeRemaining;
         }
 
         /// <summary>
@@ -145,27 +107,6 @@ namespace Calypso
         public void IncrementTimesPlayed()
         {
             TimesPlayed += 1;
-        }
-
-        /// <summary>
-        /// Get a collection instances of this storylet.
-        /// </summary>
-        /// <param name="db"></param>
-        /// <returns></returns>
-        public IEnumerable<StoryletInstance> GetInstances(StoryDatabase db)
-        {
-            return new StoryletInstance[0];
-        }
-
-        /// <summary>
-        /// Get a collection instances of this storylet.
-        /// </summary>
-        /// <param name="db"></param>
-        /// <param name="bindings"></param>
-        /// <returns></returns>
-        public IEnumerable<StoryletInstance> GetInstances(StoryDatabase db, Dictionary<string, string> bindings)
-        {
-            return new StoryletInstance[0];
         }
 
         #endregion

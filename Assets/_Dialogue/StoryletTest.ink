@@ -1,3 +1,6 @@
+EXTERNAL SetBackground(background, tags)
+EXTERNAL SetSpeakerSprite(speaker, tags)
+
 === storylet_a
 # set >> Player to ?player
 # set >> Speaker to ?npc
@@ -8,7 +11,10 @@
 # ?player.relationships.?npc.stats.friendship > 0
 # end >>
 
-NPC: Welcome to storylet A
+
+Welcome to storylet A
+
+
 
 -> DONE
 
@@ -19,7 +25,9 @@ NPC: Welcome to storylet A
 === storylet_b
 # tags >> start, basic, b
 
-NPC: Welcome to storylet B
+
+Welcome to storylet B
+
 
 -> DONE
 
@@ -30,7 +38,8 @@ NPC: Welcome to storylet B
 === storylet_c
 # tags >> start, basic, c
 
-NPC: Welcome to storylet C
+Welcome to storylet C
+
 
 -> DONE
 

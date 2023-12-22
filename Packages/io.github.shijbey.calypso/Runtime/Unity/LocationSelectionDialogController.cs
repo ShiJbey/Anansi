@@ -1,14 +1,32 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.UI;
 using TMPro;
 
 namespace Calypso.Unity
 {
-    public class ChoiceDialogController : MonoBehaviour
+    /// <summary>
+    /// Handles displaying options for locations where the player may move to on the map.
+    /// </summary>
+    public class LocationSelectionDialogController : MonoBehaviour
     {
-        #region Protected Fields
+        /// <summary>
+        /// A reference to the game's location manager.
+        /// </summary>
+        [SerializeField]
+        private LocationManager locationManager;
+
+        /// <summary>
+        /// A reference to the prefab used to create choice buttons.
+        /// </summary>
+        [SerializeField]
+        private Button choiceButtonPrefab;
+
+        /// <summary>
+        /// A reference to the container that holds the choice buttons.
+        /// </summary>
+        [SerializeField]
+        private RectTransform choiceButtonContainer;
 
         /// <summary>
         /// The on-screen position of the dialogue panel.
@@ -21,45 +39,16 @@ namespace Calypso.Unity
         private Vector3 offScreenPosition;
 
         /// <summary>
-        /// A reference to the container that holds the choice buttons.
+        /// Reference to this MonoBehaviour's RectTransform.
         /// </summary>
-        [SerializeField]
-        private RectTransform _choiceButtonContainer;
-
-        /// <summary>
-        /// A reference to the prefab used to create choice buttons.
-        /// </summary>
-        [SerializeField]
-        private Button _choiceButtonPrefab;
+        private RectTransform rectTransform;
 
         /// <summary>
         /// A reference to the UI element holding the choices.
         /// </summary>
         private List<Button> _choiceButtons;
 
-        /// <summary>
-        /// Reference to this MonoBehaviour's RectTransform.
-        /// </summary>
-        [SerializeField]
-        private RectTransform rectTransform;
-
-        #endregion
-
-        #region Public Properties
-
-        public bool ChoicesDisplayed => _choiceButtons.Count > 0;
-
-        #endregion
-
-        #region Actions
-
-        /// <summary>
-        /// Event invoked when a choice is selected. This event accepts the index of the choice
-        /// as the argument.
-        /// </summary>
-        public UnityEvent<int> OnChoiceSelected;
-
-        #endregion
+        private bool isVisible = true;
 
         private void Awake()
         {
@@ -68,6 +57,8 @@ namespace Calypso.Unity
 
         private void Start()
         {
+            rectTransform = GetComponent<RectTransform>();
+
             // Configure the on and off-screen positions
 
             Vector3 startingPos = rectTransform.position;
@@ -87,7 +78,29 @@ namespace Calypso.Unity
         /// </summary>
         public void Show()
         {
+            ClearChoices();
+
+            foreach (Location location in locationManager.Locations)
+            {
+                // creates the button from a prefab
+                Button choiceButton = Instantiate(choiceButtonPrefab);
+                choiceButton.transform.SetParent(choiceButtonContainer.transform, false);
+                _choiceButtons.Add(choiceButton);
+
+                // sets text on the button
+                var buttonText = choiceButton.GetComponentInChildren<TMP_Text>();
+                buttonText.text = location.DisplayName;
+
+                //  Adds the onClick callback
+                choiceButton.onClick.AddListener(() =>
+                {
+                    ClearChoices();
+                    Hide();
+                });
+            }
+
             rectTransform.position = onScreenPosition;
+            isVisible = true;
         }
 
         /// <summary>
@@ -96,39 +109,19 @@ namespace Calypso.Unity
         public void Hide()
         {
             rectTransform.position = offScreenPosition;
+            isVisible = false;
         }
 
-        /// <summary>
-        /// Display a set of choices to the user
-        /// </summary>
-        /// <param name="choices"></param>
-        public void DisplayChoices(string[] choices)
+        public void Toggle()
         {
-            ClearChoices();
-
-            for (int i = 0; i < choices.Length; i++) // iterates through all choices
+            if (isVisible)
             {
-                // creates the button from a prefab
-                Button choiceButton = Instantiate(_choiceButtonPrefab);
-                choiceButton.transform.SetParent(_choiceButtonContainer.transform, false);
-                _choiceButtons.Add(choiceButton);
-
-                // sets text on the button
-                var buttonText = choiceButton.GetComponentInChildren<TMP_Text>();
-                buttonText.text = choices[i];
-
-                int choiceIndex = i;
-
-                //  Adds the onClick callback
-                choiceButton.onClick.AddListener(() =>
-                {
-                    ClearChoices();
-                    Hide();
-                    if (OnChoiceSelected != null) OnChoiceSelected.Invoke(choiceIndex);
-                });
+                Hide();
             }
-
-            Show();
+            else
+            {
+                Show();
+            }
         }
 
         /// <summary>

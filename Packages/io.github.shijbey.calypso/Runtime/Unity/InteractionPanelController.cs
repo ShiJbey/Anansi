@@ -88,6 +88,15 @@ namespace Calypso.Unity
         }
 
         /// <summary>
+        /// Set if the talk button is clickable or not
+        /// </summary>
+        /// <param name="enabled"></param>
+        public void SetTalkButtonEnabled(bool enabled)
+        {
+            talkButton.interactable = enabled;
+        }
+
+        /// <summary>
         /// Slide the interaction panel off screen
         /// </summary>
         /// <returns></returns>

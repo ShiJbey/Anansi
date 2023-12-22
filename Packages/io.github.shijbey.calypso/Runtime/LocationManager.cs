@@ -20,6 +20,9 @@ namespace Calypso.Unity
         private Dictionary<string, Location> locationLookupTable =
             new Dictionary<string, Location>();
 
+
+        public IEnumerable<Location> Locations => locations;
+
         // Start is called before the first frame update
         void Start()
         {

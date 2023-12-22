@@ -136,7 +136,11 @@ namespace Calypso.Unity
 
             advanceDialogueButton.onClick.AddListener(() =>
             {
-                if (OnAdvanceText != null) OnAdvanceText.Invoke();
+                if (IsTyping)
+                {
+                    skipTypewriterEffect = true;
+                }
+                else if (OnAdvanceText != null) OnAdvanceText.Invoke();
             });
 
             Hide();
@@ -173,7 +177,7 @@ namespace Calypso.Unity
             if (panelHidden) Show();
 
             IsTyping = true;
-            SetContinueButtonVisible(false);
+            SetContinueButtonInteractable(false);
 
             if (typingCoroutine != null) StopCoroutine(typingCoroutine);
 

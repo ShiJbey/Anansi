@@ -769,7 +769,6 @@ GameObject:
   - component: {fileID: 4798103520732844833}
   - component: {fileID: 8872803346294102943}
   - component: {fileID: 5866665901545408666}
-  - component: {fileID: 1941717879636390909}
   m_Layer: 5
   m_Name: AdvDialogueBtn
   m_TagString: Untagged
@@ -879,7 +878,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1941717879636390909}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: AdvanceDialogBtn, Assembly-CSharp
         m_MethodName: OnClick
         m_Mode: 1
@@ -891,18 +890,6 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
---- !u!114 &1941717879636390909
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2642484128053065479}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4535bb4145604cb4f8f35664831247d6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &2682784038823917522
 GameObject:
   m_ObjectHideFlags: 0
@@ -1070,6 +1057,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   talkButton: {fileID: 4999568880108511145}
   changeLocationButton: {fileID: 3908654403375164817}
+  slideOutSeconds: 0
+  slideInSeconds: 0
   rectTransform: {fileID: 1377438229588452942}
 --- !u!1 &2952761091195818155
 GameObject:
@@ -1169,8 +1158,12 @@ MonoBehaviour:
   _choiceDialog: {fileID: 3673202021974055871}
   slideOutSeconds: 0.2
   slideInSeconds: 0.2
+  typingSpeed: 0.04
   rectTransform: {fileID: 199626727701737405}
   OnAdvanceText:
+    m_PersistentCalls:
+      m_Calls: []
+  OnTextFinished:
     m_PersistentCalls:
       m_Calls: []
   OnShow:
