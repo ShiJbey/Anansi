@@ -25,7 +25,7 @@ public class TestRePraxisDatabase
         Assert.AreEqual(-99, db["A.relationships.B.reputation"]);
 
         // Delete a value
-        db.Remove("A.relationships.B.reputation");
+        db.Delete("A.relationships.B.reputation");
         Assert.AreEqual(false, db["A.relationships.B.reputation"]);
     }
 

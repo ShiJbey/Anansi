@@ -65,7 +65,7 @@ namespace Calypso.Unity
 
         void Start()
         {
-            _storyDatabase.db.Add($"{UniqueID}", true);
+            _storyDatabase.DB.Insert($"{UniqueID}", true);
         }
 
         #endregion

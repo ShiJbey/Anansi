@@ -96,13 +96,13 @@ namespace Calypso.Relationships
 
 		private void InvokeFriendshipCallbacks(int newValue)
 		{
-			_storyDatabase.db[$"{DBStringBase}.friendship"] = newValue;
+			_storyDatabase.DB[$"{DBStringBase}.friendship"] = newValue;
 			OnFriendshipChanged?.Invoke(newValue);
 		}
 
 		private void InvokeRomanceCallbacks(int newValue)
 		{
-			_storyDatabase.db[$"{DBStringBase}.romance"] = newValue;
+			_storyDatabase.DB[$"{DBStringBase}.romance"] = newValue;
 			OnRomanceChanged?.Invoke(newValue);
 		}
 		#endregion

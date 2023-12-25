@@ -1,177 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using UnityEngine;
 
 namespace Calypso.RePraxis
 {
-    /// <summary>
-    /// Each token within a database sentence is assigned to a node
-    /// within the database.
-    /// </summary>
-    public class DBNode
-    {
-        #region Fields
-        private object _value;
-        private string _symbol;
-        private bool _isExclusive;
-        private DBNode _parent;
-        private Dictionary<string, DBNode> _children;
-        #endregion
-
-        #region Properties
-        /// <summary>
-        /// The string symbol associated with this node
-        /// </summary>
-        public string Symbol { get { return _symbol; } }
-
-        /// <summary>
-        /// An untyped value associated with this node
-        /// </summary>
-        public object Value { get { return _value; } set { _value = value; } }
-
-        /// <summary>
-        /// Returns true if this node may have only a single child
-        /// </summary>
-        public bool IsExclusive { get { return _isExclusive; } }
-
-        /// <summary>
-        /// All the child nodes that belong to this node
-        /// </summary>
-        public List<DBNode> Children
-        {
-            get
-            {
-                return _children.Values.ToList();
-            }
-        }
-
-        public string Path
-        {
-            get
-            {
-                string path = $"{Symbol}";
-
-                var parentNode = _parent;
-
-                while (parentNode != null)
-                {
-                    // The current node is the root node and should be skipped.
-                    if (parentNode._parent == null)
-                    {
-                        break;
-                    }
-                    path = $"{parentNode.Symbol}{(parentNode.IsExclusive ? "!" : ".")}" + path;
-                    parentNode = parentNode._parent;
-                }
-
-                return path;
-            }
-        }
-        #endregion
-
-        #region Constructors
-        public DBNode(string symbol, object value, bool isExclusive)
-        {
-            _value = value;
-            _symbol = symbol;
-            _isExclusive = isExclusive;
-            _children = new Dictionary<string, DBNode>();
-            _parent = null;
-        }
-        #endregion
-
-        #region Methods
-        /// <summary>
-        /// Add a child node to the DBNode
-        /// </summary>
-        /// <param name="term"></param>
-        public void AddChild(DBNode term)
-        {
-            _children[term.Symbol] = term;
-            term._parent = this;
-        }
-
-        /// <summary>
-        /// Removes a child node from the DBNode
-        /// </summary>
-        /// <param name="symbol"></param>
-        /// <returns>True if successful</returns>
-        public bool RemoveChild(string symbol)
-        {
-            if (_children.ContainsKey(symbol))
-            {
-                var child = _children[symbol];
-                child._parent = null;
-                _children.Remove(symbol);
-                return true;
-            }
-            return false;
-        }
-
-        /// <summary>
-        /// Get a child node
-        /// </summary>
-        /// <param name="symbol"></param>
-        /// <returns>The node with the given symbol</returns>
-        public DBNode GetChild(string symbol)
-        {
-            return _children[symbol];
-        }
-
-        /// <summary>
-        /// Check if the node has a child
-        /// </summary>
-        /// <param name="symbol"></param>
-        /// <returns>
-        /// True if a child is present with the given symbol.
-        /// False otherwise.
-        /// </returns>
-        public bool Contains(string symbol)
-        {
-            return _children.ContainsKey(symbol);
-        }
-        #endregion
-    }
-
-    /// <summary>
-    /// Tokens in a database sentence can be symbols or variables
-    /// if they start with a question mark.
-    /// </summary>
-    public enum TokenType
-    {
-        Variable = 0,
-        Symbol = 1,
-    }
-
-    /// <summary>
-    /// A single token from a database sentence.
-    /// <para>
-    /// These are used to traverse the database when adding
-    /// and removing data
-    /// </para>
-    /// </summary>
-    public readonly struct SentenceToken
-    {
-        public readonly string symbol;
-        public readonly bool isExclusive;
-        public readonly TokenType type;
-
-        public SentenceToken(string symbol, bool isExclusive, TokenType type)
-        {
-            this.symbol = symbol;
-            this.isExclusive = isExclusive;
-            this.type = type;
-        }
-    }
-
-    /// <summary>
-    /// Delegate definition for sentence observation
-    /// </summary>
-    /// <param name="sentence"></param>
-    /// <param name="newValue"></param>
-    public delegate void SentenceObserver(string sentence, object newValue);
-
     /// <summary>
     /// A database that operates like a Dictionary and enables
     /// users to query for information using logical queries.
@@ -189,29 +20,38 @@ namespace Calypso.RePraxis
     /// </summary>
     public class RePraxisDatabase
     {
-        #region Fields
-        private DBNode _db;
-        private static Dictionary<string, SentenceObserver> _sentenceObservers
-            = new Dictionary<string, SentenceObserver>();
-        #endregion
-
-        #region Events and Actions
-        public static Action<string, object> OnEntryAdded;
-        public static Action<string> OnEntryRemoved;
-        #endregion
-
         #region Properties
-        public DBNode Root { get { return _db; } }
+
+        /// <summary>
+        /// A reference to the root node of the database
+        /// </summary>
+        public IRePraxisNode Root { get; private set; }
+
         #endregion
 
         #region Constructors
+
         public RePraxisDatabase()
         {
-            _db = new DBNode("root", true, false);
+            Root = new RePraxisNode("root", NodeCardinality.MANY);
         }
+
         #endregion
 
-        #region Accessor Methods
+        #region Methods
+
+        /// <summary>
+        /// Add a value to the database under the given sentence.
+        /// </summary>
+        /// <param name="sentence"></param>
+        /// <exception cref="ArgumentException">
+        /// Thrown when the sentence contains variables.
+        /// </exception>
+        public void Insert(string sentence)
+        {
+            Insert(sentence, true);
+        }
+
         /// <summary>
         /// Add a value to the database under the given sentence.
         /// </summary>
@@ -220,35 +60,57 @@ namespace Calypso.RePraxis
         /// <exception cref="ArgumentException">
         /// Thrown when the sentence contains variables.
         /// </exception>
-        public void Add(string sentence, object value)
+        public void Insert(string sentence, object value)
         {
-            var tokens = ParseSentence(sentence);
+            SentenceToken[] tokens = ParseSentence(sentence);
 
-            var currentNode = _db;
+            IRePraxisNode subtree = Root;
 
-            foreach (var token in tokens)
+            for (int i = 0; i < tokens.Length; i++)
             {
-                if (token.type == TokenType.Variable)
+                var token = tokens[i];
+
+                if (token.type == RePraxisTokenType.VARIABLE)
                 {
-                    throw new ArgumentException("Cannot add value when sentence contains variables.");
+                    throw new ArgumentException(@$"
+                        Found variable {token.symbol} in sentence.
+                        Sentence cannot contain variables when inserting a value."
+                    );
                 }
 
-                if (!currentNode.Contains(token.symbol) || token.isExclusive)
+                IRePraxisNode currentNode;
+
+                if (!subtree.HasChild(token.symbol))
                 {
-                    var node = new DBNode(token.symbol, true, token.isExclusive);
-                    currentNode.AddChild(node);
+                    // We need to create a new node and continue.
+                    currentNode = new RePraxisNode(token.symbol, token.cardinality);
+
+                    subtree.AddChild(currentNode);
+                }
+                else
+                {
+                    // We need to get the existing node, check cardinalities, and establish new
+                    // nodes
+                    currentNode = subtree.GetChild(token.symbol);
+
+                    if (currentNode.Cardinality == NodeCardinality.ONE && token.cardinality == NodeCardinality.MANY)
+                    {
+                        currentNode.Cardinality = NodeCardinality.MANY;
+
+                    }
+                    else if (currentNode.Cardinality == NodeCardinality.MANY && token.cardinality == NodeCardinality.ONE)
+                    {
+                        currentNode.Cardinality = NodeCardinality.ONE;
+                        subtree.ClearChildren();
+                    }
                 }
 
-                currentNode = currentNode.GetChild(token.symbol);
-            }
+                if (i == tokens.Length - 1)
+                {
+                    subtree.GetChild(token.symbol).Value = value;
+                }
 
-            currentNode.Value = value;
-
-            OnEntryAdded?.Invoke(sentence, value);
-
-            if (_sentenceObservers.ContainsKey(sentence))
-            {
-                _sentenceObservers[sentence]?.Invoke(sentence, value);
+                subtree = currentNode;
             }
         }
 
@@ -266,21 +128,24 @@ namespace Calypso.RePraxis
         {
             var tokens = ParseSentence(sentence);
 
-            var currentNode = _db;
+            var currentNode = Root;
 
             foreach (var token in tokens)
             {
-                if (token.type == TokenType.Variable)
+                if (token.type == RePraxisTokenType.VARIABLE)
                 {
-                    throw new ArgumentException("Sentence cannot contain variables when retrieving a value.");
+                    throw new ArgumentException(@$"
+                        Found variable {token.symbol} in sentence.
+                        Sentence cannot contain variables when retrieving a value."
+                    );
                 }
 
-                if (!currentNode.Contains(token.symbol))
+                if (!currentNode.HasChild(token.symbol))
                 {
                     return false;
                 }
 
-                if (currentNode.IsExclusive != token.isExclusive)
+                if (currentNode.Cardinality != token.cardinality)
                 {
                     return false;
                 }
@@ -302,7 +167,7 @@ namespace Calypso.RePraxis
         public object this[string sentence]
         {
             get { return Get(sentence); }
-            set { Add(sentence, value); }
+            set { Insert(sentence, value); }
         }
 
         /// <summary>
@@ -312,98 +177,37 @@ namespace Calypso.RePraxis
         /// <returns>
         /// True if something was removed. False otherwise.
         /// </returns>
-        public bool Remove(string sentence)
+        public bool Delete(string sentence)
         {
-            var tokens = ParseSentence(sentence);
 
-            var currentNode = _db;
+            SentenceToken[] tokens = ParseSentence(sentence);
 
+            IRePraxisNode currentNode = Root;
+
+            // Loop until we get to the second to last node
             for (int i = 0; i < tokens.Length - 1; ++i)
             {
                 var token = tokens[i];
                 currentNode = currentNode.GetChild(token.symbol);
             }
 
-            var last = tokens[tokens.Length - 1];
+            // Get a reference to the final node in the sentence
+            var lastToken = tokens[tokens.Length - 1];
 
-            OnEntryRemoved?.Invoke(sentence);
-
-            return currentNode.RemoveChild(last.symbol);
-        }
-        #endregion
-
-        #region Observer Methods
-        /// <summary>
-        /// When the given sentence changes its value in the database, all the
-        /// observers are notified of the change.
-        /// <para>
-        /// This method was adapted from from the Ink C# runtime and how it manages
-        /// variable observation.
-        /// </para>
-        /// <para>
-        /// NOTE:: Observers will not be notified if a sentence has been removed from the
-        /// database.
-        /// </para>
-        /// </summary>
-        /// <param name="sentence"></param>
-        /// <param name="observer"></param>
-        public static void ObserveSentence(string sentence, SentenceObserver observer)
-        {
-            if (_sentenceObservers.ContainsKey(sentence))
-            {
-                _sentenceObservers[sentence] += observer;
-            }
-            else
-            {
-                _sentenceObservers[sentence] = observer;
-            }
+            // Remove the child
+            return currentNode.RemoveChild(lastToken.symbol);
         }
 
-        /// <summary>
-        /// Removes an observer from getting sentence value updates or removes
-        /// all observers from a given sentence.
-        /// </summary>
-        /// <param name="observer"></param>
-        /// <param name="sentence"></param>
-        public static void RemoveSentenceObserver(
-            SentenceObserver observer = null,
-            string sentence = null)
-        {
-            // Remove the observer for a specific sentence or remove all
-            // listeners for a given sentence
-            if (sentence != null)
-            {
-                if (_sentenceObservers.ContainsKey(sentence))
-                {
-                    if (observer != null)
-                    {
-                        _sentenceObservers[sentence] -= observer;
-                        if (_sentenceObservers[sentence] == null)
-                        {
-                            _sentenceObservers.Remove(sentence);
-                        }
-                    }
-                    else
-                    {
-                        _sentenceObservers.Remove(sentence);
-                    }
-                }
-            }
-
-            // Remove this observer for all sentences
-            else if (observer != null)
-            {
-                var keys = new List<string>(_sentenceObservers.Keys);
-                foreach (var entry in keys)
-                {
-                    _sentenceObservers[entry] -= observer;
-
-                }
-            }
-        }
         #endregion
 
         #region Helper Methods
+
+        /// <summary>
+        /// Breakup a database sentence into component parts for use when looking though
+        /// a database.
+        /// </summary>
+        /// <param name="sentence"></param>
+        /// <returns>The tokens of a database sentence</returns>
         public static SentenceToken[] ParseSentence(string sentence)
         {
             string currentSymbol = "";
@@ -416,8 +220,9 @@ namespace Calypso.RePraxis
                     tokens.Add(
                         new SentenceToken(
                             currentSymbol,
-                            ch == '!',
-                            Char.ToLower(currentSymbol[0]) == '?' ? TokenType.Variable : TokenType.Symbol
+                            ch == '!' ? NodeCardinality.ONE : NodeCardinality.MANY,
+                            currentSymbol[0] == '?'
+                                ? RePraxisTokenType.VARIABLE : RePraxisTokenType.SYMBOL
                         )
                     );
                     currentSymbol = "";
@@ -431,13 +236,40 @@ namespace Calypso.RePraxis
             tokens.Add(
                 new SentenceToken(
                     currentSymbol,
-                    false,
-                    Char.ToLower(currentSymbol[0]) == '?' ? TokenType.Variable : TokenType.Symbol
+                    NodeCardinality.MANY,
+                    currentSymbol[0] == '?'
+                        ? RePraxisTokenType.VARIABLE : RePraxisTokenType.SYMBOL
                 )
             );
 
             return tokens.ToArray();
         }
+
+        #endregion
+
+        #region Helper Types
+
+        /// <summary>
+        /// A single token from a database sentence.
+        /// <para>
+        /// These are used to traverse the database when adding
+        /// and removing data
+        /// </para>
+        /// </summary>
+        public readonly struct SentenceToken
+        {
+            public readonly string symbol;
+            public readonly NodeCardinality cardinality;
+            public readonly RePraxisTokenType type;
+
+            public SentenceToken(string symbol, NodeCardinality cardinality, RePraxisTokenType type)
+            {
+                this.symbol = symbol;
+                this.cardinality = cardinality;
+                this.type = type;
+            }
+        }
+
         #endregion
     }
 }

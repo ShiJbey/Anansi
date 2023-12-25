@@ -63,7 +63,7 @@ namespace Calypso.RePraxis
 
     /// <summary>
     /// Used to construct queries against a story database
-    /// 
+    ///
     /// <para>
     /// This class is immutable. So, additional calls to the Where method produce
     /// new DBQuery instances.
@@ -144,7 +144,7 @@ namespace Calypso.RePraxis
             {
                 var token = tokens[i];
 
-                if (token.type == TokenType.Variable)
+                if (token.type == RePraxisTokenType.VARIABLE)
                 {
                     finalSentence += bindings[token.symbol];
                 }
@@ -155,7 +155,7 @@ namespace Calypso.RePraxis
 
                 if (i < tokens.Length - 1)
                 {
-                    finalSentence += token.isExclusive ? "!" : ".";
+                    finalSentence += token.cardinality == NodeCardinality.ONE ? "!" : ".";
                 }
             }
 
@@ -171,22 +171,22 @@ namespace Calypso.RePraxis
     {
         #region Fields
         private Dictionary<string, string> _binding;
-        private DBNode _subtree;
+        private IRePraxisNode _subtree;
         #endregion
 
         #region Properties
         public Dictionary<string, string> Binding { get { return _binding; } }
-        public DBNode SubTree { get { return _subtree; } }
+        public IRePraxisNode SubTree { get { return _subtree; } }
         #endregion
 
         #region Constructors
-        public BindingContext(Dictionary<string, string> binding, DBNode subtree)
+        public BindingContext(Dictionary<string, string> binding, IRePraxisNode subtree)
         {
             _binding = binding;
             _subtree = subtree;
         }
 
-        public BindingContext(DBNode subtree) : this(new Dictionary<string, string>(), subtree) { }
+        public BindingContext(IRePraxisNode subtree) : this(new Dictionary<string, string>(), subtree) { }
         #endregion
     }
 
@@ -235,7 +235,7 @@ namespace Calypso.RePraxis
                 return _result;
             }
 
-            // If the sentence does not have variables then just check 
+            // If the sentence does not have variables then just check
             // if the value in the database is Truthy
             if (bindings.Count() == 0 && sentenceHasVariables == false)
             {
@@ -379,6 +379,7 @@ namespace Calypso.RePraxis
         #endregion
 
         #region Helper Methods
+
         public object ParseConstant([NotNull] RePraxisParser.ConstantContext context)
         {
             if (context.NULL() != null)
@@ -493,14 +494,15 @@ namespace Calypso.RePraxis
 
         private static bool HasVariables(string sentence)
         {
-            return RePraxisDatabase.ParseSentence(sentence).Where(t => t.type == TokenType.Variable).Count() > 0;
+            return RePraxisDatabase.ParseSentence(sentence)
+                .Where(t => t.type == RePraxisTokenType.VARIABLE).Count() > 0;
         }
         #endregion
 
         #region Unification Methods
         /// <summary>
         /// Generates potential bindings from the database for a single sentence
-        /// 
+        ///
         /// This method does not take the current bindings into consideration. It
         /// should only be called by the UnifyAll method
         /// </summary>
@@ -523,7 +525,7 @@ namespace Calypso.RePraxis
                 {
                     foreach (var child in entry.SubTree.Children)
                     {
-                        if (token.type == TokenType.Variable)
+                        if (token.type == RePraxisTokenType.VARIABLE)
                         {
                             var unification =
                                 new BindingContext(
@@ -554,7 +556,7 @@ namespace Calypso.RePraxis
 
         /// <summary>
         /// Generates potential bindings from the database unifying across all sentences.
-        /// 
+        ///
         /// This method takes into consideration the bindings from the current results.
         /// </summary>
         /// <param name="sentences"></param>
@@ -616,6 +618,7 @@ namespace Calypso.RePraxis
 
             return possibleBindings.Where(bindings => bindings.Count() > 0).ToList();
         }
+
         #endregion
     }
 }

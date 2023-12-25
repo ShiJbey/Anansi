@@ -88,7 +88,7 @@ namespace Calypso.Unity
 
         private void Start()
         {
-            _storyDatabase.db.Add($"{UniqueID}", true);
+            _storyDatabase.DB.Insert($"{UniqueID}", true);
             if (_startingLocation != null)
             {
                 MoveToLocation(_startingLocation);
@@ -109,8 +109,8 @@ namespace Calypso.Unity
             if (_currentLocation != null)
             {
                 location.RemoveCharacter(this);
-                _storyDatabase.db.Remove($"{_currentLocation.UniqueID}.characters.{UniqueID}");
-                _storyDatabase.db.Remove($"{UniqueID}.location.{_currentLocation.UniqueID}");
+                _storyDatabase.DB.Delete($"{_currentLocation.UniqueID}.characters.{UniqueID}");
+                _storyDatabase.DB.Delete($"{UniqueID}.location.{_currentLocation.UniqueID}");
                 _currentLocation = null;
             }
 
@@ -118,8 +118,8 @@ namespace Calypso.Unity
             {
                 location.AddCharacter(this);
                 _currentLocation = location;
-                _storyDatabase.db.Add($"{location.UniqueID}.characters.{UniqueID}", true);
-                _storyDatabase.db.Add($"{UniqueID}.location.{location.UniqueID}", true);
+                _storyDatabase.DB.Insert($"{location.UniqueID}.characters.{UniqueID}", true);
+                _storyDatabase.DB.Insert($"{UniqueID}.location.{location.UniqueID}", true);
             }
 
             if (OnLocationChanged != null) OnLocationChanged.Invoke(location);
