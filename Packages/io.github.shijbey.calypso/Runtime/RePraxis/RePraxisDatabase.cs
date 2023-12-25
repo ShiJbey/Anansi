@@ -25,7 +25,7 @@ namespace Calypso.RePraxis
         /// <summary>
         /// A reference to the root node of the database
         /// </summary>
-        public IRePraxisNode Root { get; private set; }
+        public IRePraxisNode Root { get; }
 
         #endregion
 
@@ -73,7 +73,7 @@ namespace Calypso.RePraxis
                 if (token.type == RePraxisTokenType.VARIABLE)
                 {
                     throw new ArgumentException(@$"
-                        Found variable {token.symbol} in sentence.
+                        Found variable {token.symbol} in sentence '({sentence})'.
                         Sentence cannot contain variables when inserting a value."
                     );
                 }
@@ -93,21 +93,17 @@ namespace Calypso.RePraxis
                     // nodes
                     currentNode = subtree.GetChild(token.symbol);
 
-                    if (currentNode.Cardinality == NodeCardinality.ONE && token.cardinality == NodeCardinality.MANY)
+                    if (currentNode.Cardinality != token.cardinality)
                     {
-                        currentNode.Cardinality = NodeCardinality.MANY;
-
-                    }
-                    else if (currentNode.Cardinality == NodeCardinality.MANY && token.cardinality == NodeCardinality.ONE)
-                    {
-                        currentNode.Cardinality = NodeCardinality.ONE;
-                        subtree.ClearChildren();
+                        throw new CardinalityException(
+                            $"Cardinality mismatch on {token.symbol} in sentence '{sentence}'."
+                        );
                     }
                 }
 
                 if (i == tokens.Length - 1)
                 {
-                    subtree.GetChild(token.symbol).Value = value;
+                    currentNode.Value = value;
                 }
 
                 subtree = currentNode;
