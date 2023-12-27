@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Schedules>
+    <ScheduleDefinition id="base" priority="0">
+        <Preconditions>
+        </Preconditions>
+        <ScheduleEntries>
+            <ScheduleEntry location="outside_library" timeOfDay="Morning" />
+        </ScheduleEntries>
+    </ScheduleDefinition>
+
+    <ScheduleDefinition id="day_12_matsuri" priority="1">
+        <Preconditions>
+            <Precondition type="IsDay" day="12" />
+        </Preconditions>
+        <ScheduleEntries>
+            <ScheduleEntry location="outside_library" timeOfDay="Morning" />
+        </ScheduleEntries>
+    </ScheduleDefinition>
+
+    <ScheduleDefinition id="day_50_matsuri" priority="1">
+        <Preconditions>
+            <Precondition type="IsDay" day="50" />
+        </Preconditions>
+        <ScheduleEntries>
+            <ScheduleEntry location="dining_hall" timeOfDay="Afternoon" />
+        </ScheduleEntries>
+    </ScheduleDefinition>
+</Schedules>

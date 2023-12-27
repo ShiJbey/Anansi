@@ -1,11 +1,14 @@
 using UnityEngine;
 using Calypso.Unity;
+using System.Linq;
 
 public class MockBGTransition : MonoBehaviour
 {
     private int locationIndex = -1;
 
     [SerializeField]
+    private LocationManager locationManager;
+
     private Location[] locations;
 
     [SerializeField]
@@ -13,6 +16,11 @@ public class MockBGTransition : MonoBehaviour
 
     [SerializeField]
     private StatusBarController statusBar;
+
+    void Start()
+    {
+        locations = locationManager.Locations.ToArray();
+    }
 
     // Update is called once per frame
     void Update()

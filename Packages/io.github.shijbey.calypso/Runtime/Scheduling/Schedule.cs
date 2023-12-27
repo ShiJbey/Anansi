@@ -1,88 +1,148 @@
+using System;
 using System.Collections.Generic;
+using System.Xml;
+using UnityEngine;
 
 namespace Calypso.Scheduling
 {
     /// <summary>
-    /// Manages a collection of schedule entries to determine what a
-    /// character should do given the current time.
+    /// Manages a collection of entries that determine what should happen at a given time.
     /// </summary>
-    public class Schedule : ISchedule
+    public class Schedule
     {
-        /// <summary>
-        /// All the entries that belong to a schedule
-        /// </summary>
-        private Dictionary<Days, List<IScheduleEntry>> _entries;
+        #region Protected Fields
 
         /// <summary>
-        /// The schedule entry that is currently active given the current schedule.
+        /// All the entries that belong to a schedule.
         /// </summary>
-        private IScheduleEntry _activeEntry;
+        protected List<ScheduleEntry> _entries;
 
-        public Schedule()
+        /// <summary>
+        /// The preconditions to check if this schedule applies
+        /// </summary>
+        protected List<IPrecondition> _preconditions;
+
+        #endregion
+
+        #region Public Properties
+
+        public int Priority { get; }
+
+        #endregion
+
+        #region Constructors
+
+        public Schedule(int priority, IEnumerable<IPrecondition> preconditions, IEnumerable<ScheduleEntry> entries)
         {
-            _entries = new Dictionary<Days, List<IScheduleEntry>>();
-            _activeEntry = null;
+            Priority = priority;
+            _preconditions = new List<IPrecondition>(preconditions);
+            _entries = new List<ScheduleEntry>(entries);
         }
 
-        public void AddEntry(Days day, IScheduleEntry entry)
-        {
-            if (!_entries.ContainsKey(day))
-            {
-                _entries[day] = new List<IScheduleEntry>();
-            }
+        #endregion
 
-            _entries[day].Add(entry);
+        #region Methods
+
+        /// <summary>
+        /// Add an entry to the schedule
+        /// </summary>
+        /// <param name="entry"></param>
+        public void AddEntry(ScheduleEntry entry)
+        {
+            _entries.Add(entry);
         }
 
-        public IScheduleEntry GetEntry(SimDateTime currentTime)
+        /// <summary>
+        /// Get schedule entries for the given date/time
+        /// </summary>
+        /// <param name="date"></param>
+        /// <returns></returns>
+        public ScheduleEntry[] GetEntries(SimDateTime dateTime)
         {
-            int ordinalDate = currentTime.TotalNumDays;
+            throw new NotImplementedException();
+        }
 
-            List<IScheduleEntry> entriesForDay;
+        /// <summary>
+        /// Remove an entry from the from the schedule.
+        /// </summary>
+        /// <param name="entry"></param>
+        /// <returns></returns>
+        public bool RemoveEntry(ScheduleEntry entry)
+        {
+            return _entries.Remove(entry);
+        }
 
-            _entries.TryGetValue(currentTime.Day, out entriesForDay);
-
-            if (entriesForDay is null)
+        /// <summary>
+        /// Check all the preconditions for this
+        /// </summary>
+        /// <param name="gameObject"></param>
+        /// <returns></returns>
+        public bool CheckPreconditions(GameObject gameObject)
+        {
+            foreach (var precondition in _preconditions)
             {
-                _activeEntry = null;
-                return _activeEntry;
+                if (precondition.CheckPrecondition(gameObject) == false) return false;
+            }
+            return true;
+        }
+
+
+        public static Schedule ParseXml(XmlNode scheduleNode)
+        {
+            XmlElement scheduleElement = (XmlElement)scheduleNode;
+
+            int schedulePriority = 0;
+            if (scheduleElement.HasAttribute("priority"))
+            {
+                schedulePriority = int.Parse(scheduleElement.GetAttribute("priority"));
             }
 
-            foreach (var entry in entriesForDay)
+            List<IPrecondition> preconditions = new List<IPrecondition>();
+            XmlElement preconditionsElem = scheduleElement["Preconditions"];
+            for (int i = 0; i < preconditionsElem.ChildNodes.Count; i++)
             {
-                if (
-                    entry.StartTime <= currentTime.Hour
-                    && entry.EndTime >= currentTime.Hour
-                    && (
-                        entry.LastCompleted < ordinalDate
-                        || entry.IsRepeatable
-                    )
-                )
+                XmlNode preconditionNode = preconditionsElem.ChildNodes[i];
+
+                if (preconditionNode.NodeType != XmlNodeType.Element) continue;
+
+                string preconditionType = ((XmlElement)preconditionNode).GetAttribute("type");
+
+                try
                 {
-                    _activeEntry = entry;
-                    return entry;
+                    IPreconditionFactory factory = PreconditionLibrary.factories[preconditionType];
+
+                    IPrecondition precondition = factory.CreatePrecondition(preconditionNode);
+
+                    preconditions.Add(precondition);
                 }
+                catch (KeyNotFoundException)
+                {
+                    throw new KeyNotFoundException(
+                        $"Precondition '{preconditionType}' does not exist."
+                        + " Are you missing a factory?"
+                    );
+                }
+
+
             }
 
-            _activeEntry = null;
-            return _activeEntry;
+
+            List<ScheduleEntry> entries = new List<ScheduleEntry>();
+            XmlElement entriesElem = scheduleElement["ScheduleEntries"];
+            for (int i = 0; i < entriesElem.ChildNodes.Count; i++)
+            {
+                XmlNode entryNode = entriesElem.ChildNodes[i];
+
+                if (entryNode.NodeType != XmlNodeType.Element) continue;
+
+                ScheduleEntry entry = ScheduleEntry.ParseXml(entryNode);
+
+                entries.Add(entry);
+            }
+
+            return new Schedule(schedulePriority, preconditions, entries);
         }
 
-        public bool RemoveEntry(Days day, IScheduleEntry entry)
-        {
-            List<IScheduleEntry> entriesForDay;
-
-            _entries.TryGetValue(day, out entriesForDay);
-
-            if (entriesForDay == null)
-            {
-                return false;
-            }
-            else
-            {
-                return entriesForDay.Remove(entry);
-            }
-        }
+        #endregion
     }
 }
-

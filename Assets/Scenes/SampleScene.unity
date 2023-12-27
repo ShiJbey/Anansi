@@ -159,6 +159,70 @@ MonoBehaviour:
   locationManager: {fileID: 1465694114}
   choiceButtonPrefab: {fileID: 1141450844600112449, guid: 2121849f51a821a43a7385d0595b2471, type: 3}
   choiceButtonContainer: {fileID: 1294215377}
+--- !u!1 &225364940
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 225364941}
+  - component: {fileID: 225364943}
+  - component: {fileID: 225364942}
+  m_Layer: 0
+  m_Name: Classroom
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &225364941
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 225364940}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1465694113}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &225364942
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 225364940}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21fd36a5fac3a459a9b5f8f426ee1e55, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _storyFiles: []
+--- !u!114 &225364943
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 225364940}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0572269d57e61740aedc1b31f987636, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _displayName: Classroom
+  _uniqueID: classroom
+  _storyDatabase: {fileID: 1075693842}
+  _backgrounds:
+  - sprite: {fileID: 21300000, guid: fae7e1ee2ec1a0749ac0f56ffa6b6580, type: 3}
+    tags: []
 --- !u!1 &254575243
 GameObject:
   m_ObjectHideFlags: 0
@@ -396,6 +460,70 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &547822313
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 547822314}
+  - component: {fileID: 547822316}
+  - component: {fileID: 547822315}
+  m_Layer: 0
+  m_Name: Campus Walkway
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &547822314
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 547822313}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1465694113}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &547822315
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 547822313}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21fd36a5fac3a459a9b5f8f426ee1e55, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _storyFiles: []
+--- !u!114 &547822316
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 547822313}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0572269d57e61740aedc1b31f987636, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _displayName: Campus Walkway
+  _uniqueID: campus_walkway
+  _storyDatabase: {fileID: 1075693842}
+  _backgrounds:
+  - sprite: {fileID: 21300000, guid: 5859e36a7f1cea54fb265020ac75c983, type: 3}
+    tags: []
 --- !u!1 &567994320
 GameObject:
   m_ObjectHideFlags: 0
@@ -543,6 +671,134 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 977957752}
   m_SourcePrefab: {fileID: 100100000, guid: 01741ba775384c04a8203c7a4c889aca, type: 3}
+--- !u!1 &706088815
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 706088816}
+  - component: {fileID: 706088818}
+  - component: {fileID: 706088817}
+  m_Layer: 0
+  m_Name: Astrids Dormroom
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &706088816
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 706088815}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1465694113}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &706088817
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 706088815}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21fd36a5fac3a459a9b5f8f426ee1e55, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _storyFiles: []
+--- !u!114 &706088818
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 706088815}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0572269d57e61740aedc1b31f987636, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _displayName: Astrid's Dormroom
+  _uniqueID: astrid_dormroom
+  _storyDatabase: {fileID: 1075693842}
+  _backgrounds:
+  - sprite: {fileID: 21300000, guid: b0302daaa9804d94a9d7b6bb937f146d, type: 3}
+    tags: []
+--- !u!1 &968897416
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 968897417}
+  - component: {fileID: 968897419}
+  - component: {fileID: 968897418}
+  m_Layer: 0
+  m_Name: Library
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &968897417
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 968897416}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1465694113}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &968897418
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 968897416}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21fd36a5fac3a459a9b5f8f426ee1e55, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _storyFiles: []
+--- !u!114 &968897419
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 968897416}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0572269d57e61740aedc1b31f987636, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _displayName: Library
+  _uniqueID: library
+  _storyDatabase: {fileID: 1075693842}
+  _backgrounds:
+  - sprite: {fileID: 21300000, guid: 682f21832b5e5504f8b83c4c4df8eda1, type: 3}
+    tags: []
 --- !u!1 &977957748 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 3916020569967752154, guid: 01741ba775384c04a8203c7a4c889aca, type: 3}
@@ -654,17 +910,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bd25a8e48de21c744abca45c7c6e9c71, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _dayInMonth: 1
-  _month: 1
-  _year: 1
-  _hour: 0
-  _minutes: 0
-  _timeInterval:
-    _years: 0
-    _months: 0
-    _days: 0
-    _hours: 4
-    _minutes: 0
+  _startingDay: 1
+  _startingTimeOfDay: 0
 --- !u!114 &1075693842
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -677,25 +924,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ed799c0fc6592c040b79cf19b704391b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _serializedNodes:
-  - id: 0
-    symbol: root
-    isExclusive: 0
-    children: 
-    valueType: 0
-    intValue: 0
-    floatValue: 0
-    stringValue: 
-  _serializedDatabase:
-    nodes:
-    - id: 0
-      symbol: root
-      isExclusive: 0
-      children: 
-      valueType: 0
-      intValue: 0
-      floatValue: 0
-      stringValue: 
+  _serializedSentences: []
 --- !u!1 &1095505044
 GameObject:
   m_ObjectHideFlags: 0
@@ -863,6 +1092,12 @@ Transform:
   m_Children:
   - {fileID: 483364916}
   - {fileID: 567994322}
+  - {fileID: 968897417}
+  - {fileID: 1993906969}
+  - {fileID: 225364941}
+  - {fileID: 547822314}
+  - {fileID: 1961642383}
+  - {fileID: 706088816}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1465694114
@@ -880,6 +1115,12 @@ MonoBehaviour:
   locations:
   - {fileID: 567994321}
   - {fileID: 483364917}
+  - {fileID: 968897419}
+  - {fileID: 1993906971}
+  - {fileID: 225364943}
+  - {fileID: 547822316}
+  - {fileID: 1961642385}
+  - {fileID: 706088818}
 --- !u!1 &1466034121
 GameObject:
   m_ObjectHideFlags: 0
@@ -892,6 +1133,7 @@ GameObject:
   - component: {fileID: 1466034122}
   - component: {fileID: 1466034124}
   - component: {fileID: 1466034125}
+  - component: {fileID: 1466034126}
   m_Layer: 0
   m_Name: Mock
   m_TagString: Untagged
@@ -911,9 +1153,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 70991ab4f7d5041aab73418da1047ec7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  locations:
-  - {fileID: 567994321}
-  - {fileID: 483364917}
+  locationManager: {fileID: 1465694114}
   backgroundController: {fileID: 447688384}
   statusBar: {fileID: 1986680424}
 --- !u!4 &1466034123
@@ -961,6 +1201,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   dialoguePanelController: {fileID: 22372833}
+--- !u!114 &1466034126
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1466034121}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 794a5bc8552e5bf44aa112938bad5b0c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &1538215031 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 7637924957314695651, guid: b3d1efb89c38b4554a861b9ef9f4f794, type: 3}
@@ -972,6 +1224,50 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a87d45ce4787efc41860cc8d323fde6d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &1680266825
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1680266827}
+  - component: {fileID: 1680266826}
+  m_Layer: 0
+  m_Name: PreconditionFactories
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1680266826
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1680266825}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ae80578ed0c744dcda3b6d040193fb96, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!4 &1680266827
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1680266825}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 190.70302, y: 221.63847, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1923147179
 GameObject:
   m_ObjectHideFlags: 0
@@ -1074,6 +1370,70 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!1 &1961642382
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1961642383}
+  - component: {fileID: 1961642385}
+  - component: {fileID: 1961642384}
+  m_Layer: 0
+  m_Name: Evelyns Dormroom
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1961642383
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1961642382}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1465694113}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1961642384
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1961642382}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21fd36a5fac3a459a9b5f8f426ee1e55, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _storyFiles: []
+--- !u!114 &1961642385
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1961642382}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0572269d57e61740aedc1b31f987636, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _displayName: Evelyn's Dormroom
+  _uniqueID: evelyn_dormroom
+  _storyDatabase: {fileID: 1075693842}
+  _backgrounds:
+  - sprite: {fileID: 21300000, guid: b0302daaa9804d94a9d7b6bb937f146d, type: 3}
+    tags: []
 --- !u!114 &1986680424 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 9052050573325085665, guid: aac11052ca3864fad823b522214e6ec9, type: 3}
@@ -1085,6 +1445,70 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fc70cefbc3cba4d6f948c1810213d1f4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &1993906968
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1993906969}
+  - component: {fileID: 1993906971}
+  - component: {fileID: 1993906970}
+  m_Layer: 0
+  m_Name: Gym
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1993906969
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1993906968}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1465694113}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1993906970
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1993906968}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21fd36a5fac3a459a9b5f8f426ee1e55, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _storyFiles: []
+--- !u!114 &1993906971
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1993906968}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0572269d57e61740aedc1b31f987636, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _displayName: Gym
+  _uniqueID: gym
+  _storyDatabase: {fileID: 1075693842}
+  _backgrounds:
+  - sprite: {fileID: 21300000, guid: 58e7c28a638c4e144a9852f26101777f, type: 3}
+    tags: []
 --- !u!1001 &2420692042241072552
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1095,7 +1519,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1121604756887958389, guid: aac11052ca3864fad823b522214e6ec9, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0.00019453745
+      value: 0.00027317085
       objectReference: {fileID: 0}
     - target: {fileID: 1964989858281869008, guid: aac11052ca3864fad823b522214e6ec9, type: 3}
       propertyPath: m_Name
@@ -1419,7 +1843,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8726248483740984755, guid: aac11052ca3864fad823b522214e6ec9, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0.00010298476
+      value: 0.00029224655
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects:
@@ -1513,6 +1937,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 3916020569967752154, guid: 01741ba775384c04a8203c7a4c889aca, type: 3}
       insertIndex: -1
       addedObject: {fileID: 3410163666078535678}
+    - targetCorrespondingSourceObject: {fileID: 3916020569967752154, guid: 01741ba775384c04a8203c7a4c889aca, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3410163666078535679}
   m_SourcePrefab: {fileID: 100100000, guid: 01741ba775384c04a8203c7a4c889aca, type: 3}
 --- !u!4 &3410163666078535672 stripped
 Transform:
@@ -1553,6 +1980,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _storyFiles:
   - {fileID: 4900000, guid: 58c0a0ee4bbc69f42866a7506c1532dc, type: 3}
+--- !u!114 &3410163666078535679
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 130688366}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4f040181f345b4f7e98ddf4a318dba64, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  scheduleXmlFiles:
+  - {fileID: 4900000, guid: f56d216c536634b9b9f5a21d1b8ce3c0, type: 3}
 --- !u!4 &6354242567126787387 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 640525242105120166, guid: b3d1efb89c38b4554a861b9ef9f4f794, type: 3}
@@ -1651,3 +2092,4 @@ SceneRoots:
   - {fileID: 1465694113}
   - {fileID: 1075693840}
   - {fileID: 1466034123}
+  - {fileID: 1680266827}
