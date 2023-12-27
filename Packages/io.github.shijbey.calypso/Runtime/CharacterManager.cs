@@ -6,6 +6,7 @@ namespace Calypso.Unity
     /// <summary>
     /// Maintains a look-up table of characters that exist in the game
     /// </summary>
+    [DefaultExecutionOrder(-1)]
     public class CharacterManager : MonoBehaviour
     {
         /// <summary>
@@ -18,6 +19,8 @@ namespace Calypso.Unity
         /// IDs of characters mapped to their instances.
         /// </summary>
         private Dictionary<string, Actor> characterLookupTable = new Dictionary<string, Actor>();
+
+        public IEnumerable<Actor> Characters => characters;
 
         private void Start()
         {

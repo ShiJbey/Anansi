@@ -1,7 +1,5 @@
-using System;
 using System.Collections.Generic;
 using System.Xml;
-using UnityEngine;
 
 namespace Calypso.Scheduling
 {
@@ -24,17 +22,10 @@ namespace Calypso.Scheduling
 
         #endregion
 
-        #region Public Properties
-
-        public int Priority { get; }
-
-        #endregion
-
         #region Constructors
 
-        public Schedule(int priority, IEnumerable<IPrecondition> preconditions, IEnumerable<ScheduleEntry> entries)
+        public Schedule(IEnumerable<IPrecondition> preconditions, IEnumerable<ScheduleEntry> entries)
         {
-            Priority = priority;
             _preconditions = new List<IPrecondition>(preconditions);
             _entries = new List<ScheduleEntry>(entries);
         }
@@ -59,7 +50,17 @@ namespace Calypso.Scheduling
         /// <returns></returns>
         public ScheduleEntry[] GetEntries(SimDateTime dateTime)
         {
-            throw new NotImplementedException();
+            List<ScheduleEntry> entriesForTime = new List<ScheduleEntry>();
+
+            foreach (ScheduleEntry entry in _entries)
+            {
+                if (entry.TimeOfDay == dateTime.TimeOfDay)
+                {
+                    entriesForTime.Add(entry);
+                }
+            }
+
+            return entriesForTime.ToArray();
         }
 
         /// <summary>
@@ -77,11 +78,11 @@ namespace Calypso.Scheduling
         /// </summary>
         /// <param name="gameObject"></param>
         /// <returns></returns>
-        public bool CheckPreconditions(GameObject gameObject)
+        public bool CheckPreconditions(SimDateTime dateTime)
         {
             foreach (var precondition in _preconditions)
             {
-                if (precondition.CheckPrecondition(gameObject) == false) return false;
+                if (precondition.CheckPrecondition(dateTime) == false) return false;
             }
             return true;
         }
@@ -90,12 +91,6 @@ namespace Calypso.Scheduling
         public static Schedule ParseXml(XmlNode scheduleNode)
         {
             XmlElement scheduleElement = (XmlElement)scheduleNode;
-
-            int schedulePriority = 0;
-            if (scheduleElement.HasAttribute("priority"))
-            {
-                schedulePriority = int.Parse(scheduleElement.GetAttribute("priority"));
-            }
 
             List<IPrecondition> preconditions = new List<IPrecondition>();
             XmlElement preconditionsElem = scheduleElement["Preconditions"];
@@ -140,7 +135,7 @@ namespace Calypso.Scheduling
                 entries.Add(entry);
             }
 
-            return new Schedule(schedulePriority, preconditions, entries);
+            return new Schedule(preconditions, entries);
         }
 
         #endregion

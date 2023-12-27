@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Schedules>
+    <ScheduleDefinition id="base" priority="0">
+        <Preconditions>
+        </Preconditions>
+        <ScheduleEntries>
+            <ScheduleEntry location="gym" timeOfDay="Morning" />
+            <ScheduleEntry location="classroom" timeOfDay="Afternoon" />
+            <ScheduleEntry location="dining_hall" timeOfDay="Evening" />
+            <ScheduleEntry location="evelyn_dormroom" timeOfDay="Night" />
+        </ScheduleEntries>
+    </ScheduleDefinition>
+</Schedules>

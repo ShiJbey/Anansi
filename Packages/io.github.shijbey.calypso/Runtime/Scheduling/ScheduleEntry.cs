@@ -1,5 +1,6 @@
 using System;
 using System.Xml;
+using Unity.IO.LowLevel.Unsafe;
 
 namespace Calypso.Scheduling
 {
@@ -13,15 +14,18 @@ namespace Calypso.Scheduling
         public TimeOfDay TimeOfDay { get; }
         public string Location { get; }
 
+        public int Priority { get; }
+
         #endregion
 
         #region Constructor
 
 
-        public ScheduleEntry(TimeOfDay timeOfDay, string location)
+        public ScheduleEntry(TimeOfDay timeOfDay, string location, int priority)
         {
             TimeOfDay = timeOfDay;
             Location = location;
+            Priority = priority;
         }
 
         #endregion
@@ -33,7 +37,13 @@ namespace Calypso.Scheduling
             TimeOfDay timeOfDay = Enum.Parse<TimeOfDay>(entryElem.GetAttribute("timeOfDay"));
             string location = entryElem.GetAttribute("location");
 
-            return new ScheduleEntry(timeOfDay, location);
+            int priority = 0;
+            if (entryElem.HasAttribute("priority"))
+            {
+                priority = int.Parse(entryElem.GetAttribute("priority"));
+            }
+
+            return new ScheduleEntry(timeOfDay, location, priority);
         }
     }
 }

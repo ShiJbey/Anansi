@@ -108,7 +108,7 @@ namespace Calypso.Unity
             // Remove the character from their current location
             if (_currentLocation != null)
             {
-                location.RemoveCharacter(this);
+                _currentLocation.RemoveCharacter(this);
                 _storyDatabase.DB.Delete($"{_currentLocation.UniqueID}.characters.{UniqueID}");
                 _storyDatabase.DB.Delete($"{UniqueID}.location.{_currentLocation.UniqueID}");
                 _currentLocation = null;

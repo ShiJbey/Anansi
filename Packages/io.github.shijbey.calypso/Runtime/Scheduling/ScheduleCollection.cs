@@ -1,4 +1,4 @@
-using System;
+using System.Linq;
 using System.Collections.Generic;
 
 namespace Calypso.Scheduling
@@ -42,7 +42,17 @@ namespace Calypso.Scheduling
         /// <returns></returns>
         public ScheduleEntry[] GetEntries(SimDateTime dateTime)
         {
-            throw new NotImplementedException();
+            List<ScheduleEntry> entries = new List<ScheduleEntry>();
+
+            foreach (var schedule in _schedules)
+            {
+                if (schedule.CheckPreconditions(dateTime))
+                {
+                    entries = entries.Concat(schedule.GetEntries(dateTime)).ToList();
+                }
+            }
+
+            return entries.ToArray();
         }
 
         /// <summary>

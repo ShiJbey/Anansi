@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Linq;
 using System.Collections.Generic;
+using Calypso.Scheduling;
 
 namespace Calypso.Unity
 {
@@ -47,20 +48,52 @@ namespace Calypso.Unity
         [SerializeField]
         private LocationSelectionDialogController locationSelectionMenu;
 
+        private TimeManager timeManager;
+
         #endregion
 
         #region Unity Lifecycle Methods
 
         private void Start()
         {
+            timeManager = GetComponent<TimeManager>();
+
+            TimeManager.OnTimeChanged += (dateTime) =>
+            {
+                statusBarController.SetDateTimeText(dateTime.ToString());
+
+                // Reset who gets displayed
+                _displayedCharacter = null;
+                interactionPanel.SetTalkButtonEnabled(false);
+                characterSpriteController.Hide();
+
+                // Handle NPC schedules
+                foreach (Actor character in characterManager.Characters)
+                {
+                    if (character == _player) continue;
+
+                    var scheduleManager = character.gameObject.GetComponent<ScheduleManager>();
+
+                    ScheduleEntry entry = scheduleManager.GetEntry(dateTime);
+
+                    if (entry == null) continue;
+
+                    character.MoveToLocation(
+                        locationManager.GetLocation(entry.Location)
+                    );
+                }
+            };
+
+            statusBarController.SetDateTimeText(timeManager.Date.ToString());
+
             _player.OnLocationChanged += (location) =>
             {
                 if (location == null)
                 {
-                    // characterSpriteController.Hide();
-                    // dialoguePanelController.SetSpeakerName("");
-                    // _displayedCharacter = null;
-                    // interactionPanel.SetTalkButtonEnabled(false);
+                    characterSpriteController.Hide();
+                    dialoguePanelController.SetSpeakerName("");
+                    _displayedCharacter = null;
+                    interactionPanel.SetTalkButtonEnabled(false);
                     return;
                 }
 
@@ -163,7 +196,6 @@ namespace Calypso.Unity
 
             Location location = locationManager.GetLocation(locationID);
             _player.MoveToLocation(location);
-            backgroundController.ChangeBackground(location.GetBackground());
         }
 
         #endregion
@@ -194,7 +226,7 @@ namespace Calypso.Unity
         private Actor SelectDisplayedActor(Location location)
         {
             var potentialCharacters = location.Characters
-                .Where((a) => !a.name.Equals("Player")).ToList();
+                .Where(a => a.UniqueID != "player").ToList();
 
             if (potentialCharacters.Count == 0) return null;
 

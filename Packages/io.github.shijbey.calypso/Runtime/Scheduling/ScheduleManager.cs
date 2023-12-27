@@ -56,11 +56,15 @@ namespace Calypso.Scheduling
         /// <summary>
         /// Get an entry from the schedule given the time of day.
         /// </summary>
-        /// <param name="timeOfDay"></param>
+        /// <param name="dateTime"></param>
         /// <returns></returns>
-        public ScheduleEntry GetEntry(TimeOfDay timeOfDay)
+        public ScheduleEntry GetEntry(SimDateTime dateTime)
         {
-            throw new NotImplementedException();
+            ScheduleEntry[] entries = _schedules.GetEntries(dateTime);
+
+            if (entries.Length == 0) return null;
+
+            return entries.RandomElementByWeight(e => e.Priority);
         }
 
         #endregion

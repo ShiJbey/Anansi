@@ -673,6 +673,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 3916020569967752154, guid: 01741ba775384c04a8203c7a4c889aca, type: 3}
       insertIndex: -1
       addedObject: {fileID: 977957752}
+    - targetCorrespondingSourceObject: {fileID: 3916020569967752154, guid: 01741ba775384c04a8203c7a4c889aca, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 977957753}
   m_SourcePrefab: {fileID: 100100000, guid: 01741ba775384c04a8203c7a4c889aca, type: 3}
 --- !u!1 &706088815
 GameObject:
@@ -846,6 +849,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _storyFiles:
   - {fileID: 4900000, guid: bad36414fe9154828a44b9a58debce2c, type: 3}
+--- !u!114 &977957753
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 977957748}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4f040181f345b4f7e98ddf4a318dba64, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  scheduleXmlFiles:
+  - {fileID: 4900000, guid: 6ba38ca6163da471d8b329010cf2f10f, type: 3}
 --- !u!1 &1075693838
 GameObject:
   m_ObjectHideFlags: 0
@@ -1931,7 +1948,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8726248483740984755, guid: aac11052ca3864fad823b522214e6ec9, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0.00014248492
+      value: 0.000022411346
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects:

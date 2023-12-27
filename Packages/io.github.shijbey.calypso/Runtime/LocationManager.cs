@@ -6,6 +6,7 @@ namespace Calypso.Unity
     /// <summary>
     /// Maintains a look-up table of locations that exist in the game
     /// </summary>
+    [DefaultExecutionOrder(-1)]
     public class LocationManager : MonoBehaviour
     {
         /// <summary>

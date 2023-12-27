@@ -1,6 +1,4 @@
 using Calypso;
-using Calypso.Unity;
-using UnityEngine;
 
 public class IsDayPrecondition : IPrecondition
 {
@@ -11,12 +9,8 @@ public class IsDayPrecondition : IPrecondition
         Day = day;
     }
 
-    public bool CheckPrecondition(GameObject gameObject)
+    public bool CheckPrecondition(SimDateTime dateTime)
     {
-        var timeManager = GameObject.FindObjectOfType<TimeManager>();
-
-        var currentDate = timeManager.Date;
-
-        return currentDate.Day == Day;
+        return dateTime.Day == Day;
     }
 }
