@@ -168,8 +168,16 @@ namespace Calypso.Unity
 
             if (weightedStorylets.Count == 0) return;
 
+            var mandatoryStorylets = weightedStorylets.Where((s) => s.Item2.Storylet.Mandatory).ToList();
+
+            if (mandatoryStorylets.Count() > 0)
+            {
+                weightedStorylets = mandatoryStorylets;
+            }
+
             StoryletInstance selectedStorylet =
                 weightedStorylets.RandomElementByWeight(entry => entry.Item1).Item2;
+
 
             // Add error message handling to loaded stories
             selectedStorylet.Storylet.Story.onError += (msg, type) =>

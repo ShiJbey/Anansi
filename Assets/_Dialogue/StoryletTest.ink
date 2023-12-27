@@ -45,6 +45,17 @@ Welcome to storylet C
 
 === function _storylet_c
 
-~ return 1
+~ return 
 
+=== storylet_d
+
+# mandatory >> true
+
+This is storylet D. It always plays because it is mandatory.
+
+-> DONE
+
+== function _storylet_d
+
+~ return 1
 

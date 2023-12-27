@@ -29,6 +29,11 @@ namespace Calypso
         public int Cooldown { get; set; }
 
         /// <summary>
+        /// Will this content always be selected if available
+        /// </summary>
+        public bool Mandatory { get; set; }
+
+        /// <summary>
         /// The number of Storylets that must elapse before this storylet may be used again.
         /// </summary>
         public int CooldownTimeRemaining { get; private set; }
@@ -75,6 +80,7 @@ namespace Calypso
             Tags = new HashSet<string>();
             Query = new DBQuery();
             VariableSubstitutions = new Dictionary<string, string>();
+            Mandatory = false;
         }
 
         #endregion

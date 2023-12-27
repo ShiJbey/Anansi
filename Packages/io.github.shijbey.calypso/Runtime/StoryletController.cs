@@ -170,6 +170,11 @@ namespace Calypso
                             // storylet.IsRepeatable = bool.Parse(parts[1]);
                         }
 
+                        if (parts[0] == "mandatory")
+                        {
+                            storylet.Mandatory = bool.Parse(parts[1]);
+                        }
+
                         if (parts[0] == "tags")
                         {
                             string[] storyletTags = parts[1].Split(",").Select(s => s.Trim()).ToArray();
