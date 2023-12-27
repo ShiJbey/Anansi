@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 using TMPro;
 
@@ -50,6 +51,8 @@ namespace Calypso.Unity
 
         private bool isVisible = true;
 
+        public OnPlayerChangeLocationEvent OnPlayerChangeLocation;
+
         private void Awake()
         {
             _choiceButtons = new List<Button>();
@@ -90,12 +93,14 @@ namespace Calypso.Unity
                 // sets text on the button
                 var buttonText = choiceButton.GetComponentInChildren<TMP_Text>();
                 buttonText.text = location.DisplayName;
+                string locID = location.UniqueID;
 
                 //  Adds the onClick callback
                 choiceButton.onClick.AddListener(() =>
                 {
                     ClearChoices();
                     Hide();
+                    if (OnPlayerChangeLocation != null) OnPlayerChangeLocation.Invoke(locID);
                 });
             }
 
@@ -136,5 +141,9 @@ namespace Calypso.Unity
 
             _choiceButtons.Clear();
         }
+
     }
+
+    [System.Serializable]
+    public class OnPlayerChangeLocationEvent : UnityEvent<string> { }
 }

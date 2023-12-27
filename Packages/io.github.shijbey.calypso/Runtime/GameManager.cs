@@ -44,6 +44,9 @@ namespace Calypso.Unity
         [SerializeField]
         private LocationManager locationManager;
 
+        [SerializeField]
+        private LocationSelectionDialogController locationSelectionMenu;
+
         #endregion
 
         #region Unity Lifecycle Methods
@@ -67,7 +70,13 @@ namespace Calypso.Unity
                 // Select character they could talk to
                 var character = SelectDisplayedActor(location);
 
-                if (character == null) return;
+                if (character == null)
+                {
+                    _displayedCharacter = null;
+                    interactionPanel.SetTalkButtonEnabled(false);
+                    characterSpriteController.Hide();
+                    return;
+                };
 
                 characterSpriteController.ChangeSpeaker(character.GetSprite());
                 dialoguePanelController.SetSpeakerName(character.DisplayName);
@@ -75,6 +84,7 @@ namespace Calypso.Unity
                 _displayedCharacter = character;
                 interactionPanel.SetTalkButtonEnabled(true);
             };
+            locationSelectionMenu.OnPlayerChangeLocation.AddListener(ChangePlayerLocation);
         }
 
         private void Update()
@@ -83,20 +93,19 @@ namespace Calypso.Unity
             {
                 var character = SelectDisplayedActor(_player.Location);
 
-                if (character == null) return;
+                if (character == null)
+                {
+                    _displayedCharacter = null;
+                    interactionPanel.SetTalkButtonEnabled(false);
+                    characterSpriteController.Hide();
+                    return;
+                };
 
                 characterSpriteController.ChangeSpeaker(character.GetSprite());
                 dialoguePanelController.SetSpeakerName(character.DisplayName);
 
                 _displayedCharacter = character;
                 interactionPanel.SetTalkButtonEnabled(true);
-            }
-            else
-            {
-                // characterSpriteController.Hide();
-                // dialoguePanelController.SetSpeakerName("");
-                // _displayedCharacter = null;
-                // interactionPanel.SetTalkButtonEnabled(false);
             }
         }
 
@@ -142,6 +151,19 @@ namespace Calypso.Unity
             selectedStorylet.Storylet.Story.ChoosePathString(selectedStorylet.Storylet.KnotID);
 
             _dialogueManager.StartConversation(selectedStorylet.Storylet.Story);
+        }
+
+        #endregion
+
+        #region Public Methods
+
+        public void ChangePlayerLocation(string locationID)
+        {
+            if (_player.Location && _player.Location.UniqueID == locationID) return;
+
+            Location location = locationManager.GetLocation(locationID);
+            _player.MoveToLocation(location);
+            backgroundController.ChangeBackground(location.GetBackground());
         }
 
         #endregion
