@@ -183,6 +183,8 @@ namespace Calypso.Unity
             selectedStorylet.Storylet.Story.ResetState();
             selectedStorylet.Storylet.Story.ChoosePathString(selectedStorylet.Storylet.KnotID);
 
+            selectedStorylet.Storylet.IncrementTimesPlayed();
+
             _dialogueManager.StartConversation(selectedStorylet.Storylet.Story);
         }
 
