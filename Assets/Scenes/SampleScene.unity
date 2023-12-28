@@ -945,7 +945,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ed799c0fc6592c040b79cf19b704391b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _serializedSentences: []
 --- !u!1 &1095505044
 GameObject:
   m_ObjectHideFlags: 0
@@ -1948,7 +1947,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8726248483740984755, guid: aac11052ca3864fad823b522214e6ec9, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -0.00012618005
+      value: 0.000018119812
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects:
