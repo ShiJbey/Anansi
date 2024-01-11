@@ -1,23 +1,29 @@
 using UnityEngine;
 
-namespace Calypso.Unity
+namespace Calypso
 {
     /// <summary>
     /// Controller behaviour for the status bar at the top of the screen
     /// </summary>
     public class StatusBarController : MonoBehaviour
     {
+        #region Fields
+
         /// <summary>
         /// A reference to the text displaying the name of th. displayed location.
         /// </summary>
         [SerializeField]
-        private TMPro.TMP_Text _locationText;
+        private TMPro.TMP_Text m_locationText;
 
         /// <summary>
         /// A reference to the text displaying the current time and date.
         /// </summary>
         [SerializeField]
-        private TMPro.TMP_Text _dateTimeText;
+        private TMPro.TMP_Text m_dateTimeText;
+
+        #endregion
+
+        #region Public Methods
 
         /// <summary>
         /// Modify the date/time text
@@ -25,7 +31,7 @@ namespace Calypso.Unity
         /// <param name="text"></param>
         public void SetDateTimeText(string text)
         {
-            _dateTimeText.SetText(text);
+            m_dateTimeText.SetText(text);
         }
 
         /// <summary>
@@ -34,7 +40,9 @@ namespace Calypso.Unity
         /// <param name="text"></param>
         public void SetLocationText(string text)
         {
-            _locationText.SetText(text);
+            m_locationText.SetText(text);
         }
+
+        #endregion
     }
 }

@@ -1,125 +1,140 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.UI;
 using TMPro;
 
-namespace Calypso.Unity
+namespace Calypso
 {
     /// <summary>
     /// Handles displaying options for locations where the player may move to on the map.
     /// </summary>
     public class LocationSelectionDialogController : MonoBehaviour
     {
+        #region Fields
+
         /// <summary>
-        /// A reference to the game's location manager.
+        /// A reference to the game manager
         /// </summary>
         [SerializeField]
-        private LocationManager locationManager;
+        private GameManager m_gameManager;
 
         /// <summary>
         /// A reference to the prefab used to create choice buttons.
         /// </summary>
         [SerializeField]
-        private Button choiceButtonPrefab;
+        private Button m_choiceButtonPrefab;
 
         /// <summary>
         /// A reference to the container that holds the choice buttons.
         /// </summary>
         [SerializeField]
-        private RectTransform choiceButtonContainer;
+        private RectTransform m_choiceButtonContainer;
 
         /// <summary>
         /// The on-screen position of the dialogue panel.
         /// </summary>
-        private Vector3 onScreenPosition;
+        private Vector3 m_onScreenPosition;
 
         /// <summary>
         /// The off-screen position of the dialogue panel.
         /// </summary>
-        private Vector3 offScreenPosition;
+        private Vector3 m_offScreenPosition;
 
         /// <summary>
         /// Reference to this MonoBehaviour's RectTransform.
         /// </summary>
-        private RectTransform rectTransform;
+        private RectTransform m_rectTransform;
 
         /// <summary>
         /// A reference to the UI element holding the choices.
         /// </summary>
-        private List<Button> _choiceButtons;
+        private List<Button> m_choiceButtons;
 
-        private bool isVisible = true;
+        /// <summary>
+        /// Is the panel currently visible on the screen
+        /// </summary>
+        private bool m_isVisible = true;
 
-        public OnPlayerChangeLocationEvent OnPlayerChangeLocation;
+        #endregion
+
+        #region Unity Messages
 
         private void Awake()
         {
-            _choiceButtons = new List<Button>();
+            m_choiceButtons = new List<Button>();
+            m_rectTransform = gameObject.transform as RectTransform;
         }
 
         private void Start()
         {
-            rectTransform = GetComponent<RectTransform>();
-
             // Configure the on and off-screen positions
 
-            Vector3 startingPos = rectTransform.position;
-            onScreenPosition = new Vector3(startingPos.x, startingPos.y, startingPos.z);
+            Vector3 startingPos = m_rectTransform.position;
+            m_onScreenPosition = new Vector3(startingPos.x, startingPos.y, startingPos.z);
 
-            offScreenPosition = new Vector3(
+            m_offScreenPosition = new Vector3(
                 startingPos.x,
-                -(rectTransform.rect.height + 200),
+                -(m_rectTransform.rect.height + 200),
                 startingPos.z
             );
 
             Hide();
         }
 
+        #endregion
+
+        #region Public Methods
+
         /// <summary>
-        /// Displays the choice dialog box
+        /// Displays the dialog box
         /// </summary>
         public void Show()
         {
             ClearChoices();
 
-            foreach (Location location in locationManager.Locations)
+            IList<Location> eligibleLocations = m_gameManager.GetLocationsPlayerCanTravelTo();
+
+            foreach (Location location in eligibleLocations)
             {
                 // creates the button from a prefab
-                Button choiceButton = Instantiate(choiceButtonPrefab);
-                choiceButton.transform.SetParent(choiceButtonContainer.transform, false);
-                _choiceButtons.Add(choiceButton);
+                Button choiceButton = Instantiate(m_choiceButtonPrefab);
+                choiceButton.transform.SetParent(m_choiceButtonContainer.transform, false);
+                m_choiceButtons.Add(choiceButton);
 
                 // sets text on the button
                 var buttonText = choiceButton.GetComponentInChildren<TMP_Text>();
                 buttonText.text = location.DisplayName;
-                string locID = location.UniqueID;
+
 
                 //  Adds the onClick callback
                 choiceButton.onClick.AddListener(() =>
                 {
+                    Location loc = location;
                     ClearChoices();
                     Hide();
-                    if (OnPlayerChangeLocation != null) OnPlayerChangeLocation.Invoke(locID);
+                    SetPlayerLocation(loc);
                 });
             }
 
-            rectTransform.position = onScreenPosition;
-            isVisible = true;
+            m_rectTransform.position = m_onScreenPosition;
+            m_isVisible = true;
         }
 
         /// <summary>
-        /// Hide the choice dialog box
+        /// Hide the dialog box
         /// </summary>
         public void Hide()
         {
-            rectTransform.position = offScreenPosition;
-            isVisible = false;
+            m_rectTransform.position = m_offScreenPosition;
+            m_isVisible = false;
         }
 
+        /// <summary>
+        /// Toggle the visibility of the dialog box
+        /// </summary>
         public void Toggle()
         {
-            if (isVisible)
+            if (m_isVisible)
             {
                 Hide();
             }
@@ -134,16 +149,28 @@ namespace Calypso.Unity
         /// </summary>
         public void ClearChoices()
         {
-            foreach (Button button in _choiceButtons)
+            foreach (Button button in m_choiceButtons)
             {
                 Destroy(button.gameObject);
             }
 
-            _choiceButtons.Clear();
+            m_choiceButtons.Clear();
         }
 
-    }
+        #endregion
 
-    [System.Serializable]
-    public class OnPlayerChangeLocationEvent : UnityEvent<string> { }
+        #region Private Message
+
+        /// <summary>
+        /// Change the location of the player and the current background
+        /// </summary>
+        /// <param name="location"></param>
+        private void SetPlayerLocation(Location location)
+        {
+            m_gameManager.SetPlayerLocation(location);
+            m_gameManager.SetStoryLocation(location);
+        }
+
+        #endregion
+    }
 }

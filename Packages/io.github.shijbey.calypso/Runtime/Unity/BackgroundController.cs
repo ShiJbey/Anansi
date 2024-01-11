@@ -2,50 +2,60 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Calypso.Unity
+namespace Calypso
 {
     /// <summary>
     /// Provides an interface for modifying what background image is displayed.
     /// </summary>
     public class BackgroundController : MonoBehaviour
     {
+        #region Fields
+
         /// <summary>
         /// A reference to the Image Script on the Background GameObject.
         /// </summary>
         [SerializeField]
-        protected Image backgroundImage;
+        protected Image m_backgroundImage;
 
         /// <summary>
         /// The fade-out duration time in seconds.
         /// </summary>
         [SerializeField]
-        protected float fadeOutSeconds;
+        protected float m_fadeOutSeconds;
 
         /// <summary>
         /// The fade-in duration time in seconds.
         /// </summary>
         [SerializeField]
-        protected float fadeInSeconds;
+        protected float m_fadeInSeconds;
 
         /// <summary>
         /// A reference to the Coroutine responsible for fading the background
         /// when transitioning from one image sprite to another.
         /// </summary>
-        private Coroutine transitionCoroutine = null;
+        private Coroutine m_transitionCoroutine = null;
+
+        #endregion
+
+        #region Public Methods
 
         /// <summary>
         /// Change the image displayed in the background.
         /// </summary>
         /// <param name="backgroundSprite"></param>
-        public void ChangeBackground(Sprite backgroundSprite)
+        public void SetBackground(Sprite backgroundSprite)
         {
-            if (transitionCoroutine != null)
+            if (m_transitionCoroutine != null)
             {
-                StopCoroutine(transitionCoroutine);
+                StopCoroutine(m_transitionCoroutine);
             }
 
-            transitionCoroutine = StartCoroutine(TransitionBackground(backgroundSprite));
+            m_transitionCoroutine = StartCoroutine(TransitionBackground(backgroundSprite));
         }
+
+        #endregion
+
+        #region Private Coroutine Methods
 
         /// <summary>
         /// Fade out the old background image, replace it with a new one, and fade it in.
@@ -58,13 +68,13 @@ namespace Calypso.Unity
             // interpolating back to 1.0.
 
             // fade out
-            yield return Fade(0f, fadeOutSeconds);
+            yield return Fade(0f, m_fadeOutSeconds);
 
             // swap image
-            backgroundImage.sprite = backgroundSprite;
+            m_backgroundImage.sprite = backgroundSprite;
 
             // fade in
-            yield return Fade(1f, fadeInSeconds);
+            yield return Fade(1f, m_fadeInSeconds);
         }
 
         /// <summary>
@@ -75,16 +85,18 @@ namespace Calypso.Unity
         /// <returns></returns>
         private IEnumerator Fade(float targetAlpha, float fadeTime)
         {
-            Color initialColor = backgroundImage.color;
+            Color initialColor = m_backgroundImage.color;
             Color targetColor = new Color(initialColor.r, initialColor.g, initialColor.b, targetAlpha);
             float elapsedTime = 0f;
 
             while (elapsedTime < fadeTime)
             {
                 elapsedTime += Time.deltaTime;
-                backgroundImage.color = Color.Lerp(initialColor, targetColor, elapsedTime / fadeTime);
+                m_backgroundImage.color = Color.Lerp(initialColor, targetColor, elapsedTime / fadeTime);
                 yield return null;
             }
         }
+
+        #endregion
     }
 }

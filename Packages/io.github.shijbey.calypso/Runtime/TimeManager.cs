@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace Calypso.Unity
+namespace Calypso
 {
     /// <summary>
     /// Manages the current time in the simulation.
@@ -13,19 +13,33 @@ namespace Calypso.Unity
     {
         #region Fields
 
+        /// <summary>
+        /// The day used to initialize the starting date
+        /// </summary>
         [SerializeField]
-        private int _startingDay = 1;
+        private int m_startingDay = 1;
 
+        /// <summary>
+        /// The time of day used to initialize the starting date
+        /// </summary>
         [SerializeField]
-        private TimeOfDay _startingTimeOfDay = TimeOfDay.Morning;
+        private TimeOfDay m_startingTimeOfDay = TimeOfDay.Morning;
 
-        private SimDateTime _date;
+        /// <summary>
+        /// The current date
+        /// </summary>
+        [SerializeField]
+        [HideInInspector]
+        private SimDateTime m_dateTime;
 
         #endregion
 
         #region Properties
 
-        public SimDateTime Date { get { return new SimDateTime(_date); } }
+        /// <summary>
+        /// The current date
+        /// </summary>
+        public SimDateTime DateTime => new SimDateTime(m_dateTime);
 
         #endregion
 
@@ -38,16 +52,22 @@ namespace Calypso.Unity
 
         #endregion
 
+        #region Unity Messages
+
         private void Awake()
         {
-            _date = new SimDateTime(_startingDay, _startingTimeOfDay);
+            m_dateTime = new SimDateTime(m_startingDay, m_startingTimeOfDay);
         }
 
         // Start is called before the first frame update
-        void Start()
+        private void Start()
         {
-            if (OnTimeChanged != null) OnTimeChanged.Invoke(_date);
+            OnTimeChanged?.Invoke(m_dateTime);
         }
+
+        #endregion
+
+        #region Public Methods
 
         /// <summary>
         /// Advance the time by one timestep
@@ -55,8 +75,10 @@ namespace Calypso.Unity
         /// <param name="deltaTime"></param>
         public void AdvanceTime()
         {
-            _date.AdvanceTime();
-            if (OnTimeChanged != null) OnTimeChanged.Invoke(_date);
+            m_dateTime.AdvanceTime();
+            OnTimeChanged?.Invoke(m_dateTime);
         }
+
+        #endregion
     }
 }

@@ -1,7 +1,6 @@
 using UnityEngine;
-using Calypso.Unity;
 using System.Linq;
-using System.Collections;
+using System.Collections.Generic;
 
 namespace Calypso
 {
@@ -10,148 +9,147 @@ namespace Calypso
     /// </summary>
     public class DialogueManager : MonoBehaviour
     {
-        #region Protected Fields
+        #region Fields
 
         /// <summary>
-        /// A reference to the Dialog Panel UI
+        /// A reference to the
         /// </summary>
         [SerializeField]
-        private DialoguePanelController dialoguePanel;
-
-        [SerializeField]
-        private CharacterSpriteController characterSpriteController;
-
-        [SerializeField]
-        private BackgroundController backgroundController;
-
-        [SerializeField]
-        private LocationManager locationManager;
-
-        [SerializeField]
-        private CharacterManager characterManager;
+        private GameManager m_gameManager;
 
         /// <summary>
         /// The current story displayed to the player
         /// </summary>
-        private Ink.Runtime.Story _story = null;
-
-        /// <summary>
-        /// Reference to the coroutine responsible for displaying the dialogue of a story
-        /// </summary>
-        private Coroutine dialogueCoroutine = null;
-
-        private bool advDialogueButtonPressed = false;
-
-        private int userChoiceIndex = -1;
+        private Ink.Runtime.Story m_story = null;
 
         #endregion
 
-        #region Unity Lifecycle Methods
-
-        private void Start()
-        {
-            dialoguePanel.OnAdvanceText.AddListener(() => { advDialogueButtonPressed = true; });
-            dialoguePanel.ChoiceDialog.OnChoiceSelected.AddListener((idx) => userChoiceIndex = idx);
-        }
-
-        #endregion
-
-        #region Methods
+        #region Public Methods
 
         /// <summary>
-        /// A coroutine responsible for displaying text and handling user input.
+        /// Get the next line of dialogue
         /// </summary>
         /// <returns></returns>
-        private IEnumerator HandleConversation()
+        public string GetNextLine()
         {
-            while (true)
-            {
-                if (_story.canContinue)
-                {
-                    // Display next line of dialogue
-                    string text = _story.Continue(); // gets next line
+            string text = m_story.Continue(); // gets next line
 
-                    text = text?.Trim(); // removes white space from text
+            // text = text?.Trim(); // removes white space from text
 
-                    foreach (string line in _story.currentTags)
-                    {
-                        if (line.Contains("speaker"))
-                        {
-                            string speakerName = line.Split(':')[1].Trim();
-                            dialoguePanel.SetSpeakerName(speakerName);
-                            continue;
-                        }
-                    }
+            // Process tags
+            ProcessTags(m_story.currentTags);
 
-                    dialoguePanel.DisplayText(text);
-
-                    dialoguePanel.SetContinueButtonInteractable(true);
-
-                    yield return new WaitUntil(() => advDialogueButtonPressed == true);
-
-                    advDialogueButtonPressed = false;
-                }
-                else if (_story.currentChoices.Count > 0)
-                {
-                    dialoguePanel.SetContinueButtonInteractable(false);
-
-                    // Display choices
-                    dialoguePanel.ChoiceDialog.DisplayChoices(
-                        _story.currentChoices.Select(c => c.text).ToArray()
-                    );
-
-                    yield return new WaitUntil(() => userChoiceIndex != -1);
-
-                    _story.ChooseChoiceIndex(userChoiceIndex);
-
-                    userChoiceIndex = -1;
-                }
-                else
-                {
-                    // End story
-                    dialoguePanel.SetContinueButtonInteractable(false);
-                    _story.UnbindExternalFunction("SetBackground");
-                    _story.UnbindExternalFunction("SetSpeakerSprite");
-                    _story.ResetState();
-                    _story = null;
-                    dialoguePanel.Hide();
-                    break;
-                }
-            }
+            return text;
         }
 
         /// <summary>
-        /// Start a new conversation using the given story.
+        /// Get the current choices for this dialogue
         /// </summary>
-        /// <param name="story"></param>
-        public void StartConversation(Ink.Runtime.Story story)
+        /// <returns></returns>
+        public string[] GetChoices()
         {
-            _story = story;
+            return m_story.currentChoices.Select(choice => choice.text).ToArray();
+        }
 
-            _story.BindExternalFunction("SetBackground", (string locationID, string tags) =>
+        /// <summary>
+        /// Make a choice
+        /// </summary>
+        /// <param name="choiceIndex"></param>
+        public void MakeChoice(int choiceIndex)
+        {
+            m_story.ChooseChoiceIndex(choiceIndex);
+        }
+
+        /// <summary>
+        /// Check if the dialogue manager is waiting for the player to make a choice
+        /// </summary>
+        /// <returns></returns>
+        public bool HasChoices()
+        {
+            return m_story.currentChoices.Count > 0;
+        }
+
+        /// <summary>
+        /// Check if the dialogue can continue further
+        /// </summary>
+        /// <returns></returns>
+        public bool CanContinue()
+        {
+            return m_story.canContinue;
+        }
+
+        /// <summary>
+        /// Check if the dialogue has reached its end
+        /// </summary>
+        /// <returns></returns>
+        public bool AtDialogueEnd()
+        {
+            return !CanContinue() && !HasChoices();
+        }
+
+        /// <summary>
+        /// Reset the dialogue manager
+        /// </summary>
+        public void Reset()
+        {
+            if (m_story != null)
             {
-                Location location = locationManager.GetLocation(locationID);
-
-                string[] tagsArr = tags.Split(",").Select(s => s.Trim()).Where(s => s != "").ToArray();
-
-                backgroundController.ChangeBackground(location.GetBackground(tagsArr));
-            });
-
-            _story.BindExternalFunction("SetSpeakerSprite", (string characterID, string tags) =>
-            {
-                Actor character = characterManager.GetCharacter(characterID);
-
-                string[] tagsArr = tags.Split(",").Select(s => s.Trim()).Where(s => s != "").ToArray();
-
-                characterSpriteController.ChangeSpeaker(character.GetSprite(tagsArr));
-            });
-
-            if (dialogueCoroutine != null)
-            {
-                StopCoroutine(dialogueCoroutine);
+                m_story.UnbindExternalFunction("SetBackground");
+                m_story.UnbindExternalFunction("SetSpeakerSprite");
+                m_story.ResetState();
             }
 
-            dialogueCoroutine = StartCoroutine(HandleConversation());
+            m_story = null;
+        }
+
+        /// <summary>
+        /// Set the current conversation
+        /// </summary>
+        /// <param name="story"></param>
+        public void SetConversation(Ink.Runtime.Story story)
+        {
+            Reset();
+
+            m_story = story;
+
+            m_story.BindExternalFunction("SetBackground", (string locationID, string tags) =>
+            {
+                Location location = m_gameManager.Locations.GetLocation(locationID);
+
+                string[] tagsArr = tags.Split(",").Select(s => s.Trim()).Where(s => s != "").ToArray();
+
+                m_gameManager.UI_Controller.Background.SetBackground(location.GetBackground(tagsArr));
+            });
+
+            m_story.BindExternalFunction("SetSpeakerSprite", (string characterID, string tags) =>
+            {
+                Actor character = m_gameManager.Characters.GetCharacter(characterID);
+
+                string[] tagsArr = tags.Split(",").Select(s => s.Trim()).Where(s => s != "").ToArray();
+
+                m_gameManager.UI_Controller.CharacterSprite.SetSpeaker(character.GetSprite(tagsArr));
+            });
+        }
+
+        #endregion
+
+        #region Private Methods
+
+        /// <summary>
+        /// Process a list of Ink tags
+        /// </summary>
+        /// <param name="tags"></param>
+        private void ProcessTags(IList<string> tags)
+        {
+            foreach (string line in tags)
+            {
+                if (line.Contains("speaker"))
+                {
+                    string speakerName = line.Split(':')[1].Trim();
+                    m_gameManager.UI_Controller.DialoguePanel.SetSpeakerName(speakerName);
+                    continue;
+                }
+            }
         }
 
         #endregion

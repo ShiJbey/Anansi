@@ -11,10 +11,7 @@ EXTERNAL SetSpeakerSprite(speaker, tags)
 # ?player.relationships.?npc.stats.friendship > 0
 # end >>
 
-
 Welcome to storylet A
-
-
 
 -> DONE
 
@@ -25,9 +22,7 @@ Welcome to storylet A
 === storylet_b
 # tags >> start, basic, b
 
-
 Welcome to storylet B
-
 
 -> DONE
 
@@ -40,7 +35,6 @@ Welcome to storylet B
 
 Welcome to storylet C
 
-
 -> DONE
 
 === function _storylet_c
@@ -48,8 +42,7 @@ Welcome to storylet C
 ~ return 
 
 === storylet_d
-
-# mandatory >> true
+// # mandatory >> true
 
 This is storylet D. It always plays because it is mandatory.
 

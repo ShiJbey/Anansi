@@ -3,74 +3,72 @@ using System.Linq;
 using System.Collections.Generic;
 using Calypso.Scheduling;
 
-namespace Calypso.Unity
+namespace Calypso
 {
     public class GameManager : MonoBehaviour
     {
-        #region Protected Fields
+        #region Fields
 
         /// <summary>
         /// A reference to the player's character.
         /// </summary>
         [SerializeField]
-        protected Actor _player;
+        protected Actor m_player;
 
         /// <summary>
         /// A reference to the character currently displayed on the screen that the player has
         /// the option to talk to.
         /// </summary>
-        protected Actor _displayedCharacter;
+        protected Actor m_displayedCharacter;
 
         [SerializeField]
-        protected DialogueManager _dialogueManager;
+        protected VNUIController m_uiController;
 
         [SerializeField]
-        private BackgroundController backgroundController;
+        private DialogueManager m_dialogueManager;
 
         [SerializeField]
-        private DialoguePanelController dialoguePanelController;
+        private CharacterManager m_characterManager;
 
         [SerializeField]
-        private CharacterSpriteController characterSpriteController;
+        private LocationManager m_locationManager;
 
         [SerializeField]
-        private StatusBarController statusBarController;
+        private TimeManager m_timeManager;
 
-        [SerializeField]
-        private InteractionPanelController interactionPanel;
-
-        [SerializeField]
-        private CharacterManager characterManager;
-
-        [SerializeField]
-        private LocationManager locationManager;
-
-        [SerializeField]
-        private LocationSelectionDialogController locationSelectionMenu;
-
-        private TimeManager timeManager;
+        /// <summary>
+        /// Is there currently dialogue being displayed on the screen
+        /// </summary>
+        private bool m_isDialogueRunning;
 
         #endregion
 
-        #region Unity Lifecycle Methods
+        #region Properties
+
+        public VNUIController UI_Controller => m_uiController;
+
+        public CharacterManager Characters => m_characterManager;
+
+        public LocationManager Locations => m_locationManager;
+
+        #endregion
+
+        #region Unity Messages
 
         private void Start()
         {
-            timeManager = GetComponent<TimeManager>();
-
             TimeManager.OnTimeChanged += (dateTime) =>
             {
-                statusBarController.SetDateTimeText(dateTime.ToString());
+                m_uiController.StatusBar.SetDateTimeText(dateTime.ToString());
 
                 // Reset who gets displayed
-                _displayedCharacter = null;
-                interactionPanel.SetTalkButtonEnabled(false);
-                characterSpriteController.Hide();
+                m_displayedCharacter = null;
+                m_uiController.CharacterSprite.Hide();
 
                 // Handle NPC schedules
-                foreach (Actor character in characterManager.Characters)
+                foreach (Actor character in m_characterManager.Characters)
                 {
-                    if (character == _player) continue;
+                    if (character == m_player) continue;
 
                     var scheduleManager = character.gameObject.GetComponent<ScheduleManager>();
 
@@ -79,81 +77,89 @@ namespace Calypso.Unity
                     if (entry == null) continue;
 
                     character.MoveToLocation(
-                        locationManager.GetLocation(entry.Location)
+                        m_locationManager.GetLocation(entry.Location)
                     );
                 }
             };
 
-            statusBarController.SetDateTimeText(timeManager.Date.ToString());
+            m_uiController.DialoguePanel.OnShow.AddListener(HandleDialogueEnter);
+            m_uiController.DialoguePanel.OnHide.AddListener(HandleDialogueExit);
 
-            _player.OnLocationChanged += (location) =>
+            m_uiController.StatusBar.SetDateTimeText(m_timeManager.DateTime.ToString());
+
+            m_player.OnLocationChanged += (location) =>
             {
                 if (location == null)
                 {
-                    characterSpriteController.Hide();
-                    dialoguePanelController.SetSpeakerName("");
-                    _displayedCharacter = null;
-                    interactionPanel.SetTalkButtonEnabled(false);
+                    m_uiController.CharacterSprite.Hide();
+                    m_uiController.DialoguePanel.SetSpeakerName("");
+                    m_displayedCharacter = null;
                     return;
                 }
 
-                backgroundController.ChangeBackground(location.GetBackground());
-                statusBarController.SetLocationText(location.DisplayName);
+                m_uiController.Background.SetBackground(location.GetBackground());
+                m_uiController.StatusBar.SetLocationText(location.DisplayName);
 
                 // Select character they could talk to
                 var character = SelectDisplayedActor(location);
 
                 if (character == null)
                 {
-                    _displayedCharacter = null;
-                    interactionPanel.SetTalkButtonEnabled(false);
-                    characterSpriteController.Hide();
+                    m_displayedCharacter = null;
+                    m_uiController.CharacterSprite.Hide();
                     return;
                 };
 
-                characterSpriteController.ChangeSpeaker(character.GetSprite());
-                dialoguePanelController.SetSpeakerName(character.DisplayName);
+                m_uiController.CharacterSprite.SetSpeaker(character.GetSprite());
+                m_uiController.DialoguePanel.SetSpeakerName(character.DisplayName);
 
-                _displayedCharacter = character;
-                interactionPanel.SetTalkButtonEnabled(true);
+                m_displayedCharacter = character;
             };
-            locationSelectionMenu.OnPlayerChangeLocation.AddListener(ChangePlayerLocation);
         }
 
         private void Update()
         {
-            if (_displayedCharacter == null && _player.Location != null)
+            if (m_displayedCharacter == null && m_player.Location != null)
             {
-                var character = SelectDisplayedActor(_player.Location);
+                var character = SelectDisplayedActor(m_player.Location);
 
                 if (character == null)
                 {
-                    _displayedCharacter = null;
-                    interactionPanel.SetTalkButtonEnabled(false);
-                    characterSpriteController.Hide();
+                    m_displayedCharacter = null;
+                    m_uiController.CharacterSprite.Hide();
                     return;
                 };
 
-                characterSpriteController.ChangeSpeaker(character.GetSprite());
-                dialoguePanelController.SetSpeakerName(character.DisplayName);
+                m_uiController.CharacterSprite.SetSpeaker(character.GetSprite());
+                m_uiController.DialoguePanel.SetSpeakerName(character.DisplayName);
 
-                _displayedCharacter = character;
-                interactionPanel.SetTalkButtonEnabled(true);
+                m_displayedCharacter = character;
             }
         }
+
+        private void OnDisable()
+        {
+            m_uiController.DialoguePanel.OnShow.RemoveListener(HandleDialogueEnter);
+            m_uiController.DialoguePanel.OnHide.RemoveListener(HandleDialogueExit);
+        }
+
+        #endregion
+
+        #region Public Methods
 
         /// <summary>
         /// Method called when the player clicks the talk button in the Interaction panel
         /// </summary>
         public void StartConversation()
         {
-            if (_displayedCharacter == null) return;
+            if (m_displayedCharacter == null) return;
+            if (m_isDialogueRunning == true) return;
 
             // This is where we combine storylets from the locations, player, and npc.
             IEnumerable<Storylet> allStorylets = new List<Storylet>()
-                .Concat(_player.GetComponent<StoryletController>().GetStorylets())
-                .Concat(_player.Location.GetComponent<StoryletController>().GetStorylets())
-                .Concat(_displayedCharacter.GetComponent<StoryletController>().GetStorylets())
+                .Concat(m_player.GetComponent<StoryletController>().GetStorylets())
+                .Concat(m_player.Location.GetComponent<StoryletController>().GetStorylets())
+                .Concat(m_displayedCharacter.GetComponent<StoryletController>().GetStorylets())
                 .ToList();
 
             // Now run queries for all storylets, see if they are runnable, and calculate their
@@ -193,39 +199,75 @@ namespace Calypso.Unity
 
             selectedStorylet.Storylet.IncrementTimesPlayed();
 
-            _dialogueManager.StartConversation(selectedStorylet.Storylet.Story);
+            m_dialogueManager.SetConversation(selectedStorylet.Storylet.Story);
+            m_isDialogueRunning = true;
+            m_uiController.DialoguePanel.AdvanceDialogue();
         }
 
-        #endregion
 
-        #region Public Methods
-
-        public void ChangePlayerLocation(string locationID)
+        /// <summary>
+        /// Checks if the player can talk to a present NPC
+        /// </summary>
+        /// <returns></returns>
+        public bool CanPlayerTalk()
         {
-            if (_player.Location && _player.Location.UniqueID == locationID) return;
+            return m_displayedCharacter != null;
+        }
 
-            Location location = locationManager.GetLocation(locationID);
-            _player.MoveToLocation(location);
+        /// <summary>
+        /// Check if the player can change location
+        /// </summary>
+        /// <returns></returns>
+        public bool CanPlayerChangeLocation()
+        {
+            return true;
+        }
+
+        /// <summary>
+        /// Sets the games background image to the given location
+        /// </summary>
+        /// <param name="location"></param>
+        public void SetStoryLocation(Location location)
+        {
+            m_uiController.Background.SetBackground(location.GetBackground());
+        }
+
+        /// <summary>
+        /// Get all locations that the player can travel to
+        /// </summary>
+        /// <returns></returns>
+        public IList<Location> GetLocationsPlayerCanTravelTo()
+        {
+            return m_locationManager.Locations
+                .Where(location => m_player.Location != location)
+                .ToList();
+        }
+
+        /// <summary>
+        /// Set the player's current location and change the background
+        /// </summary>
+        /// <param name="location"></param>
+        public void SetPlayerLocation(Location location)
+        {
+            if (m_player.Location != location)
+            {
+                m_player.MoveToLocation(location);
+            }
         }
 
         #endregion
 
         #region Private Methods
 
-        /// <summary>
-        /// Decrement the cooldowns of all storylets.
-        /// </summary>
-        // private void DecrementCooldowns()
-        // {
-        //     foreach (Storylet storylet in _storylets)
-        //     {
-        //         if (storylet.CooldownTimeRemaining > 0)
-        //         {
-        //             storylet.DecrementCooldown();
-        //         }
-        //     }
-        // }
+        private void HandleDialogueEnter()
+        {
+            m_isDialogueRunning = true;
+        }
 
+        private void HandleDialogueExit()
+        {
+            m_isDialogueRunning = false;
+        }
 
         /// <summary>
         /// Choose a random character at the location that the player

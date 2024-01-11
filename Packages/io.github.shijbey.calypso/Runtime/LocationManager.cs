@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Calypso.Unity
+namespace Calypso
 {
     /// <summary>
     /// Maintains a look-up table of locations that exist in the game

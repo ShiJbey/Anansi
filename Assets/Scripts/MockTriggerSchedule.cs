@@ -1,5 +1,5 @@
-using Calypso.Unity;
 using UnityEngine;
+using Calypso;
 
 public class MockTriggerSchedule : MonoBehaviour
 {

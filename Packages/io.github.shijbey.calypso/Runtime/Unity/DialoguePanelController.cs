@@ -5,108 +5,133 @@ using TMPro;
 using UnityEngine.Events;
 using System;
 
-namespace Calypso.Unity
+namespace Calypso
 {
     /// <summary>
     /// Controls the text box that displays dialogue text and choices to the player
     /// </summary>
     public class DialoguePanelController : MonoBehaviour
     {
-        #region Protected Fields
+        #region Fields
+
+        /// <summary>
+        /// A reference to the game's dialogue manager
+        /// </summary>
+        [SerializeField]
+        private DialogueManager m_dialogueManager;
 
         /// <summary>
         /// A reference to the button that advances to the next set of dialogue
         /// </summary>
         [SerializeField]
-        private Button advanceDialogueButton;
+        private Button m_advanceDialogueButton;
 
         /// <summary>
         /// A reference to the component displaying the dialogue text.
         /// </summary>
         [SerializeField]
-        private TMP_Text _dialogueText;
+        private TMP_Text m_dialogueText;
 
         /// <summary>
         /// A reference to the component displaying the speaker's name.
         /// </summary>
         [SerializeField]
-        private TMP_Text _speakerName;
+        private TMP_Text m_speakerName;
 
         /// <summary>
         /// The on-screen position of the dialogue panel.
         /// </summary>
-        private Vector3 onScreenPosition;
+        private Vector3 m_onScreenPosition;
 
         /// <summary>
         /// The off-screen position of the dialogue panel.
         /// </summary>
-        private Vector3 offScreenPosition;
+        private Vector3 m_offScreenPosition;
 
         /// <summary>
         /// A reference to GameObject that manages choice buttons.
         /// </summary>
         [SerializeField]
-        private ChoiceDialogController _choiceDialog;
+        private ChoiceDialogController m_choiceDialog;
 
         /// <summary>
         /// A reference to the coroutine that handles sliding the dialogue panel on and off screen
         /// </summary>
-        private Coroutine panelSlideCoroutine = null;
+        private Coroutine m_panelSlideCoroutine = null;
 
         /// <summary>
         /// A reference to the coroutine that handles displaying dialogue using the typewriter
         /// effect.
         /// </summary>
-        private Coroutine typingCoroutine = null;
+        private Coroutine m_typingCoroutine = null;
 
-        private bool skipTypewriterEffect = false;
+        /// <summary>
+        /// Should the typing coroutine skip to the end of the dialogue line.
+        /// </summary>
+        private bool m_skipTypewriterEffect = false;
 
         /// <summary>
         /// Tracks if the panel is hidden or moving into the hidden state.
         /// </summary>
-        private bool panelHidden = false;
+        private bool m_isPanelHidden = false;
 
         /// <summary>
         /// The fade-out duration time in seconds.
         /// </summary>
         [SerializeField]
-        protected float slideOutSeconds;
+        protected float m_slideOutSeconds;
 
         /// <summary>
         /// The fade-in duration time in seconds.
         /// </summary>
         [SerializeField]
-        protected float slideInSeconds;
+        protected float m_slideInSeconds;
 
+        /// <summary>
+        /// The time delay between displaying the next character during the typewriter effect.
+        /// </summary>
         [SerializeField]
-        protected float typingSpeed = 0.04f;
+        protected float m_typingSpeed = 0.04f;
 
-        [SerializeField]
-        private RectTransform rectTransform;
+        /// <summary>
+        /// A reference to the panel's transform
+        /// </summary>
+        private RectTransform m_rectTransform;
+
+        /// <summary>
+        /// The current choice to select in the dialogue (-1 halts dialogue progression)
+        /// </summary>
+        private int m_userChoiceIndex = -1;
 
         #endregion
 
-        #region Public Properties
+        #region Properties
+
+        /// <summary>
+        /// Is the panel currently hidden or being hidden
+        /// </summary>
+        public bool IsHidden => m_isPanelHidden;
 
         /// <summary>
         /// Is the controller currently typing text to the dialogue box.
         /// </summary>
         public bool IsTyping { get; private set; }
 
+        /// <summary>
+        /// A reference to the controller script for the choice button dialog box
+        /// </summary>
+        public ChoiceDialogController ChoiceDialog
+        {
+            get
+            {
+                if (m_choiceDialog != null) return m_choiceDialog;
+                throw new NullReferenceException("ChoiceDialog for DialoguePanel is null.");
+            }
+        }
+
         #endregion
 
-
-        #region Unity Events
-
-        /// <summary>
-        /// Event invoked when the advance text button is clicked
-        /// </summary>
-        public UnityEvent OnAdvanceText;
-
-        /// <summary>
-        /// Event invoked when all the current line's text has been displayed.
-        /// </summary>
-        public UnityEvent OnTextFinished;
+        #region Events and Actions
 
         /// <summary>
         /// Event invoked when the panel's Show() method is called.
@@ -120,42 +145,37 @@ namespace Calypso.Unity
 
         #endregion
 
-        #region Unity Lifecycle Methods
+        #region Unity Messages
 
-        // Start is called before the first frame update
+        private void Awake()
+        {
+            m_rectTransform = gameObject.transform as RectTransform;
+        }
+
         private void Start()
         {
-            Vector3 startingPos = rectTransform.position;
-            onScreenPosition = new Vector3(startingPos.x, startingPos.y, startingPos.z);
+            Vector3 startingPos = m_rectTransform.position;
+            m_onScreenPosition = new Vector3(startingPos.x, startingPos.y, startingPos.z);
 
-            offScreenPosition = new Vector3(
+            m_offScreenPosition = new Vector3(
                 startingPos.x,
-                startingPos.y - (rectTransform.rect.height + 200),
+                startingPos.y - (m_rectTransform.rect.height + 200),
                 startingPos.z
             );
 
-            advanceDialogueButton.onClick.AddListener(() =>
-            {
-                if (IsTyping)
-                {
-                    skipTypewriterEffect = true;
-                }
-                else if (OnAdvanceText != null) OnAdvanceText.Invoke();
-            });
+            m_advanceDialogueButton.onClick.AddListener(HandleAdvanceDialogueButtonClick);
+            m_choiceDialog.OnChoiceSelected.AddListener(HandleChoiceSelection);
 
             Hide();
         }
 
-        #endregion
-
-        public ChoiceDialogController ChoiceDialog
+        private void OnDisable()
         {
-            get
-            {
-                if (_choiceDialog != null) return _choiceDialog;
-                throw new NullReferenceException("ChoiceDialog for DialoguePanel is null.");
-            }
+            m_advanceDialogueButton.onClick.RemoveListener(HandleAdvanceDialogueButtonClick);
+            m_choiceDialog.OnChoiceSelected.RemoveListener(HandleChoiceSelection);
         }
+
+        #endregion
 
         #region Public Methods
 
@@ -165,49 +185,15 @@ namespace Calypso.Unity
         /// <param name="name"></param>
         public void SetSpeakerName(string name)
         {
-            _speakerName.text = name;
+            m_speakerName.text = name;
         }
 
         /// <summary>
-        /// Set the text displayed within the dialogue box.
-        /// </summary>
-        /// <param name="text"></param>
-        public void DisplayText(string text)
-        {
-            if (panelHidden) Show();
-
-            IsTyping = true;
-            SetContinueButtonInteractable(false);
-
-            if (typingCoroutine != null) StopCoroutine(typingCoroutine);
-
-            StartCoroutine(TextTypeWriterEffect(text));
-        }
-
-        /// <summary>
-        /// Tell the controller to bypass the typewriter effect and display the full line of text.
+        /// Bypass the typewriter effect and display the full line of text.
         /// </summary>
         public void JumpToEndOfText()
         {
-            if (IsTyping) skipTypewriterEffect = true;
-        }
-
-        /// <summary>
-        /// Set the visibility of the continue button
-        /// </summary>
-        /// <param name="visible"></param>
-        public void SetContinueButtonVisible(bool visible)
-        {
-            advanceDialogueButton.gameObject.SetActive(visible);
-        }
-
-        /// <summary>
-        /// Set if the continue button is clickable
-        /// </summary>
-        /// <param name="interactable"></param>
-        public void SetContinueButtonInteractable(bool interactable)
-        {
-            advanceDialogueButton.interactable = interactable;
+            if (IsTyping) m_skipTypewriterEffect = true;
         }
 
         /// <summary>
@@ -215,14 +201,14 @@ namespace Calypso.Unity
         /// </summary>
         public void Show()
         {
-            panelHidden = false;
+            m_isPanelHidden = false;
 
-            if (panelSlideCoroutine != null)
+            if (m_panelSlideCoroutine != null)
             {
-                StopCoroutine(panelSlideCoroutine);
+                StopCoroutine(m_panelSlideCoroutine);
             }
 
-            panelSlideCoroutine = StartCoroutine(SlidePanelIn());
+            m_panelSlideCoroutine = StartCoroutine(SlidePanelIn());
 
             if (OnShow != null) OnShow.Invoke();
         }
@@ -232,81 +218,141 @@ namespace Calypso.Unity
         /// </summary>
         public void Hide()
         {
-            panelHidden = true;
+            m_isPanelHidden = true;
 
             ChoiceDialog.Hide();
 
-            if (panelSlideCoroutine != null)
+            if (m_panelSlideCoroutine != null)
             {
-                StopCoroutine(panelSlideCoroutine);
+                StopCoroutine(m_panelSlideCoroutine);
             }
 
-            panelSlideCoroutine = StartCoroutine(SlidePanelOut());
+            m_panelSlideCoroutine = StartCoroutine(SlidePanelOut());
+
+            if (m_typingCoroutine != null) StopCoroutine(m_typingCoroutine);
+            IsTyping = false;
+            m_advanceDialogueButton.interactable = false;
+            m_dialogueManager.Reset();
+
 
             if (OnHide != null) OnHide.Invoke();
         }
 
+        /// <summary>
+        /// Show the next line of dialogue or close if at the end
+        /// </summary>
+        public void AdvanceDialogue()
+        {
+            if (m_dialogueManager.CanContinue() && !IsTyping)
+            {
+                if (m_isPanelHidden) Show();
+
+                if (m_typingCoroutine != null) StopCoroutine(m_typingCoroutine);
+
+                IsTyping = true;
+                m_advanceDialogueButton.interactable = false;
+
+                string text = m_dialogueManager.GetNextLine();
+
+                m_typingCoroutine = StartCoroutine(DisplayTextCoroutine(text));
+            }
+            else
+            {
+                Hide();
+                m_dialogueManager.Reset();
+            }
+        }
+
         #endregion
 
-        #region Public Properties
+        #region Private Coroutine Methods
 
         /// <summary>
-        /// Is the panel currently hidden or being hidden
+        /// A callback executed when the advance dialogue button is clicked
         /// </summary>
-        public bool IsHidden => panelHidden;
+        private void HandleAdvanceDialogueButtonClick()
+        {
+            AdvanceDialogue();
+            m_advanceDialogueButton.interactable = false;
+        }
 
-        #endregion
-
-        #region Private Coroutines
+        /// <summary>
+        /// A callback executed when a choice button is clicked in the choice dialog box
+        /// </summary>
+        /// <param name="choiceIndex"></param>
+        private void HandleChoiceSelection(int choiceIndex)
+        {
+            m_userChoiceIndex = choiceIndex;
+        }
 
         /// <summary>
         /// Displays text using a typewriter effect where each character appears once at a time.
         /// </summary>
         /// <returns></returns>
-        private IEnumerator TextTypeWriterEffect(string text)
+        private IEnumerator DisplayTextCoroutine(string text)
         {
-            _dialogueText.text = "";
+            m_advanceDialogueButton.interactable = false;
+            m_dialogueText.text = "";
 
             foreach (char letter in text.ToCharArray())
             {
-                if (skipTypewriterEffect)
+                if (m_skipTypewriterEffect)
                 {
-                    _dialogueText.text = text;
-                    skipTypewriterEffect = false;
+                    m_dialogueText.text = text;
+                    m_skipTypewriterEffect = false;
                     break;
                 }
 
-                _dialogueText.text += letter;
-                yield return new WaitForSeconds(typingSpeed);
+                m_dialogueText.text += letter;
+                yield return new WaitForSeconds(m_typingSpeed);
             }
 
-            IsTyping = false;
+            if (m_dialogueManager.HasChoices())
+            {
+                var choices = m_dialogueManager.GetChoices();
+                m_choiceDialog.SetChoices(choices);
+
+                yield return new WaitUntil(() => m_userChoiceIndex != -1);
+
+                m_dialogueManager.MakeChoice(m_userChoiceIndex);
+
+                m_userChoiceIndex = -1;
+
+                IsTyping = false;
+
+                AdvanceDialogue();
+            }
+            else
+            {
+                m_advanceDialogueButton.interactable = true;
+                IsTyping = false;
+            }
         }
 
         private IEnumerator SlidePanelOut()
         {
-            Vector3 initialPosition = rectTransform.position;
+            Vector3 initialPosition = m_rectTransform.position;
             float elapsedTime = 0f;
 
-            while (elapsedTime < slideOutSeconds)
+            while (elapsedTime < m_slideOutSeconds)
             {
                 elapsedTime += Time.deltaTime;
-                rectTransform.position =
-                    Vector3.Lerp(initialPosition, offScreenPosition, elapsedTime / slideOutSeconds);
+                m_rectTransform.position =
+                    Vector3.Lerp(initialPosition, m_offScreenPosition, elapsedTime / m_slideOutSeconds);
                 yield return null;
             }
         }
 
         private IEnumerator SlidePanelIn()
         {
-            Vector3 initialPosition = rectTransform.position;
+            Vector3 initialPosition = m_rectTransform.position;
             float elapsedTime = 0f;
 
-            while (elapsedTime < slideInSeconds)
+            while (elapsedTime < m_slideInSeconds)
             {
                 elapsedTime += Time.deltaTime;
-                rectTransform.position =
-                    Vector3.Lerp(initialPosition, onScreenPosition, elapsedTime / slideInSeconds);
+                m_rectTransform.position =
+                    Vector3.Lerp(initialPosition, m_onScreenPosition, elapsedTime / m_slideInSeconds);
                 yield return null;
             }
         }

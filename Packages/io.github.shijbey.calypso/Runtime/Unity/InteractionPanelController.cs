@@ -1,77 +1,100 @@
 using System.Collections;
 using UnityEngine;
-using UnityEngine.UI;
 
-namespace Calypso.Unity
+namespace Calypso
 {
     public class InteractionPanelController : MonoBehaviour
     {
-        [SerializeField]
-        private Button talkButton;
+        #region Fields
 
+        /// <summary>
+        /// Reference to the dialogue panel
+        /// </summary>
         [SerializeField]
-        private Button changeLocationButton;
+        private DialoguePanelController m_dialoguePanel;
 
         /// <summary>
         /// The on-screen position of the dialogue panel.
         /// </summary>
-        private Vector3 onScreenPosition;
+        private Vector3 m_onScreenPosition;
 
         /// <summary>
         /// The off-screen position of the dialogue panel.
         /// </summary>
-        private Vector3 offScreenPosition;
+        private Vector3 m_offScreenPosition;
 
         /// <summary>
         /// The fade-out duration time in seconds.
         /// </summary>
         [SerializeField]
-        protected float slideOutSeconds;
+        protected float m_slideOutSeconds;
 
         /// <summary>
         /// The fade-in duration time in seconds.
         /// </summary>
         [SerializeField]
-        protected float slideInSeconds;
+        protected float m_slideInSeconds;
 
         /// <summary>
         /// Reference to this MonoBehaviour's RectTransform.
         /// </summary>
-        [SerializeField]
-        private RectTransform rectTransform;
+        private RectTransform m_rectTransform;
 
         /// <summary>
         /// A reference to the coroutine that handles sliding the dialogue panel on and off screen
         /// </summary>
-        private Coroutine panelSlideCoroutine = null;
+        private Coroutine m_panelSlideCoroutine = null;
+
+        #endregion
+
+        #region Unity Messages
+
+        private void Awake()
+        {
+
+        }
 
         private void Start()
         {
             // Configure the on and off-screen positions
+            m_rectTransform = GetComponent<RectTransform>();
 
-            Vector3 startingPos = rectTransform.position;
-            onScreenPosition = new Vector3(startingPos.x, startingPos.y, startingPos.z);
+            Vector3 startingPos = m_rectTransform.position;
+            m_onScreenPosition = new Vector3(startingPos.x, startingPos.y, startingPos.z);
 
-            offScreenPosition = new Vector3(
+            m_offScreenPosition = new Vector3(
                 startingPos.x,
-                -(rectTransform.rect.height + 200),
+                -(m_rectTransform.rect.height + 200),
                 startingPos.z
             );
 
+            m_dialoguePanel.OnHide.AddListener(Show);
+            m_dialoguePanel.OnShow.AddListener(Hide);
+
             Show();
         }
+
+        public void OnDisable()
+        {
+            m_dialoguePanel.OnHide.RemoveListener(Show);
+            m_dialoguePanel.OnShow.RemoveListener(Hide);
+        }
+
+        #endregion
+
+        #region Public Methods
 
         /// <summary>
         /// Show the interaction panel
         /// </summary>
         public void Show()
         {
-            if (panelSlideCoroutine != null)
+            if (m_panelSlideCoroutine != null)
             {
-                StopCoroutine(panelSlideCoroutine);
+                StopCoroutine(m_panelSlideCoroutine);
             }
 
-            panelSlideCoroutine = StartCoroutine(SlidePanelIn());
+            m_panelSlideCoroutine = StartCoroutine(SlidePanelIn());
         }
 
         /// <summary>
@@ -79,22 +102,17 @@ namespace Calypso.Unity
         /// </summary>
         public void Hide()
         {
-            if (panelSlideCoroutine != null)
+            if (m_panelSlideCoroutine != null)
             {
-                StopCoroutine(panelSlideCoroutine);
+                StopCoroutine(m_panelSlideCoroutine);
             }
 
-            panelSlideCoroutine = StartCoroutine(SlidePanelOut());
+            m_panelSlideCoroutine = StartCoroutine(SlidePanelOut());
         }
 
-        /// <summary>
-        /// Set if the talk button is clickable or not
-        /// </summary>
-        /// <param name="enabled"></param>
-        public void SetTalkButtonEnabled(bool enabled)
-        {
-            talkButton.interactable = enabled;
-        }
+        #endregion
+
+        #region Private Coroutine Methods
 
         /// <summary>
         /// Slide the interaction panel off screen
@@ -102,14 +120,14 @@ namespace Calypso.Unity
         /// <returns></returns>
         private IEnumerator SlidePanelOut()
         {
-            Vector3 initialPosition = rectTransform.position;
+            Vector3 initialPosition = m_rectTransform.position;
             float elapsedTime = 0f;
 
-            while (elapsedTime < slideOutSeconds)
+            while (elapsedTime < m_slideOutSeconds)
             {
                 elapsedTime += Time.deltaTime;
-                rectTransform.position =
-                    Vector3.Lerp(initialPosition, offScreenPosition, elapsedTime / slideOutSeconds);
+                m_rectTransform.position =
+                    Vector3.Lerp(initialPosition, m_offScreenPosition, elapsedTime / m_slideOutSeconds);
                 yield return null;
             }
         }
@@ -120,17 +138,18 @@ namespace Calypso.Unity
         /// <returns></returns>
         private IEnumerator SlidePanelIn()
         {
-            Vector3 initialPosition = rectTransform.position;
+            Vector3 initialPosition = m_rectTransform.position;
             float elapsedTime = 0f;
 
-            while (elapsedTime < slideInSeconds)
+            while (elapsedTime < m_slideInSeconds)
             {
                 elapsedTime += Time.deltaTime;
-                rectTransform.position =
-                    Vector3.Lerp(initialPosition, onScreenPosition, elapsedTime / slideInSeconds);
+                m_rectTransform.position =
+                    Vector3.Lerp(initialPosition, m_onScreenPosition, elapsedTime / m_slideInSeconds);
                 yield return null;
             }
         }
 
+        #endregion
     }
 }

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Calypso.Unity
+namespace Calypso
 {
     /// <summary>
     /// Maintains a look-up table of characters that exist in the game
@@ -9,34 +9,45 @@ namespace Calypso.Unity
     [DefaultExecutionOrder(-1)]
     public class CharacterManager : MonoBehaviour
     {
+        #region Fields
+
         /// <summary>
-        /// The collection of characters that exist in the game (Set in Unity Inspector).
+        /// The collection of characters that exist in the game.
         /// </summary>
         [SerializeField]
-        private List<Actor> characters = new List<Actor>();
+        private List<Actor> m_characters;
 
         /// <summary>
-        /// IDs of characters mapped to their instances.
+        /// A look-up table of actor IDs mapped to their instances.
         /// </summary>
-        private Dictionary<string, Actor> characterLookupTable = new Dictionary<string, Actor>();
+        private Dictionary<string, Actor> m_characterLookupTable;
 
-        public IEnumerable<Actor> Characters => characters;
+        #endregion
+
+        #region Properties
+
+        /// <summary>
+        /// All the characters registered with the manager
+        /// </summary>
+        public IEnumerable<Actor> Characters => m_characters;
+
+        #endregion
+
+        #region Unity Messages
+
+        private void Awake()
+        {
+            m_characterLookupTable = new Dictionary<string, Actor>();
+        }
 
         private void Start()
         {
             InitializeLookUpTable();
         }
 
-        /// <summary>
-        /// Fills the lookup table using entries from the characters collection.
-        /// </summary>
-        private void InitializeLookUpTable()
-        {
-            foreach (Actor character in characters)
-            {
-                characterLookupTable.Add(character.UniqueID, character);
-            }
-        }
+        #endregion
+
+        #region Public Methods
 
         /// <summary>
         /// Get a character using their ID.
@@ -45,12 +56,29 @@ namespace Calypso.Unity
         /// <returns></returns>
         public Actor GetCharacter(string characterID)
         {
-            if (characterLookupTable.TryGetValue(characterID, out var character))
+            if (m_characterLookupTable.TryGetValue(characterID, out var character))
             {
                 return character;
             }
 
             throw new KeyNotFoundException($"Could not find character with ID: {characterID}");
         }
+
+        #endregion
+
+        #region Private Methods
+
+        /// <summary>
+        /// Fills the lookup table using entries from the characters collection.
+        /// </summary>
+        private void InitializeLookUpTable()
+        {
+            foreach (Actor character in m_characters)
+            {
+                m_characterLookupTable.Add(character.UniqueID, character);
+            }
+        }
+
+        #endregion
     }
 }

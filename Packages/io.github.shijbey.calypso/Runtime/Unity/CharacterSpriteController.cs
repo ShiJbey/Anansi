@@ -2,62 +2,62 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Calypso.Unity
+namespace Calypso
 {
     /// <summary>
     /// Provides an interface for modifying what NPC image is displayed during dialogue.
     /// </summary>
     public class CharacterSpriteController : MonoBehaviour
     {
-        #region Protected Fields
+        #region Fields
 
         /// <summary>
         /// A reference to the Image Script on the Background GameObject.
         /// </summary>
         [SerializeField]
-        protected Image characterImage;
+        protected Image m_characterImage;
 
         /// <summary>
         /// The fade-out duration time in seconds.
         /// </summary>
         [SerializeField]
-        protected float slideOutSeconds;
+        protected float m_slideOutSeconds;
 
         /// <summary>
         /// The fade-in duration time in seconds.
         /// </summary>
         [SerializeField]
-        protected float slideInSeconds;
+        protected float m_slideInSeconds;
 
         /// <summary>
         /// A reference to the Coroutine responsible for fading the background
         /// when transitioning from one image sprite to another.
         /// </summary>
-        private Coroutine transitionCoroutine = null;
+        private Coroutine m_transitionCoroutine = null;
 
         /// <summary>
         /// The onscreen position of the speaker image.
         /// </summary>
-        private Vector3 onScreenPosition;
+        private Vector3 m_onScreenPosition;
 
         /// <summary>
         /// The offscreen position of the speaker image.
         /// </summary>
-        private Vector3 offScreenPosition;
+        private Vector3 m_offScreenPosition;
 
         #endregion
 
-        #region Unity Lifecycle Methods
+        #region Unity Messages
 
         private void Start()
         {
             // Configure the on and off-screen positions
 
-            Vector3 startingPos = characterImage.rectTransform.position;
-            onScreenPosition = new Vector3(startingPos.x, startingPos.y, startingPos.z);
+            Vector3 startingPos = m_characterImage.rectTransform.position;
+            m_onScreenPosition = new Vector3(startingPos.x, startingPos.y, startingPos.z);
 
-            offScreenPosition = new Vector3(
-                startingPos.x - (characterImage.rectTransform.rect.width + 200),
+            m_offScreenPosition = new Vector3(
+                startingPos.x - (m_characterImage.rectTransform.rect.width + 200),
                 startingPos.y,
                 startingPos.z
             );
@@ -73,33 +73,47 @@ namespace Calypso.Unity
         /// Swap the character sprite and play the slide out animation
         /// </summary>
         /// <param name="speakerSprite"></param>
-        public void ChangeSpeaker(Sprite speakerSprite)
+        public void SetSpeaker(Sprite speakerSprite)
         {
-            if (transitionCoroutine != null)
+            if (m_transitionCoroutine != null)
             {
-                StopCoroutine(transitionCoroutine);
+                StopCoroutine(m_transitionCoroutine);
             }
 
-            transitionCoroutine = StartCoroutine(TransitionSpeaker(speakerSprite));
+            m_transitionCoroutine = StartCoroutine(TransitionSpeaker(speakerSprite));
         }
 
         /// <summary>
-        /// Permanently slide the character image off the screen
+        /// Slide the character image into view
+        /// </summary>
+        /// <returns></returns>
+        public void Show()
+        {
+            if (m_transitionCoroutine != null)
+            {
+                StopCoroutine(m_transitionCoroutine);
+            }
+
+            m_transitionCoroutine = StartCoroutine(ShowSpeakerTransition());
+        }
+
+        /// <summary>
+        /// Slide the character image out of view
         /// </summary>
         /// <returns></returns>
         public void Hide()
         {
-            if (transitionCoroutine != null)
+            if (m_transitionCoroutine != null)
             {
-                StopCoroutine(transitionCoroutine);
+                StopCoroutine(m_transitionCoroutine);
             }
 
-            transitionCoroutine = StartCoroutine(HideSpeakerTransition());
+            m_transitionCoroutine = StartCoroutine(HideSpeakerTransition());
         }
 
         #endregion
 
-        #region Private Coroutines
+        #region Private Coroutine Methods
 
         /// <summary>
         /// Slide the character image off the screen and slide the new on to the screen
@@ -109,8 +123,17 @@ namespace Calypso.Unity
         {
             yield return SlideOut();
 
-            characterImage.sprite = speakerSprite;
+            m_characterImage.sprite = speakerSprite;
 
+            yield return SlideIn();
+        }
+
+        /// <summary>
+        /// Permanently slide the character image off the screen
+        /// </summary>
+        /// <returns></returns>
+        private IEnumerator ShowSpeakerTransition()
+        {
             yield return SlideIn();
         }
 
@@ -129,14 +152,14 @@ namespace Calypso.Unity
         /// <returns></returns>
         private IEnumerator SlideIn()
         {
-            Vector3 initialPosition = characterImage.rectTransform.position;
+            Vector3 initialPosition = m_characterImage.rectTransform.position;
             float elapsedTime = 0f;
 
-            while (elapsedTime < slideInSeconds)
+            while (elapsedTime < m_slideInSeconds)
             {
                 elapsedTime += Time.deltaTime;
-                characterImage.rectTransform.position =
-                    Vector3.Lerp(initialPosition, onScreenPosition, elapsedTime / slideOutSeconds);
+                m_characterImage.rectTransform.position =
+                    Vector3.Lerp(initialPosition, m_onScreenPosition, elapsedTime / m_slideOutSeconds);
                 yield return null;
             }
         }
@@ -147,14 +170,14 @@ namespace Calypso.Unity
         /// <returns></returns>
         private IEnumerator SlideOut()
         {
-            Vector3 initialPosition = characterImage.rectTransform.position;
+            Vector3 initialPosition = m_characterImage.rectTransform.position;
             float elapsedTime = 0f;
 
-            while (elapsedTime < slideOutSeconds)
+            while (elapsedTime < m_slideOutSeconds)
             {
                 elapsedTime += Time.deltaTime;
-                characterImage.rectTransform.position =
-                    Vector3.Lerp(initialPosition, offScreenPosition, elapsedTime / slideOutSeconds);
+                m_characterImage.rectTransform.position =
+                    Vector3.Lerp(initialPosition, m_offScreenPosition, elapsedTime / m_slideOutSeconds);
                 yield return null;
             }
         }

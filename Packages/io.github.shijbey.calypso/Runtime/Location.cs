@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Calypso.Unity
+namespace Calypso
 {
     /// <summary>
     /// A place where characters can be. Locations are displayed as the background images

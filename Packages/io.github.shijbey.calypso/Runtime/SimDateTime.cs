@@ -1,24 +1,35 @@
 using System;
+using UnityEngine;
 
 namespace Calypso
 {
     /// <summary>
-    /// Tracks information about the current date and time of day
+    /// Tracks information about a date and time of day in the game
     /// </summary>
     [Serializable]
     public class SimDateTime
     {
-        #region Public Properties
+        #region Fields
+
+        [SerializeField]
+        private int m_day;
+
+        [SerializeField]
+        private TimeOfDay m_timeOfDay;
+
+        #endregion
+
+        #region Properties
 
         /// <summary>
-        /// The current day
+        /// The day
         /// </summary>
-        public int Day { get; private set; }
+        public int Day => m_day;
 
         /// <summary>
-        /// The current time of the day
+        /// The time of the day
         /// </summary>
-        public TimeOfDay TimeOfDay { get; private set; }
+        public TimeOfDay TimeOfDay => m_timeOfDay;
 
         #endregion
 
@@ -26,8 +37,8 @@ namespace Calypso
 
         public SimDateTime()
         {
-            Day = 1;
-            TimeOfDay = TimeOfDay.Morning;
+            m_day = 1;
+            m_timeOfDay = TimeOfDay.Morning;
         }
 
         public SimDateTime(int day, TimeOfDay timeOfDay)
@@ -37,31 +48,34 @@ namespace Calypso
                 throw new ArgumentException("Argument 'day' for SimDateTime must be 1 or greater");
             }
 
-            Day = day;
-            TimeOfDay = timeOfDay;
+            m_day = day;
+            m_timeOfDay = timeOfDay;
         }
 
         public SimDateTime(SimDateTime other)
         {
-            Day = other.Day;
-            TimeOfDay = other.TimeOfDay;
+            m_day = other.Day;
+            m_timeOfDay = other.TimeOfDay;
         }
 
         #endregion
 
-        #region Methods
+        #region Public Methods
 
         /// <summary>
-        /// Advance to the next time of day. This will advance to the next day if current time of
-        /// day is night.
+        /// Advance to the next time of day.
+        ///
+        /// <para>
+        /// This will advance to the next day if we are currently at the last time of the day
+        /// </para>
         /// </summary>
         public void AdvanceTime()
         {
             if (TimeOfDay == TimeOfDay.Night)
             {
-                Day += 1;
+                m_day += 1;
             }
-            this.TimeOfDay = (TimeOfDay)(((int)this.TimeOfDay + 1) % 4);
+            m_timeOfDay = (TimeOfDay)(((int)m_timeOfDay + 1) % 4);
         }
 
         public override string ToString()
@@ -143,6 +157,9 @@ namespace Calypso
         #endregion
     }
 
+    /// <summary>
+    /// The various phases within a single day
+    /// </summary>
     public enum TimeOfDay
     {
         Morning = 0,

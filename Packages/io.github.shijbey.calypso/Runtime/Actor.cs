@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.Events;
 
 
-namespace Calypso.Unity
+namespace Calypso
 {
     /// <summary>
     /// User-facing MonoBehavior for defining basic metadata for characters

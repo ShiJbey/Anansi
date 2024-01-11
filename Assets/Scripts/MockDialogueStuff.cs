@@ -1,5 +1,5 @@
 using UnityEngine;
-using Calypso.Unity;
+using Calypso;
 
 public class MockDialogueStuff : MonoBehaviour
 {
@@ -21,26 +21,9 @@ public class MockDialogueStuff : MonoBehaviour
             }
         }
 
-        if (Input.GetKeyUp(KeyCode.A))
-        {
-            dialoguePanelController.DisplayText(@"
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit,
-                sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.");
-        }
-
-        if (Input.GetKeyUp(KeyCode.Space))
+        if (Input.GetKeyUp(KeyCode.Alpha0))
         {
             dialoguePanelController.JumpToEndOfText();
-        }
-
-        if (Input.GetKeyUp(KeyCode.S))
-        {
-            if (!dialoguePanelController.IsHidden)
-            {
-                dialoguePanelController.ChoiceDialog.DisplayChoices(new string[]{
-                    "Go home", "Go to the store", "Go to the library"
-                });
-            }
         }
     }
 }

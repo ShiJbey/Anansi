@@ -1,5 +1,5 @@
 using UnityEngine;
-using Calypso.Unity;
+using Calypso;
 
 public class MockCharacterTransition : MonoBehaviour
 {
@@ -27,7 +27,7 @@ public class MockCharacterTransition : MonoBehaviour
 
             Actor character = characters[index];
 
-            characterController.ChangeSpeaker(character.GetSprite());
+            characterController.SetSpeaker(character.GetSprite());
             dialoguePanel.SetSpeakerName(character.DisplayName);
         }
 

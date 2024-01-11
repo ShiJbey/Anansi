@@ -1,6 +1,6 @@
 using UnityEngine;
-using Calypso.Unity;
 using System.Linq;
+using Calypso;
 
 public class MockBGTransition : MonoBehaviour
 {
@@ -36,7 +36,7 @@ public class MockBGTransition : MonoBehaviour
 
             Location location = locations[locationIndex];
 
-            backgroundController.ChangeBackground(location.GetBackground());
+            backgroundController.SetBackground(location.GetBackground());
             statusBar.SetLocationText(location.DisplayName);
         }
     }
