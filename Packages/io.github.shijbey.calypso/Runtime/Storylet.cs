@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using Ink.Runtime;
-using Calypso.RePraxis;
+using RePraxis;
 
 namespace Calypso
 {
@@ -11,7 +11,7 @@ namespace Calypso
     /// </summary>
     public class Storylet
     {
-        #region Public Properties
+        #region Properties
 
         /// <summary>
         /// The ID of the knot within an Ink Story.
@@ -26,12 +26,12 @@ namespace Calypso
         /// <summary>
         /// The number of Storylets that must elapse before this storylet may be used again.
         /// </summary>
-        public int Cooldown { get; set; }
+        public int Cooldown { get; }
 
         /// <summary>
         /// Will this content always be selected if available
         /// </summary>
-        public bool Mandatory { get; set; }
+        public bool IsMandatory { get; }
 
         /// <summary>
         /// The number of Storylets that must elapse before this storylet may be used again.
@@ -41,7 +41,7 @@ namespace Calypso
         /// <summary>
         /// Can this story be used more than once.
         /// </summary>
-        public bool IsRepeatable { get; set; }
+        public bool IsRepeatable { get; }
 
         /// <summary>
         /// The number of times this storylet has been seen by the player.
@@ -57,12 +57,19 @@ namespace Calypso
         /// <summary>
         /// A query that needs to pass before the storylet is allowed to run.
         /// </summary>
-        public DBQuery Query { get; set; }
+        public DBQuery Precondition { get; }
 
         /// <summary>
         /// Variable substitutions to apply from the bindings retrieved from the _preconditionQuery.
         /// </summary>
         public Dictionary<string, string> VariableSubstitutions { get; }
+
+        /// <summary>
+        /// The weight of this storylet instance
+        /// </summary>
+        public int Weight { get; }
+
+        public int FirstLineTagOffset { get; }
 
         #endregion
 
@@ -70,17 +77,28 @@ namespace Calypso
 
         public Storylet(
             string knotID,
-            Story story
+            Story story,
+            int cooldown,
+            bool isRepeatable,
+            bool isMandatory,
+            int weight,
+            IEnumerable<string> tags,
+            DBQuery precondition,
+            Dictionary<string, string> variableSubstitutions,
+            int firstLineTagOffset
         )
         {
             KnotID = knotID;
             Story = story;
-            Cooldown = 0;
-            IsRepeatable = true;
-            Tags = new HashSet<string>();
-            Query = new DBQuery();
-            VariableSubstitutions = new Dictionary<string, string>();
-            Mandatory = false;
+            Cooldown = cooldown;
+            CooldownTimeRemaining = 0;
+            IsRepeatable = isRepeatable;
+            Weight = weight;
+            Tags = new HashSet<string>(tags);
+            Precondition = precondition;
+            VariableSubstitutions = variableSubstitutions;
+            IsMandatory = isMandatory;
+            FirstLineTagOffset = firstLineTagOffset;
         }
 
         #endregion
@@ -113,6 +131,14 @@ namespace Calypso
         public void IncrementTimesPlayed()
         {
             TimesPlayed += 1;
+        }
+
+        /// <summary>
+        /// Reset the number of times this storylet has been visited
+        /// </summary>
+        public void ResetTimesPlayed()
+        {
+            TimesPlayed = 0;
         }
 
         #endregion

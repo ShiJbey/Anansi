@@ -2,6 +2,9 @@ using UnityEngine;
 using System.Linq;
 using System.Collections.Generic;
 using Calypso.Scheduling;
+using Ink.Parsed;
+using TDRS;
+using System.ComponentModel.Design;
 
 namespace Calypso
 {
@@ -41,6 +44,9 @@ namespace Calypso
         /// </summary>
         private bool m_isDialogueRunning;
 
+        [SerializeField]
+        private SocialEngine m_socialEngine;
+
         #endregion
 
         #region Properties
@@ -76,7 +82,7 @@ namespace Calypso
 
                     if (entry == null) continue;
 
-                    character.MoveToLocation(
+                    character.SetLocation(
                         m_locationManager.GetLocation(entry.Location)
                     );
                 }
@@ -155,51 +161,65 @@ namespace Calypso
             if (m_displayedCharacter == null) return;
             if (m_isDialogueRunning == true) return;
 
-            // This is where we combine storylets from the locations, player, and npc.
-            IEnumerable<Storylet> allStorylets = new List<Storylet>()
-                .Concat(m_player.GetComponent<StoryletController>().GetStorylets())
-                .Concat(m_player.Location.GetComponent<StoryletController>().GetStorylets())
-                .Concat(m_displayedCharacter.GetComponent<StoryletController>().GetStorylets())
-                .ToList();
+            List<StoryletInstance> instances = new List<StoryletInstance>();
 
-            // Now run queries for all storylets, see if they are runnable, and calculate their
-            // weights
-            List<(float, StoryletInstance)> weightedStorylets =
-                new List<(float, StoryletInstance)>();
-
-            foreach (Storylet storylet in allStorylets)
+            var playerStorylets = GetStoryletInstances(
+                m_player.GetComponent<StoryletController>().Storylets,
+                new Dictionary<string, string>()
+                {
+                    {"?player", m_player.UniqueID},
+                    {"?speaker", m_displayedCharacter.UniqueID},
+                    {"?location", m_player.Location.UniqueID}
+                }
+            );
+            foreach (StoryletInstance instance in playerStorylets)
             {
-                weightedStorylets.Add((1.0f, new StoryletInstance(storylet)));
+                instances.Add(instance);
             }
 
-            if (weightedStorylets.Count == 0) return;
-
-            var mandatoryStorylets = weightedStorylets.Where((s) => s.Item2.Storylet.Mandatory).ToList();
-
-            if (mandatoryStorylets.Count() > 0)
+            var npcStorylets = GetStoryletInstances(
+                m_displayedCharacter.GetComponent<StoryletController>().Storylets,
+                new Dictionary<string, string>()
+                {
+                    {"?player", m_player.UniqueID},
+                    {"?speaker", m_displayedCharacter.UniqueID},
+                    {"?location", m_player.Location.UniqueID}
+                }
+            );
+            foreach (StoryletInstance instance in npcStorylets)
             {
-                weightedStorylets = mandatoryStorylets;
+                instances.Add(instance);
+            }
+
+            var locationStorylets = GetStoryletInstances(
+                m_player.Location.GetComponent<StoryletController>().Storylets,
+                new Dictionary<string, string>()
+                {
+                    {"?player", m_player.UniqueID},
+                    {"?speaker", m_displayedCharacter.UniqueID},
+                    {"?location", m_player.Location.UniqueID}
+                }
+            );
+            foreach (StoryletInstance instance in locationStorylets)
+            {
+                instances.Add(instance);
+            }
+
+            if (instances.Count == 0) return;
+
+            // Filter storylet instances for mandatory instances
+            var mandatoryInstances = instances.Where(instance => instance.Storylet.IsMandatory)
+                .ToList();
+
+            if (mandatoryInstances.Count() > 0)
+            {
+                instances = mandatoryInstances;
             }
 
             StoryletInstance selectedStorylet =
-                weightedStorylets.RandomElementByWeight(entry => entry.Item1).Item2;
+                instances.RandomElementByWeight(entry => entry.Weight);
 
-
-            // Add error message handling to loaded stories
-            selectedStorylet.Storylet.Story.onError += (msg, type) =>
-                            {
-                                if (type == Ink.ErrorType.Warning)
-                                    Debug.LogWarning(msg);
-                                else
-                                    Debug.LogError(msg);
-                            };
-
-            selectedStorylet.Storylet.Story.ResetState();
-            selectedStorylet.Storylet.Story.ChoosePathString(selectedStorylet.Storylet.KnotID);
-
-            selectedStorylet.Storylet.IncrementTimesPlayed();
-
-            m_dialogueManager.SetConversation(selectedStorylet.Storylet.Story);
+            m_dialogueManager.SetConversation(selectedStorylet);
             m_isDialogueRunning = true;
             m_uiController.DialoguePanel.AdvanceDialogue();
         }
@@ -251,8 +271,16 @@ namespace Calypso
         {
             if (m_player.Location != location)
             {
-                m_player.MoveToLocation(location);
+                m_player.SetLocation(location);
             }
+        }
+
+        public void SetSpeaker(string characterID, params string[] tags)
+        {
+            var character = m_characterManager.GetCharacter(characterID);
+
+            m_uiController.DialoguePanel.SetSpeakerName(character.DisplayName);
+            m_uiController.CharacterSprite.SetSpeaker(character.GetSprite(tags));
         }
 
         #endregion
@@ -286,6 +314,50 @@ namespace Calypso
             var selectedActor = potentialCharacters[selectedIndex];
 
             return selectedActor;
+        }
+
+        private List<StoryletInstance> GetStoryletInstances(
+            List<Storylet> storylets,
+            Dictionary<string, string> bindings
+        )
+        {
+            List<StoryletInstance> instances = new List<StoryletInstance>();
+
+            foreach (var storylet in storylets)
+            {
+                // Skip storylets still on cooldown
+                if (storylet.CooldownTimeRemaining > 0) continue;
+
+                // Skip storylets that are not repeatable
+                if (!storylet.IsRepeatable && storylet.TimesPlayed > 0) continue;
+
+                // Query the social engine database
+                if (storylet.Precondition != null)
+                {
+                    var results = storylet.Precondition.Run(m_socialEngine.DB, bindings);
+
+                    if (!results.Success) continue;
+
+                    foreach (var bindingDict in results.Bindings)
+                    {
+                        instances.Add(new StoryletInstance(
+                        storylet,
+                        bindingDict,
+                        storylet.Weight
+                    ));
+                    }
+                }
+                else
+                {
+                    instances.Add(new StoryletInstance(
+                        storylet,
+                        bindings,
+                        storylet.Weight
+                    ));
+                }
+            }
+
+            return instances;
         }
 
         #endregion

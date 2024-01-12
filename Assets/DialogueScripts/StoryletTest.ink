@@ -1,54 +1,49 @@
+INCLUDE ./globals.ink
+
 EXTERNAL SetBackground(background, tags)
 EXTERNAL SetSpeakerSprite(speaker, tags)
 
 === storylet_a
+# tags >> start basic a
+# query >>
+# ?speaker.relationships.player.stat.Friendship!?friendship
+# gte ?friendship 10
+# end >>
 # set >> Player to ?player
 # set >> Speaker to ?npc
-# cooldown >> 1
-# repeatable >> False
-# tags >> start, basic, a
-# query >>
-# ?player.relationships.?npc.stats.friendship > 0
-# end >>
 
-Welcome to storylet A
+Good to see you again!
 
 -> DONE
-
-=== function _storylet_a
-
-~ return 1
 
 === storylet_b
-# tags >> start, basic, b
+# tags >> start basic b
+# query >>
+# ?speaker.relationships.player.stat.Friendship!?val
+# eq ?val 0
+# end >>
 
-Welcome to storylet B
+Hi, nice to meet you.
 
 -> DONE
-
-=== function _storylet_b
-
-~ return 1
 
 === storylet_c
-# tags >> start, basic, c
+# tags >> start basic c
+# query >>
+# ?speaker.relationships.player.stat.Friendship!?friendship
+# gte ?friendship 30
+# end >>
 
-Welcome to storylet C
+Yooooooo! What up??
 
 -> DONE
-
-=== function _storylet_c
-
-~ return 
 
 === storylet_d
-// # mandatory >> true
+# query >>
+# ?speaker.relationships.player.stat.Friendship!?friendship
+# lte ?friendship 0
+# end >>
 
-This is storylet D. It always plays because it is mandatory.
+Eww. Leave me alone.
 
 -> DONE
-
-== function _storylet_d
-
-~ return 1
-

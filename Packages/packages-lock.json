@@ -7,6 +7,12 @@
       "dependencies": {},
       "hash": "f7a5ed16b93fe2d220d8833a82e0324276cd2d0e"
     },
+    "com.shijbey.tdrs": {
+      "version": "file:/Users/shijbey/Workspace/Unity/Unity-TDRS/dist/unity-tdrs_1.0.0.tgz",
+      "depth": 0,
+      "source": "local-tarball",
+      "dependencies": {}
+    },
     "com.unity.2d.animation": {
       "version": "9.0.3",
       "depth": 1,
@@ -238,7 +244,8 @@
       "source": "embedded",
       "dependencies": {
         "com.unity.textmeshpro": "3.0.6",
-        "com.inkle.ink-unity-integration": "1.1.8"
+        "com.inkle.ink-unity-integration": "1.1.8",
+        "com.shijbey.tdrs": "1.0.0"
       }
     },
     "com.unity.modules.ai": {

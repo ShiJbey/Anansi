@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
+using TDRS;
 
 
 namespace Calypso
@@ -17,61 +18,61 @@ namespace Calypso
     /// </summary>
     public class Actor : MonoBehaviour
     {
-        #region Protected Fields
+        #region Fields
 
         /// <summary>
         /// The name of this character for display in the UI when speaking
         /// </summary>
         [SerializeField]
-        protected string _displayName;
+        protected string m_displayName;
 
         /// <summary>
         /// A unique ID for this character to be identified as within the StoryDatabase
         /// </summary>
         [SerializeField]
-        protected string _uniqueID;
+        protected string m_uniqueID;
 
         /// <summary>
         /// The location to start the character
         /// </summary>
         [SerializeField]
-        protected Location _startingLocation;
+        protected Location m_startingLocation;
 
         /// <summary>
         /// The current location of the character
         /// </summary>
-        protected Location _currentLocation;
+        protected Location m_currentLocation;
 
         /// <summary>
         /// Sprites used to display the character
         /// </summary>
         [SerializeField]
-        protected CharacterSprite[] _sprites;
+        protected CharacterSprite[] m_sprites;
 
         /// <summary>
-        /// A reference to the story database
+        /// A reference to the games social engine that tracks database info
         /// </summary>
         [SerializeField]
-        protected StoryDatabase _storyDatabase;
+        private SocialEngine m_socialEngine;
 
         #endregion
 
-        #region Public Properties
+        #region Properties
 
         /// <summary>
         /// The characters name displayed in the UI
         /// </summary>
-        public string DisplayName => _displayName;
+        public string DisplayName => m_displayName;
 
         /// <summary>
         /// The character's unique ID
         /// </summary>
-        public string UniqueID => _uniqueID;
+        public string UniqueID => m_uniqueID;
 
         /// <summary>
         /// The character's current location.
         /// </summary>
-        public Location Location => _currentLocation;
+        public Location Location => m_currentLocation;
 
         #endregion
 
@@ -84,14 +85,14 @@ namespace Calypso
 
         #endregion
 
-        #region Unity Lifecycle Methods
+        #region Unity Messages
 
         private void Start()
         {
-            _storyDatabase.DB.Insert($"{UniqueID}", true);
-            if (_startingLocation != null)
+            m_socialEngine.DB.Insert($"{UniqueID}");
+            if (m_startingLocation != null)
             {
-                MoveToLocation(_startingLocation);
+                SetLocation(m_startingLocation);
             }
         }
 
@@ -103,23 +104,23 @@ namespace Calypso
         /// Move an Actor to a new location.
         /// </summary>
         /// <param name="location"></param>
-        public void MoveToLocation(Location location)
+        public void SetLocation(Location location)
         {
             // Remove the character from their current location
-            if (_currentLocation != null)
+            if (m_currentLocation != null)
             {
-                _currentLocation.RemoveCharacter(this);
-                _storyDatabase.DB.Delete($"{_currentLocation.UniqueID}.characters.{UniqueID}");
-                _storyDatabase.DB.Delete($"{UniqueID}.location.{_currentLocation.UniqueID}");
-                _currentLocation = null;
+                m_currentLocation.RemoveCharacter(this);
+                m_socialEngine.DB.Delete($"{m_currentLocation.UniqueID}.characters.{UniqueID}");
+                m_socialEngine.DB.Delete($"{UniqueID}.location.{m_currentLocation.UniqueID}");
+                m_currentLocation = null;
             }
 
             if (location != null)
             {
                 location.AddCharacter(this);
-                _currentLocation = location;
-                _storyDatabase.DB.Insert($"{location.UniqueID}.characters.{UniqueID}", true);
-                _storyDatabase.DB.Insert($"{UniqueID}.location.{location.UniqueID}", true);
+                m_currentLocation = location;
+                m_socialEngine.DB.Insert($"{location.UniqueID}.characters.{UniqueID}");
+                m_socialEngine.DB.Insert($"{UniqueID}.location.{location.UniqueID}");
             }
 
             if (OnLocationChanged != null) OnLocationChanged.Invoke(location);
@@ -132,7 +133,7 @@ namespace Calypso
         /// <returns></returns>
         public Sprite GetSprite(params string[] tags)
         {
-            foreach (var entry in _sprites)
+            foreach (var entry in m_sprites)
             {
                 var spriteTags = new HashSet<string>(entry.tags);
 

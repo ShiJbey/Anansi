@@ -1,4 +1,4 @@
-using Calypso.RePraxis;
+using RePraxis;
 using UnityEngine;
 
 
@@ -14,10 +14,10 @@ namespace Calypso
         /// <summary>
         /// Reference to the fully instantiated database
         /// </summary>
-        private RePraxisDatabase db = new RePraxisDatabase();
+        private RePraxisDatabase m_db = new RePraxisDatabase();
 
         #endregion
 
-        public RePraxisDatabase DB => db;
+        public RePraxisDatabase DB => m_db;
     }
 }

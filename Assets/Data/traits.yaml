@@ -1,0 +1,9 @@
+- traitID: friend
+  traitType: relationship
+  displayName: Friend
+  description: '[owner] considers [target] to be a friend'
+
+- traitID: rival
+  traitType: relationship
+  displayName: Rival
+  description: '[owner] considers [target] to be a rival'

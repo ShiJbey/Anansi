@@ -68,19 +68,28 @@ namespace Calypso
         private void Awake()
         {
             m_choiceButtons = new List<Button>();
-            m_rectTransform = gameObject.transform as RectTransform;
+            m_rectTransform = gameObject.GetComponent<RectTransform>();
+
         }
 
         private void Start()
         {
             // Configure the on and off-screen positions
+            Vector3 startingPos = m_rectTransform.anchoredPosition;
 
-            Vector3 startingPos = m_rectTransform.position;
+            // m_onScreenPosition = new Vector3(0, 0, 0);
+
+            // m_offScreenPosition = new Vector3(
+            //     0,
+            //     -1000,
+            //     0
+            // );
+
             m_onScreenPosition = new Vector3(startingPos.x, startingPos.y, startingPos.z);
 
             m_offScreenPosition = new Vector3(
                 startingPos.x,
-                -(m_rectTransform.rect.height + 200),
+                -10000,
                 startingPos.z
             );
 
@@ -96,7 +105,7 @@ namespace Calypso
         /// </summary>
         public void Show()
         {
-            m_rectTransform.position = m_onScreenPosition;
+            m_rectTransform.anchoredPosition = m_onScreenPosition;
         }
 
         /// <summary>
@@ -104,7 +113,7 @@ namespace Calypso
         /// </summary>
         public void Hide()
         {
-            m_rectTransform.position = m_offScreenPosition;
+            m_rectTransform.anchoredPosition = m_offScreenPosition;
         }
 
         /// <summary>
@@ -131,9 +140,11 @@ namespace Calypso
                 //  Adds the onClick callback
                 choiceButton.onClick.AddListener(() =>
                 {
-                    ClearChoices();
+                    int idx = choiceIndex;
+                    Debug.Log($"selected choice: {idx}");
                     Hide();
-                    if (OnChoiceSelected != null) OnChoiceSelected.Invoke(choiceIndex);
+                    OnChoiceSelected?.Invoke(idx);
+                    ClearChoices();
                 });
             }
 

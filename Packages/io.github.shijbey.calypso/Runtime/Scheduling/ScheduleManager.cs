@@ -45,8 +45,6 @@ namespace Calypso.Scheduling
                     _schedules.AddSchedule(schedule);
                 }
             }
-
-            Debug.Log($"Loaded {_schedules.Count} schedules");
         }
 
         #endregion

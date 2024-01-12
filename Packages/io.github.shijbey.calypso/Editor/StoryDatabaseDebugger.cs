@@ -3,7 +3,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
-using Calypso.RePraxis;
+using RePraxis;
 
 namespace Calypso
 {
@@ -41,13 +41,13 @@ namespace Calypso
         {
             scrollView.Clear();
 
-            var nodeStack = new Stack<IRePraxisNode>(storyDatabase.DB.Root.Children);
+            var nodeStack = new Stack<INode>(storyDatabase.DB.Root.Children);
 
             while (nodeStack.Count > 0)
             {
-                IRePraxisNode node = nodeStack.Pop();
+                INode node = nodeStack.Pop();
 
-                IEnumerable<IRePraxisNode> children = node.Children;
+                IEnumerable<INode> children = node.Children;
 
                 if (children.Count() > 0)
                 {

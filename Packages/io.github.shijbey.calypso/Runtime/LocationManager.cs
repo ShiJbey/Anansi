@@ -13,16 +13,16 @@ namespace Calypso
         /// The collection of locations that exist in the game (Set in Unity Inspector).
         /// </summary>
         [SerializeField]
-        private List<Location> locations = new List<Location>();
+        private List<Location> m_locations = new List<Location>();
 
         /// <summary>
         /// IDs of locations mapped to their instances.
         /// </summary>
-        private Dictionary<string, Location> locationLookupTable =
+        private Dictionary<string, Location> m_locationLookupTable =
             new Dictionary<string, Location>();
 
 
-        public IEnumerable<Location> Locations => locations;
+        public IEnumerable<Location> Locations => m_locations;
 
         // Start is called before the first frame update
         void Start()
@@ -35,9 +35,9 @@ namespace Calypso
         /// </summary>
         private void InitializeLookUpTable()
         {
-            foreach (Location location in locations)
+            foreach (Location location in m_locations)
             {
-                locationLookupTable.Add(location.UniqueID, location);
+                m_locationLookupTable.Add(location.UniqueID, location);
             }
         }
 
@@ -48,7 +48,7 @@ namespace Calypso
         /// <returns></returns>
         public Location GetLocation(string locationID)
         {
-            if (locationLookupTable.TryGetValue(locationID, out var location))
+            if (m_locationLookupTable.TryGetValue(locationID, out var location))
             {
                 return location;
             }

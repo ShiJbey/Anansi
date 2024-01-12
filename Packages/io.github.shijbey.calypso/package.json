@@ -18,7 +18,8 @@
   "author": "Shi Johnson-Bey <shijbey@gmail.com>",
   "dependencies": {
     "com.unity.textmeshpro": "3.0.6",
-    "com.inkle.ink-unity-integration": "1.1.8"
+    "com.inkle.ink-unity-integration": "1.1.8",
+    "com.shijbey.tdrs": "1.0.0"
   },
   "samples": [
     {

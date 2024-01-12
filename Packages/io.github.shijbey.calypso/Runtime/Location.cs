@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using TDRS;
 using UnityEngine;
 
 namespace Calypso
@@ -9,63 +10,63 @@ namespace Calypso
     /// </summary>
     public class Location : MonoBehaviour
     {
-        #region Protected Fields
+        #region Fields
 
         /// <summary>
         /// The name of the location as displayed in the UI.
         /// </summary>
         [SerializeField]
-        protected string _displayName;
+        protected string m_displayName;
 
         /// <summary>
         /// An ID that uniquely identifies this location among other locations in the game.
         /// </summary>
         [SerializeField]
-        protected string _uniqueID;
+        protected string m_uniqueID;
 
         /// <summary>
-        /// A reference to story database
+        /// A reference to the game's social engine
         /// </summary>
         [SerializeField]
-        protected StoryDatabase _storyDatabase;
+        protected SocialEngine m_socialEngine;
 
         /// <summary>
         /// A collection of background sprites associated with this location
         /// </summary>
         [SerializeField]
-        protected LocationBackground[] _backgrounds;
+        protected LocationBackground[] m_backgrounds;
 
         /// <summary>
         /// Collection of all characters currently at this location
         /// </summary>
-        protected List<Actor> _actors = new List<Actor>();
+        protected List<Actor> m_actors = new List<Actor>();
 
         #endregion
 
-        #region Public Properties
+        #region Properties
 
         /// <summary>
         /// The name of the location as displayed in the UI.
         /// </summary>
-        public string DisplayName => _displayName;
+        public string DisplayName => m_displayName;
 
         /// <summary>
         /// An ID that uniquely identifies this location among other locations in the game.
         /// </summary>
-        public string UniqueID => _uniqueID;
+        public string UniqueID => m_uniqueID;
 
         /// <summary>
         /// Collection of all characters currently at this location
         /// </summary>
-        public IEnumerable<Actor> Characters => _actors;
+        public IEnumerable<Actor> Characters => m_actors;
 
         #endregion
 
-        #region Unity Lifecycle Methods
+        #region Unity Messages
 
         void Start()
         {
-            _storyDatabase.DB.Insert($"{UniqueID}", true);
+            m_socialEngine.DB.Insert($"{UniqueID}");
         }
 
         #endregion
@@ -79,7 +80,7 @@ namespace Calypso
         /// <returns></returns>
         public Sprite GetBackground(params string[] tags)
         {
-            foreach (var entry in _backgrounds)
+            foreach (var entry in m_backgrounds)
             {
                 var spriteTags = new HashSet<string>(entry.tags);
 
@@ -97,15 +98,24 @@ namespace Calypso
             return null;
         }
 
+        /// <summary>
+        /// Remove a character from the location
+        /// </summary>
+        /// <param name="actor"></param>
         public void AddCharacter(Actor actor)
         {
-            _actors.Add(actor);
+            m_actors.Add(actor);
         }
 
+        /// <summary>
+        /// Add a character to the location
+        /// </summary>
+        /// <param name="actor"></param>
         public void RemoveCharacter(Actor actor)
         {
-            _actors.Remove(actor);
+            m_actors.Remove(actor);
         }
+
         #endregion
 
         #region Helper Classes

@@ -1,31 +1,30 @@
+INCLUDE ./globals.ink
+
 // Global variables
-VAR PlayerName = "John"
 VAR ChoseRedPill = false
 VAR HealthPoints = 50
-VAR Speaker = "Astrid"
-VAR rivalName = ""
-
-// Global Tags
-// # id: default_convo
-// # weight: 1
-// # WHERE: ?Rival.relationships.astrid.tags.rival
-// # WHERE: ?Rival.relationships.player.friendship >= 20
-// # SET: rivalName to ?Rival.name
+VAR other_character = ""
 
 === storylet_start_knot ===
-Hello, {PlayerName}! This is the starting knot! #speaker: {Speaker} // display variable value
-Now, we'll go to knot 2! #speaker: {Speaker}
+# query >>
+# ?speaker.relationships.?other.traits.friend
+# neq ?other ?player
+# ?player.relationships.?other.traits.rival
+# end >>
+# set >> other_character to ?other
+
+
+Hello! This is the starting knot! #speaker >> {speaker}
+Now, we'll go to knot 2! #speaker >> {speaker}
+
 -> knot_2
 -> DONE
 
-=== function _storylet_start_knot
-
-~ return 1
 
 === knot_2 ===
-Hello from knot 2! #speaker: {Speaker}
-Time for a personality test. #speaker: {Speaker}
-Red pill or blue pill? #speaker: {rivalName}
+Hello from knot 2! #speaker >> {speaker}
+Time for a personality test. #speaker >> {other_character}
+Red pill or blue pill? #speaker >> {speaker}
 *** Red pill
 ~ChoseRedPill = true // update variable value
 -> red_pill
@@ -36,30 +35,28 @@ Red pill or blue pill? #speaker: {rivalName}
 -> DONE
 
 === red_pill ===
-My god, how brave! #speaker: {Speaker} #thought
+My god, how brave! #speaker >> {speaker}
 -> continue_conversation
 -> DONE
 
 === blue_pill
-Bold move, my friend #speaker: {Speaker}
+Bold move, my friend #speaker >> {speaker}
 -> continue_conversation
 -> DONE
 
 === continue_conversation
-{HealthPoints < 50: 
-    You seem quite weak. I wonder why... #thought
+{HealthPoints < 50:
+    You seem quite weak. I wonder why...
 }
-Alright. You have answered my question. #speaker: {Speaker}
+Alright. You have answered my question. #speaker >> {speaker}
 { ChoseRedPill:
-#speaker: {Speaker}
-#thought
+#speaker >> {other_character}
 You chose the red pill. But I'm still not sure I can trust you
 }
 {not red_pill: -> no_red_pill_comment}
 -> DONE
 
 === no_red_pill_comment ===
-#speaker: {Speaker}
-#thought
+#speaker >> {speaker}
 You didn't choose the red pill. I'm not sure I can trust you.
 -> DONE
