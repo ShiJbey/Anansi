@@ -75,7 +75,7 @@ namespace Calypso
         private void Start()
         {
             // Configure the on and off-screen positions
-            Vector3 startingPos = m_rectTransform.anchoredPosition;
+            // Vector3 startingPos = m_rectTransform.anchoredPosition;
 
             // m_onScreenPosition = new Vector3(0, 0, 0);
 
@@ -85,15 +85,15 @@ namespace Calypso
             //     0
             // );
 
-            m_onScreenPosition = new Vector3(startingPos.x, startingPos.y, startingPos.z);
+            // m_onScreenPosition = new Vector3(startingPos.x, startingPos.y, startingPos.z);
 
-            m_offScreenPosition = new Vector3(
-                startingPos.x,
-                -10000,
-                startingPos.z
-            );
+            // m_offScreenPosition = new Vector3(
+            //     startingPos.x,
+            //     -10000,
+            //     startingPos.z
+            // );
 
-            Hide();
+            // Hide();
         }
 
         #endregion
@@ -105,7 +105,7 @@ namespace Calypso
         /// </summary>
         public void Show()
         {
-            m_rectTransform.anchoredPosition = m_onScreenPosition;
+            // m_rectTransform.anchoredPosition = m_onScreenPosition;
         }
 
         /// <summary>
@@ -113,7 +113,7 @@ namespace Calypso
         /// </summary>
         public void Hide()
         {
-            m_rectTransform.anchoredPosition = m_offScreenPosition;
+            // m_rectTransform.anchoredPosition = m_offScreenPosition;
         }
 
         /// <summary>
@@ -142,13 +142,13 @@ namespace Calypso
                 {
                     int idx = choiceIndex;
                     Debug.Log($"selected choice: {idx}");
-                    Hide();
+                    // Hide();
                     OnChoiceSelected?.Invoke(idx);
                     ClearChoices();
                 });
             }
 
-            Show();
+            // Show();
         }
 
         /// <summary>

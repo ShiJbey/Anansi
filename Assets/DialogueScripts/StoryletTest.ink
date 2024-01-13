@@ -8,9 +8,8 @@ EXTERNAL SetSpeakerSprite(speaker, tags)
 # query >>
 # ?speaker.relationships.player.stat.Friendship!?friendship
 # gte ?friendship 10
+# lt ?friendship 30
 # end >>
-# set >> Player to ?player
-# set >> Speaker to ?npc
 
 Good to see you again!
 

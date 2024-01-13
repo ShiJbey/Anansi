@@ -220,7 +220,7 @@ namespace Calypso
         {
             m_isPanelHidden = true;
 
-            ChoiceDialog.Hide();
+            m_choiceDialog.gameObject.SetActive(false);
 
             if (m_panelSlideCoroutine != null)
             {
@@ -310,15 +310,20 @@ namespace Calypso
             if (m_dialogueManager.HasChoices())
             {
                 var choices = m_dialogueManager.GetChoices();
+                m_choiceDialog.gameObject.SetActive(true);
                 m_choiceDialog.SetChoices(choices);
 
                 yield return new WaitUntil(() => m_userChoiceIndex != -1);
+
+                m_choiceDialog.gameObject.SetActive(false);
 
                 m_dialogueManager.MakeChoice(m_userChoiceIndex);
 
                 m_userChoiceIndex = -1;
 
                 IsTyping = false;
+
+
 
                 AdvanceDialogue();
             }
