@@ -24,12 +24,22 @@ namespace Calypso
         /// <summary>
         /// The day
         /// </summary>
-        public int Day => m_day;
+        public int Day => m_day + 1;
 
         /// <summary>
         /// The time of the day
         /// </summary>
         public TimeOfDay TimeOfDay => m_timeOfDay;
+
+        /// <summary>
+        /// Get the current week for this date
+        /// </summary>
+        public int Week => (m_day / 7) + 1;
+
+        /// <summary>
+        /// Get the day of the week
+        /// </summary>
+        public WeekDay WeekDay => (WeekDay)(m_day % 7);
 
         #endregion
 
@@ -37,7 +47,7 @@ namespace Calypso
 
         public SimDateTime()
         {
-            m_day = 1;
+            m_day = 0;
             m_timeOfDay = TimeOfDay.Morning;
         }
 
@@ -48,14 +58,14 @@ namespace Calypso
                 throw new ArgumentException("Argument 'day' for SimDateTime must be 1 or greater");
             }
 
-            m_day = day;
+            m_day = day - 1;
             m_timeOfDay = timeOfDay;
         }
 
         public SimDateTime(SimDateTime other)
         {
-            m_day = other.Day;
-            m_timeOfDay = other.TimeOfDay;
+            m_day = other.m_day;
+            m_timeOfDay = other.m_timeOfDay;
         }
 
         #endregion
@@ -158,13 +168,27 @@ namespace Calypso
     }
 
     /// <summary>
+    /// The days of the week
+    /// </summary>
+    public enum WeekDay : int
+    {
+        Monday,
+        Tuesday,
+        Wednesday,
+        Thursday,
+        Friday,
+        Saturday,
+        Sunday
+    }
+
+    /// <summary>
     /// The various phases within a single day
     /// </summary>
-    public enum TimeOfDay
+    public enum TimeOfDay : int
     {
-        Morning = 0,
-        Afternoon = 1,
-        Evening = 2,
-        Night = 3,
+        Morning,
+        Afternoon,
+        Evening,
+        Night,
     }
 }
