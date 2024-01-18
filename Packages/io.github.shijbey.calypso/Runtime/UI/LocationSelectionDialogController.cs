@@ -168,7 +168,7 @@ namespace Calypso
         private void SetPlayerLocation(Location location)
         {
             m_gameManager.SetPlayerLocation(location);
-            m_gameManager.SetStoryLocation(location);
+            m_gameManager.SetStoryLocation(location.UniqueID);
         }
 
         #endregion

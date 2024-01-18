@@ -3,37 +3,33 @@ using Calypso;
 
 public class MockCharacterTransition : MonoBehaviour
 {
-    private int index = -1;
+    [SerializeField]
+    private string m_speakerID;
 
     [SerializeField]
-    private Actor[] characters;
+    private SpeakerSpriteController m_spriteController;
 
     [SerializeField]
-    private CharacterSpriteController characterController;
+    private string[] m_speakerTags;
 
-    [SerializeField]
-    private DialoguePanelController dialoguePanel;
+
 
     // Update is called once per frame
     void Update()
     {
         if (Input.GetKeyUp(KeyCode.Q))
         {
-            if (characters.Length == 0) return;
-
-            index++;
-
-            if (index == characters.Length) index = 0;
-
-            Actor character = characters[index];
-
-            characterController.SetSpeaker(character.GetSprite());
-            dialoguePanel.SetSpeakerName(character.DisplayName);
+            m_spriteController.SetSpeaker(m_speakerID, m_speakerTags);
         }
 
         if (Input.GetKeyUp(KeyCode.W))
         {
-            characterController.Hide();
+            m_spriteController.HideSpeaker();
+        }
+
+        if (Input.GetKeyUp(KeyCode.E))
+        {
+            m_spriteController.ShowSpeaker();
         }
     }
 }

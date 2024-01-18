@@ -6,38 +6,46 @@ namespace Calypso
     /// <summary>
     /// Maintains a look-up table of locations that exist in the game
     /// </summary>
-    [DefaultExecutionOrder(-1)]
     public class LocationManager : MonoBehaviour
     {
-        /// <summary>
-        /// The collection of locations that exist in the game (Set in Unity Inspector).
-        /// </summary>
-        [SerializeField]
-        private List<Location> m_locations = new List<Location>();
+        #region Fields
 
         /// <summary>
         /// IDs of locations mapped to their instances.
         /// </summary>
-        private Dictionary<string, Location> m_locationLookupTable =
-            new Dictionary<string, Location>();
+        private Dictionary<string, Location> m_locationLookupTable;
 
+        #endregion
 
-        public IEnumerable<Location> Locations => m_locations;
+        #region Properties
 
-        // Start is called before the first frame update
-        void Start()
+        /// <summary>
+        /// All the locations known by the manager
+        /// </summary>
+        public IEnumerable<Location> Locations => m_locationLookupTable.Values;
+
+        #endregion
+
+        #region Unity Messages
+
+        private void Awake()
         {
-            InitializeLookUpTable();
+            m_locationLookupTable = new Dictionary<string, Location>();
         }
+
+        #endregion
+
+        #region Public Methods
 
         /// <summary>
         /// Fills the lookup table using entries from the locations collection.
         /// </summary>
-        private void InitializeLookUpTable()
+        public void InitializeLookUpTable()
         {
-            foreach (Location location in m_locations)
+            var locations = FindObjectsOfType<Location>();
+            foreach (Location location in locations)
             {
-                m_locationLookupTable.Add(location.UniqueID, location);
+                AddLocation(location);
             }
         }
 
@@ -56,5 +64,15 @@ namespace Calypso
             throw new KeyNotFoundException($"Could not find location with ID: {locationID}");
         }
 
+        /// <summary>
+        /// Add a location to the manager
+        /// </summary>
+        /// <param name="location"></param>
+        public void AddLocation(Location location)
+        {
+            m_locationLookupTable[location.UniqueID] = location;
+        }
+
+        #endregion
     }
 }

@@ -1,8 +1,5 @@
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Events;
 using TDRS;
-
 
 namespace Calypso
 {
@@ -36,7 +33,7 @@ namespace Calypso
         /// The location to start the character
         /// </summary>
         [SerializeField]
-        protected Location m_startingLocation;
+        public Location startingLocation;
 
         /// <summary>
         /// The current location of the character
@@ -44,16 +41,15 @@ namespace Calypso
         protected Location m_currentLocation;
 
         /// <summary>
-        /// Sprites used to display the character
-        /// </summary>
-        [SerializeField]
-        protected CharacterSprite[] m_sprites;
-
-        /// <summary>
         /// A reference to the games social engine that tracks database info
         /// </summary>
         [SerializeField]
         private SocialEngine m_socialEngine;
+
+        /// <summary>
+        /// A reference to the sprite controller attached to this GameObject
+        /// </summary>
+        protected SpriteController m_spriteController;
 
         #endregion
 
@@ -76,24 +72,11 @@ namespace Calypso
 
         #endregion
 
-        #region Unity Actions
-
-        /// <summary>
-        /// Action invoked whenever the character changes their location
-        /// </summary>
-        public UnityAction<Location> OnLocationChanged;
-
-        #endregion
-
         #region Unity Messages
 
-        private void Start()
+        private void Awake()
         {
-            m_socialEngine.DB.Insert($"{UniqueID}");
-            if (m_startingLocation != null)
-            {
-                SetLocation(m_startingLocation);
-            }
+            m_spriteController = GetComponent<SpriteController>();
         }
 
         #endregion
@@ -122,55 +105,17 @@ namespace Calypso
                 m_socialEngine.DB.Insert($"{location.UniqueID}.characters.{UniqueID}");
                 m_socialEngine.DB.Insert($"{UniqueID}.location.{location.UniqueID}");
             }
-
-            if (OnLocationChanged != null) OnLocationChanged.Invoke(location);
         }
 
         /// <summary>
-        /// Get a sprite with the given tags
+        /// Set the currently displayed sprite using the given tags
         /// </summary>
         /// <param name="tags"></param>
-        /// <returns></returns>
-        public Sprite GetSprite(params string[] tags)
+        public void SetSprite(params string[] tags)
         {
-            foreach (var entry in m_sprites)
-            {
-                var spriteTags = new HashSet<string>(entry.tags);
+            if (m_spriteController == null) return;
 
-                foreach (string t in tags)
-                {
-                    if (!t.Contains(t))
-                    {
-                        return null;
-                    }
-                }
-
-                return entry.sprite;
-            }
-
-            return null;
-        }
-
-        #endregion
-
-        #region Helper Classes
-
-        /// <summary>
-        /// Associates a sprite image with a set of descriptive tags for the sprite.
-        /// </summary>
-        [System.Serializable]
-        public class CharacterSprite
-        {
-            /// <summary>
-            /// The sprite image to display.
-            /// </summary>
-            public Sprite sprite;
-
-            /// <summary>
-            /// Tags used to retrieve the image.
-            /// Examples: neutral, smiling, scowling, sad, blushing, laughing
-            /// </summary>
-            public string[] tags;
+            m_spriteController.SetSpriteFromTags(tags);
         }
 
         #endregion

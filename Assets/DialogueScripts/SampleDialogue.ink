@@ -5,6 +5,8 @@ VAR ChoseRedPill = false
 VAR HealthPoints = 50
 VAR other_character = ""
 
+// -> storylet_start_knot
+
 === storylet_start_knot ===
 # query >>
 # ?speaker.relationships.?other.traits.friend

@@ -4,40 +4,37 @@ using Calypso;
 
 public class MockBGTransition : MonoBehaviour
 {
-    private int locationIndex = -1;
+    [SerializeField]
+    private string m_locationID;
 
     [SerializeField]
-    private LocationManager locationManager;
-
-    private Location[] locations;
+    private BackgroundSpriteController m_backgroundSpriteController;
 
     [SerializeField]
-    private BackgroundController backgroundController;
-
-    [SerializeField]
-    private StatusBarController statusBar;
+    private string[] m_tags;
 
     void Start()
     {
-        locations = locationManager.Locations.ToArray();
+        m_backgroundSpriteController =
+            FindObjectOfType<BackgroundSpriteController>();
     }
 
     // Update is called once per frame
     void Update()
     {
-
         if (Input.GetKeyUp(KeyCode.B))
         {
-            if (locations.Length == 0) return;
+            m_backgroundSpriteController.SetBackground(m_locationID, m_tags);
+        }
 
-            locationIndex++;
+        if (Input.GetKeyUp(KeyCode.N))
+        {
+            m_backgroundSpriteController.ShowBackground();
+        }
 
-            if (locationIndex == locations.Length) locationIndex = 0;
-
-            Location location = locations[locationIndex];
-
-            backgroundController.SetBackground(location.GetBackground());
-            statusBar.SetLocationText(location.DisplayName);
+        if (Input.GetKeyUp(KeyCode.M))
+        {
+            m_backgroundSpriteController.HideBackground();
         }
     }
 }

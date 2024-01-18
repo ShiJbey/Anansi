@@ -7,18 +7,6 @@ namespace Calypso
         #region Fields
 
         /// <summary>
-        /// A reference to the background controller
-        /// </summary>
-        [SerializeField]
-        private BackgroundController m_background;
-
-        /// <summary>
-        /// A reference to the character sprite controller
-        /// </summary>
-        [SerializeField]
-        private CharacterSpriteController m_characterSprite;
-
-        /// <summary>
         /// A reference to the dialogue panel controller
         /// </summary>
         [SerializeField]
@@ -39,16 +27,6 @@ namespace Calypso
         #endregion
 
         #region Properties
-
-        /// <summary>
-        /// A reference to the background controller
-        /// </summary>
-        public BackgroundController Background => m_background;
-
-        /// <summary>
-        /// A reference to the character sprite controller
-        /// </summary>
-        public CharacterSpriteController CharacterSprite => m_characterSprite;
 
         /// <summary>
         /// A reference to the dialogue panel controller

@@ -1,10 +1,9 @@
+using System;
 using UnityEngine;
 using System.Linq;
 using System.Collections.Generic;
 using Calypso.Scheduling;
-using Ink.Parsed;
 using TDRS;
-using System.ComponentModel.Design;
 
 namespace Calypso
 {
@@ -39,13 +38,14 @@ namespace Calypso
         [SerializeField]
         private TimeManager m_timeManager;
 
-        /// <summary>
-        /// Is there currently dialogue being displayed on the screen
-        /// </summary>
-        private bool m_isDialogueRunning;
-
         [SerializeField]
         private SocialEngine m_socialEngine;
+
+        private bool m_isGameInitialized = false;
+
+        private SpeakerSpriteController m_speakerSpriteController;
+
+        private BackgroundSpriteController m_backgroundController;
 
         #endregion
 
@@ -57,96 +57,57 @@ namespace Calypso
 
         public LocationManager Locations => m_locationManager;
 
+        public SpeakerSpriteController SpriteController => m_speakerSpriteController;
+
         #endregion
 
         #region Unity Messages
 
-        private void Start()
+        private void Awake()
         {
-            TimeManager.OnTimeChanged += (dateTime) =>
+            m_speakerSpriteController = GetComponent<SpeakerSpriteController>();
+            if (m_speakerSpriteController == null)
             {
-                m_uiController.StatusBar.SetDateTimeText(dateTime.ToString());
+                throw new Exception(
+                    $"${gameObject.name} is missing SpeakerSpriteController component."
+                );
+            }
 
-                // Reset who gets displayed
-                m_displayedCharacter = null;
-                m_uiController.CharacterSprite.Hide();
-
-                // Handle NPC schedules
-                foreach (Actor character in m_characterManager.Characters)
-                {
-                    if (character == m_player) continue;
-
-                    var scheduleManager = character.gameObject.GetComponent<ScheduleManager>();
-
-                    ScheduleEntry entry = scheduleManager.GetEntry(dateTime);
-
-                    if (entry == null) continue;
-
-                    character.SetLocation(
-                        m_locationManager.GetLocation(entry.Location)
-                    );
-                }
-            };
-
-            m_uiController.DialoguePanel.OnShow.AddListener(HandleDialogueEnter);
-            m_uiController.DialoguePanel.OnHide.AddListener(HandleDialogueExit);
-
-            m_uiController.StatusBar.SetDateTimeText(m_timeManager.DateTime.ToString());
-
-            m_player.OnLocationChanged += (location) =>
+            m_backgroundController = GetComponent<BackgroundSpriteController>();
+            if (m_speakerSpriteController == null)
             {
-                if (location == null)
-                {
-                    m_uiController.CharacterSprite.Hide();
-                    m_uiController.DialoguePanel.SetSpeakerName("");
-                    m_displayedCharacter = null;
-                    return;
-                }
-
-                m_uiController.Background.SetBackground(location.GetBackground());
-                m_uiController.StatusBar.SetLocationText(location.DisplayName);
-
-                // Select character they could talk to
-                var character = SelectDisplayedActor(location);
-
-                if (character == null)
-                {
-                    m_displayedCharacter = null;
-                    m_uiController.CharacterSprite.Hide();
-                    return;
-                };
-
-                m_uiController.CharacterSprite.SetSpeaker(character.GetSprite());
-                m_uiController.DialoguePanel.SetSpeakerName(character.DisplayName);
-
-                m_displayedCharacter = character;
-            };
+                throw new Exception(
+                    $"${gameObject.name} is missing BackgroundSpriteController component."
+                );
+            }
         }
 
         private void Update()
         {
-            if (m_displayedCharacter == null && m_player.Location != null)
+            if (!m_isGameInitialized)
             {
-                var character = SelectDisplayedActor(m_player.Location);
+                m_isGameInitialized = true;
 
-                if (character == null)
+                m_characterManager.InitializeLookUpTable();
+                m_locationManager.InitializeLookUpTable();
+
+                foreach (var character in m_characterManager.Characters)
                 {
-                    m_displayedCharacter = null;
-                    m_uiController.CharacterSprite.Hide();
-                    return;
-                };
+                    m_socialEngine.DB.Insert($"{character.UniqueID}");
+                }
 
-                m_uiController.CharacterSprite.SetSpeaker(character.GetSprite());
-                m_uiController.DialoguePanel.SetSpeakerName(character.DisplayName);
+                foreach (var location in m_locationManager.Locations)
+                {
+                    m_socialEngine.DB.Insert($"{location.UniqueID}");
+                }
 
-                m_displayedCharacter = character;
+                m_backgroundController.ResetBackgrounds();
+                m_speakerSpriteController.ResetSprites();
+
+                SetPlayerLocation(m_player.startingLocation);
+
+                Tick();
             }
-        }
-
-        private void OnDisable()
-        {
-            m_uiController.DialoguePanel.OnShow.RemoveListener(HandleDialogueEnter);
-            m_uiController.DialoguePanel.OnHide.RemoveListener(HandleDialogueExit);
         }
 
         #endregion
@@ -154,12 +115,72 @@ namespace Calypso
         #region Public Methods
 
         /// <summary>
+        /// Tick the simulation
+        /// </summary>
+        public void Tick()
+        {
+            m_timeManager.AdvanceTime();
+
+            var currentDate = m_timeManager.DateTime;
+
+            // Add the current date to the social engine's database
+
+            m_socialEngine.DB.Insert(
+                $"date.time_of_day!{Enum.GetName(typeof(TimeOfDay), currentDate.TimeOfDay)}");
+            m_socialEngine.DB.Insert(
+                $"date.day!{currentDate.Day}");
+            m_socialEngine.DB.Insert(
+                $"date.weekday!{Enum.GetName(typeof(WeekDay), currentDate.WeekDay)}");
+            m_socialEngine.DB.Insert(
+                $"date.week!{currentDate.Week}");
+
+            m_uiController.StatusBar.SetDateTimeText(currentDate.ToString());
+
+            // Reset who gets displayed
+            m_displayedCharacter = null;
+            m_speakerSpriteController.HideSpeaker();
+
+            // Handle NPC schedules
+            foreach (Actor character in m_characterManager.Characters)
+            {
+                if (character == m_player) continue;
+
+                var scheduleManager = character.gameObject.GetComponent<ScheduleManager>();
+
+                ScheduleEntry entry = scheduleManager.GetEntry(currentDate);
+
+                if (entry == null) continue;
+
+                character.SetLocation(
+                    m_locationManager.GetLocation(entry.Location)
+                );
+            }
+
+            if (m_displayedCharacter == null && m_player.Location != null)
+            {
+                var character = SelectDisplayedActor(m_player.Location);
+
+                if (character == null)
+                {
+                    m_displayedCharacter = null;
+                    m_speakerSpriteController.HideSpeaker();
+                    return;
+                };
+
+                m_speakerSpriteController.SetSpeaker(character.UniqueID);
+                m_uiController.DialoguePanel.SetSpeakerName(character.DisplayName);
+
+                m_displayedCharacter = character;
+            }
+        }
+
+        /// <summary>
         /// Method called when the player clicks the talk button in the Interaction panel
         /// </summary>
         public void StartConversation()
         {
             if (m_displayedCharacter == null) return;
-            if (m_isDialogueRunning == true) return;
+            if (m_dialogueManager.IsDialogueActive == true) return;
 
             List<StoryletInstance> instances = new List<StoryletInstance>();
 
@@ -220,7 +241,6 @@ namespace Calypso
                 instances.RandomElementByWeight(entry => entry.Weight);
 
             m_dialogueManager.SetConversation(selectedStorylet);
-            m_isDialogueRunning = true;
             m_uiController.DialoguePanel.AdvanceDialogue();
         }
 
@@ -247,9 +267,11 @@ namespace Calypso
         /// Sets the games background image to the given location
         /// </summary>
         /// <param name="location"></param>
-        public void SetStoryLocation(Location location)
+        public void SetStoryLocation(string locationID, params string[] tags)
         {
-            m_uiController.Background.SetBackground(location.GetBackground());
+            Location location = m_locationManager.GetLocation(locationID);
+            m_backgroundController.SetBackground(locationID, tags);
+            m_uiController.StatusBar.SetLocationText(location.DisplayName);
         }
 
         /// <summary>
@@ -273,29 +295,43 @@ namespace Calypso
             {
                 m_player.SetLocation(location);
             }
+
+            if (location == null)
+            {
+                m_speakerSpriteController.HideSpeaker();
+                m_uiController.DialoguePanel.SetSpeakerName("");
+                m_displayedCharacter = null;
+                return;
+            }
+
+            SetStoryLocation(location.UniqueID);
+
+            // Select character they could talk to
+            var character = SelectDisplayedActor(location);
+
+            if (character == null)
+            {
+                m_displayedCharacter = null;
+                m_speakerSpriteController.HideSpeaker();
+                return;
+            };
+
+            m_speakerSpriteController.SetSpeaker(character.UniqueID);
+            m_uiController.DialoguePanel.SetSpeakerName(character.DisplayName);
+
+            m_displayedCharacter = character;
         }
 
         public void SetSpeaker(string characterID, params string[] tags)
         {
             var character = m_characterManager.GetCharacter(characterID);
-
             m_uiController.DialoguePanel.SetSpeakerName(character.DisplayName);
-            m_uiController.CharacterSprite.SetSpeaker(character.GetSprite(tags));
+            m_speakerSpriteController.SetSpeaker(characterID, tags);
         }
 
         #endregion
 
         #region Private Methods
-
-        private void HandleDialogueEnter()
-        {
-            m_isDialogueRunning = true;
-        }
-
-        private void HandleDialogueExit()
-        {
-            m_isDialogueRunning = false;
-        }
 
         /// <summary>
         /// Choose a random character at the location that the player

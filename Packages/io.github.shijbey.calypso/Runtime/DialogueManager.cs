@@ -33,6 +33,15 @@ namespace Calypso
 
         #endregion
 
+        #region Properties
+
+        /// <summary>
+        /// Is there currently dialogue being displayed on the screen
+        /// </summary>
+        public bool IsDialogueActive { get; private set; }
+
+        #endregion
+
         #region Unity Messages
 
         private void Awake()
@@ -135,6 +144,7 @@ namespace Calypso
                 m_storyletInstance.Story.UnbindExternalFunction("SetBackground");
                 m_storyletInstance.Story.UnbindExternalFunction("SetSpeakerSprite");
                 m_storyletInstance.Story.ResetState();
+                IsDialogueActive = false;
             }
 
             m_storyletInstance = null;
@@ -158,25 +168,21 @@ namespace Calypso
             m_storyletInstance.Story.ChoosePathString(m_storyletInstance.KnotID);
             m_storyletInstance.Storylet.IncrementTimesPlayed();
             m_isFirstLine = true;
+            IsDialogueActive = true;
 
             m_currentSpeaker = (string)m_storyletInstance.Story.variablesState["speaker"];
 
             m_storyletInstance.Story.BindExternalFunction("SetBackground", (string locationID, string tags) =>
             {
-                Location location = m_gameManager.Locations.GetLocation(locationID);
-
                 string[] tagsArr = tags.Split(",").Select(s => s.Trim()).Where(s => s != "").ToArray();
 
-                m_gameManager.UI_Controller.Background.SetBackground(location.GetBackground(tagsArr));
+                m_gameManager.SetStoryLocation(locationID, tagsArr);
             });
 
             m_storyletInstance.Story.BindExternalFunction("SetSpeakerSprite", (string characterID, string tags) =>
             {
-                Actor character = m_gameManager.Characters.GetCharacter(characterID);
-
                 string[] tagsArr = tags.Split(",").Select(s => s.Trim()).Where(s => s != "").ToArray();
-
-                m_gameManager.UI_Controller.CharacterSprite.SetSpeaker(character.GetSprite(tagsArr));
+                m_gameManager.SetSpeaker(characterID, tagsArr);
             });
         }
 

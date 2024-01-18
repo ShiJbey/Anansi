@@ -6,16 +6,9 @@ namespace Calypso
     /// <summary>
     /// Maintains a look-up table of characters that exist in the game
     /// </summary>
-    [DefaultExecutionOrder(-1)]
     public class CharacterManager : MonoBehaviour
     {
         #region Fields
-
-        /// <summary>
-        /// The collection of characters that exist in the game.
-        /// </summary>
-        [SerializeField]
-        private List<Actor> m_characters;
 
         /// <summary>
         /// A look-up table of actor IDs mapped to their instances.
@@ -29,7 +22,7 @@ namespace Calypso
         /// <summary>
         /// All the characters registered with the manager
         /// </summary>
-        public IEnumerable<Actor> Characters => m_characters;
+        public IEnumerable<Actor> Characters => m_characterLookupTable.Values;
 
         #endregion
 
@@ -40,14 +33,21 @@ namespace Calypso
             m_characterLookupTable = new Dictionary<string, Actor>();
         }
 
-        private void Start()
-        {
-            InitializeLookUpTable();
-        }
-
         #endregion
 
         #region Public Methods
+
+        /// <summary>
+        /// Fills the lookup table using entries from the characters collection.
+        /// </summary>
+        public void InitializeLookUpTable()
+        {
+            var characters = FindObjectsOfType<Actor>();
+            foreach (Actor character in characters)
+            {
+                AddCharacter(character);
+            }
+        }
 
         /// <summary>
         /// Get a character using their ID.
@@ -64,19 +64,13 @@ namespace Calypso
             throw new KeyNotFoundException($"Could not find character with ID: {characterID}");
         }
 
-        #endregion
-
-        #region Private Methods
-
         /// <summary>
-        /// Fills the lookup table using entries from the characters collection.
+        /// Add a character to the manager
         /// </summary>
-        private void InitializeLookUpTable()
+        /// <param name="character"></param>
+        public void AddCharacter(Actor character)
         {
-            foreach (Actor character in m_characters)
-            {
-                m_characterLookupTable.Add(character.UniqueID, character);
-            }
+            m_characterLookupTable.Add(character.UniqueID, character);
         }
 
         #endregion

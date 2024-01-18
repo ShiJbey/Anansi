@@ -31,15 +31,14 @@ namespace Calypso
         protected SocialEngine m_socialEngine;
 
         /// <summary>
-        /// A collection of background sprites associated with this location
-        /// </summary>
-        [SerializeField]
-        protected LocationBackground[] m_backgrounds;
-
-        /// <summary>
         /// Collection of all characters currently at this location
         /// </summary>
         protected List<Actor> m_actors = new List<Actor>();
+
+        /// <summary>
+        /// A reference to the sprite controller attached to this GameObject
+        /// </summary>
+        protected SpriteController m_spriteController;
 
         #endregion
 
@@ -64,9 +63,9 @@ namespace Calypso
 
         #region Unity Messages
 
-        void Start()
+        private void Awake()
         {
-            m_socialEngine.DB.Insert($"{UniqueID}");
+            m_spriteController = GetComponent<SpriteController>();
         }
 
         #endregion
@@ -74,28 +73,14 @@ namespace Calypso
         #region Public Methods
 
         /// <summary>
-        /// Get a background sprite with a given set of tags.
+        /// Set the currently displayed sprite using the given tags
         /// </summary>
         /// <param name="tags"></param>
-        /// <returns></returns>
-        public Sprite GetBackground(params string[] tags)
+        public void SetSprite(params string[] tags)
         {
-            foreach (var entry in m_backgrounds)
-            {
-                var spriteTags = new HashSet<string>(entry.tags);
+            if (m_spriteController == null) return;
 
-                foreach (string t in tags)
-                {
-                    if (!t.Contains(t))
-                    {
-                        return null;
-                    }
-                }
-
-                return entry.sprite;
-            }
-
-            return null;
+            m_spriteController.SetSpriteFromTags(tags);
         }
 
         /// <summary>
@@ -114,27 +99,6 @@ namespace Calypso
         public void RemoveCharacter(Actor actor)
         {
             m_actors.Remove(actor);
-        }
-
-        #endregion
-
-        #region Helper Classes
-
-        /// <summary>
-        /// Associates a background sprite with a collection of descriptive tags
-        /// </summary>
-        [System.Serializable]
-        public class LocationBackground
-        {
-            /// <summary>
-            /// The sprite to display.
-            /// </summary>
-            public Sprite sprite;
-
-            /// <summary>
-            /// Tags describing the sprite.
-            /// </summary>
-            public string[] tags;
         }
 
         #endregion

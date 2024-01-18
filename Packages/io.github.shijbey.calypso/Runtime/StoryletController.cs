@@ -66,6 +66,25 @@ namespace Calypso
 
         #endregion
 
+        #region Public Methods
+
+        /// <summary>
+        /// Tick the cooldowns for storylets
+        /// </summary>
+        public void Tick()
+        {
+            for (int i = 0; i < m_storylets.Count; i++)
+            {
+                Storylet storylet = m_storylets[i];
+                if (storylet.CooldownTimeRemaining > 1)
+                {
+                    storylet.DecrementCooldown();
+                }
+            }
+        }
+
+        #endregion
+
         #region Private Methods
 
         /// <summary>
