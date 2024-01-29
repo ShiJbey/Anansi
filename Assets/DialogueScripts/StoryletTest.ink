@@ -4,7 +4,7 @@ EXTERNAL SetBackground(background, tags)
 EXTERNAL SetSpeakerSprite(speaker, tags)
 
 === storylet_a
-# tags >> start basic a
+# tags >>  start basic a
 # query >>
 # ?speaker.relationships.player.stat.Friendship!?friendship
 # gte ?friendship 10

@@ -1,13 +1,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 namespace Calypso
 {
-	/// <summary>
-	/// Controls interactivity for the button that opens the location selection menu
-	/// </summary>
-	public class ChangeLocationButtonController : MonoBehaviour
+	public class ActionsButtonController : MonoBehaviour
 	{
 		#region Fields
 
@@ -61,16 +59,16 @@ namespace Calypso
 			{
 				m_choiceDialog.ClearChoices();
 
-				IList<StoryletInstance> locations = m_storyController.GetEligibleLocationStorylets();
+				IList<StoryletInstance> actions = m_storyController.GetEligibleActionStorylets();
 
-				foreach ( StoryletInstance location in locations )
+				foreach ( StoryletInstance action in actions )
 				{
 					// Have to bind to a variable within the loop to prevent issues with
 					// binding the incorrect variable within the anonymous function below
-					StoryletInstance storyletInstance = location;
+					StoryletInstance storyletInstance = action;
 
 					m_choiceDialog.AddChoice(
-						location.ChoiceLabel,
+						action.ChoiceLabel,
 						() =>
 						{
 							m_choiceDialog.Hide();

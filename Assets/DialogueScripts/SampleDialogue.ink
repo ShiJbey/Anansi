@@ -5,9 +5,10 @@ VAR ChoseRedPill = false
 VAR HealthPoints = 50
 VAR other_character = ""
 
-// -> storylet_start_knot
+-> storylet_start_knot
 
 === storylet_start_knot ===
+# tags >> initial conversation
 # query >>
 # ?speaker.relationships.?other.traits.friend
 # neq ?other ?player
@@ -16,7 +17,7 @@ VAR other_character = ""
 # set >> other_character to ?other
 
 
-Hello! This is the starting knot! #speaker >> {speaker}
+{speaker}.happy: Hello! This is the starting knot! #speaker >> {speaker}
 Now, we'll go to knot 2! #speaker >> {speaker}
 
 -> knot_2

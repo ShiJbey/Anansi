@@ -3,69 +3,78 @@ using Ink.Runtime;
 
 namespace Calypso
 {
-    public class StoryletInstance
-    {
-        #region Properties
+	/// <summary>
+	/// A pairing of storylet with a specific set of bindings from running a storylet's
+	/// precondition query.
+	/// </summary>
+	public class StoryletInstance
+	{
+		#region Properties
 
-        /// <summary>
-        /// The ID of the knot within an Ink Story.
-        /// </summary>
-        public string KnotID => Storylet.KnotID;
+		/// <summary>
+		/// The ID of the knot within an Ink Story.
+		/// </summary>
+		public string KnotID => Storylet.KnotID;
 
-        /// <summary>
-        /// The Ink Story this storylet belongs to.
-        /// </summary>
-        public Story Story => Storylet.Story;
+		/// <summary>
+		/// The Ink Story this storylet belongs to.
+		/// </summary>
+		public Story Story => Storylet.Story;
 
-        /// <summary>
-        /// A reference to the storylet this is an instance of
-        /// </summary>
-        public Storylet Storylet { get; }
+		/// <summary>
+		/// Get the label displayed when this storylet is used as a choice.
+		/// </summary>
+		public string ChoiceLabel => Storylet.ChoiceLabel;
 
-        /// <summary>
-        /// The weight of this storylet instance
-        /// </summary>
-        public int Weight { get; }
+		/// <summary>
+		/// A reference to the storylet this is an instance of.
+		/// </summary>
+		public Storylet Storylet { get; }
 
-        public Dictionary<string, string> PreconditionBindings { get; }
+		/// <summary>
+		/// The weight of this storylet instance.
+		/// </summary>
+		public int Weight { get; }
 
-        #endregion
+		/// <summary>
+		/// RePraxis variable names mapped to their bound values from the database.
+		/// </summary>
+		public Dictionary<string, string> PreconditionBindings { get; }
 
-        #region Constructors
+		#endregion
 
-        public StoryletInstance(
-            Storylet storylet,
-            Dictionary<string, string> preconditionBindings,
-            int weight
-        )
-        {
-            Storylet = storylet;
-            PreconditionBindings = new Dictionary<string, string>(
-                preconditionBindings
-            );
-            Weight = weight;
-        }
+		#region Constructors
 
-        #endregion
+		public StoryletInstance(
+			Storylet storylet,
+			Dictionary<string, string> preconditionBindings,
+			int weight
+		)
+		{
+			Storylet = storylet;
+			PreconditionBindings = new Dictionary<string, string>(
+				preconditionBindings
+			);
+			Weight = weight;
+		}
 
-        #region Public Methods
+		#endregion
 
-        /// <summary>
-        /// Initialize the story state using the instance information
-        /// </summary>
-        /// <returns></returns>
-        public Story InitializeStory()
-        {
-            // Set the variables from the preconditionBindings
-            foreach (var substitution in Storylet.VariableSubstitutions)
-            {
-                Storylet.Story.variablesState[substitution.Key] =
-                    PreconditionBindings[substitution.Value];
-            }
+		#region Public Methods
 
-            return Storylet.Story;
-        }
+		/// <summary>
+		/// Sets the instance-specific variable values in the main story.
+		/// </summary>
+		public void BindInstanceVariables()
+		{
+			// Set the variables from the preconditionBindings
+			foreach ( var substitution in Storylet.VariableSubstitutions )
+			{
+				Storylet.Story.variablesState[substitution.Key] =
+					PreconditionBindings[substitution.Value];
+			}
+		}
 
-        #endregion
-    }
+		#endregion
+	}
 }

@@ -141,7 +141,6 @@ namespace Calypso
                 choiceButton.onClick.AddListener(() =>
                 {
                     int idx = choiceIndex;
-                    Debug.Log($"selected choice: {idx}");
                     // Hide();
                     OnChoiceSelected?.Invoke(idx);
                     ClearChoices();

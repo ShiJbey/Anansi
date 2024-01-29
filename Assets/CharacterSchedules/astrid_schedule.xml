@@ -10,9 +10,8 @@
             <ScheduleEntry location="astrid_dormroom" timeOfDay="Night" />
         </ScheduleEntries>
     </ScheduleDefinition>
-    <ScheduleDefinition id="base" priority="0">
+    <ScheduleDefinition id="alternate" priority="0">
         <Preconditions>
-            <Precondition type="IsDay" day="3" />
         </Preconditions>
         <ScheduleEntries>
             <ScheduleEntry location="library" timeOfDay="Morning" priority="3" />
