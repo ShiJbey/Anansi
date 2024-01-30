@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace Calypso
 {
@@ -60,10 +61,15 @@ namespace Calypso
 		/// <summary>
 		/// A query that needs to pass before the storylet is allowed to run.
 		/// </summary>
-		public RePraxis.DBQuery Precondition { get; }
+		public RePraxis.DBQuery Precondition { get; set; }
 
 		/// <summary>
-		/// Variable substitutions to apply from the bindings retrieved from the _preconditionQuery.
+		/// Bindings to input into the precondition query.
+		/// </summary>
+		public Dictionary<string, string> InputBindings { get; }
+
+		/// <summary>
+		/// Variable substitutions to apply using the precondition query results.
 		/// </summary>
 		public Dictionary<string, string> VariableSubstitutions { get; }
 
@@ -76,6 +82,16 @@ namespace Calypso
 		/// (Location storylets only) A list of locations connected to this one
 		/// </summary>
 		public List<string> ConnectedLocations { get; }
+
+		/// <summary>
+		/// (Location storylets only) The ID of the location associated with this storylet.
+		/// </summary>
+		public string LocationID { get; set; }
+
+		/// <summary>
+		/// (Action storylets only) The ID of the action associated with this storylet.
+		/// </summary>
+		public string ActionID { get; set; }
 
 		/// <summary>
 		/// (Action storylets only) A list of locations where this action can be performed
@@ -111,11 +127,29 @@ namespace Calypso
 			EligibleLocations = new List<string>();
 			Tags = new HashSet<string>();
 			VariableSubstitutions = new Dictionary<string, string>();
+			InputBindings = new Dictionary<string, string>();
+			LocationID = "";
+			ActionID = "";
 		}
 
 		#endregion
 
 		#region Public Methods
+
+		/// <summary>
+		/// Check if a storylet has the given tags.
+		/// </summary>
+		/// <param name="tags"></param>
+		/// <returns></returns>
+		public bool HasTags(IList<string> tags)
+		{
+			foreach ( string tag in tags )
+			{
+				if ( !Tags.Contains( tag ) ) return false;
+			}
+
+			return true;
+		}
 
 		/// <summary>
 		/// Decrement the cool down time and return the remaining time.

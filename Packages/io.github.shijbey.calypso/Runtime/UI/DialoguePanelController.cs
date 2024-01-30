@@ -167,6 +167,7 @@ namespace Calypso
 			m_choiceDialog.OnChoiceSelected.AddListener( HandleChoiceSelection );
 			m_storyController.OnDialogueStart += HandleOnDialogueStart;
 			m_storyController.OnDialogueEnd += HandleOnDialogueEnd;
+			m_storyController.OnSpeakerChange += HandleSpeakerChange;
 
 			Hide();
 		}
@@ -177,6 +178,8 @@ namespace Calypso
 			m_choiceDialog.OnChoiceSelected.RemoveListener( HandleChoiceSelection );
 			m_storyController.OnDialogueStart -= HandleOnDialogueStart;
 			m_storyController.OnDialogueEnd -= HandleOnDialogueEnd;
+			m_storyController.OnSpeakerChange -= HandleSpeakerChange;
+
 		}
 
 		#endregion
@@ -245,8 +248,22 @@ namespace Calypso
 		/// </summary>
 		public void AdvanceDialogue()
 		{
-			if ( m_storyController.CanContinue() && !IsTyping )
+			if (
+				m_storyController.CanContinue()
+				&& !IsTyping
+			)
 			{
+				string text = m_storyController.GetNextLine().Trim();
+
+				// Sometimes on navigation, we don't show any text. If this is the case,
+				// do not even show the dialogue panel and try to get another line
+				if ( text == "" )
+				{
+					Hide();
+					AdvanceDialogue();
+					return;
+				}
+
 				if ( m_isPanelHidden ) Show();
 
 				if ( m_typingCoroutine != null ) StopCoroutine( m_typingCoroutine );
@@ -254,13 +271,11 @@ namespace Calypso
 				IsTyping = true;
 				m_advanceDialogueButton.interactable = false;
 
-				string text = m_storyController.GetNextLine();
-
 				m_typingCoroutine = StartCoroutine( DisplayTextCoroutine( text ) );
 			}
 			else
 			{
-				Hide();
+				m_storyController.EndDialogue();
 			}
 		}
 
@@ -294,6 +309,18 @@ namespace Calypso
 		private void HandleOnDialogueEnd()
 		{
 			Hide();
+		}
+
+		private void HandleSpeakerChange(Character speaker)
+		{
+			if ( speaker == null )
+			{
+				SetSpeakerName( "" );
+			}
+			else
+			{
+				SetSpeakerName( speaker.DisplayName );
+			}
 		}
 
 		/// <summary>
@@ -333,8 +360,6 @@ namespace Calypso
 				m_userChoiceIndex = -1;
 
 				IsTyping = false;
-
-
 
 				AdvanceDialogue();
 			}

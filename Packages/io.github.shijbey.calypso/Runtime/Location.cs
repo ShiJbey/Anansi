@@ -23,6 +23,9 @@ namespace Calypso
 		[SerializeField]
 		protected string m_uniqueID;
 
+		[SerializeField]
+		protected Location[] m_connectedLocations;
+
 		/// <summary>
 		/// Collection of all characters currently at this location
 		/// </summary>
@@ -51,6 +54,8 @@ namespace Calypso
 		/// Collection of all characters currently at this location
 		/// </summary>
 		public IEnumerable<Character> Characters => m_actors;
+
+		public IEnumerable<Location> ConnectedLocations => m_connectedLocations;
 
 		#endregion
 

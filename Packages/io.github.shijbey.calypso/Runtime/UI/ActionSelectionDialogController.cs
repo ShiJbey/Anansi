@@ -94,6 +94,11 @@ namespace Calypso
 		/// </summary>
 		public void Show()
 		{
+			// m_choiceButtonContainer.anchoredPosition = new Vector3(
+			// 	m_choiceButtonContainer.position.x,
+			// 	0,
+			// 	m_choiceButtonContainer.position.z
+			// );
 			m_rectTransform.position = m_onScreenPosition;
 			m_isVisible = true;
 		}

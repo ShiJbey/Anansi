@@ -1,4 +1,5 @@
 using System;
+using System.Text.RegularExpressions;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -85,22 +86,27 @@ namespace Calypso
 		/// <summary>
 		/// All storylets related to moving the story forward.
 		/// </summary>
-		private List<Storylet> m_basicStorylets;
+		private Dictionary<string, Storylet> m_basicStorylets;
 
 		/// <summary>
 		/// All storylets related to locations on the map.
 		/// </summary>
-		private List<Storylet> m_locationStorylets;
+		private Dictionary<string, Storylet> m_locationStorylets;
 
 		/// <summary>
 		/// All storylets related to actions the player can take at locations.
 		/// </summary>
-		private List<Storylet> m_actionStorylets;
+		private Dictionary<string, Storylet> m_actionStorylets;
 
 		/// <summary>
 		/// The storylet instance being presented to the player.
 		/// </summary>
-		private StoryletInstance m_storyletInstance = null;
+		private StoryletInstance m_currentStorylet = null;
+
+		/// <summary>
+		/// The next storylet to play after the current storylet concludes.
+		/// </summary>
+		private StoryletInstance m_storyletOnDeck = null;
 
 		#endregion
 
@@ -162,9 +168,9 @@ namespace Calypso
 			}
 
 			m_startingStorylet = null;
-			m_basicStorylets = new List<Storylet>();
-			m_locationStorylets = new List<Storylet>();
-			m_actionStorylets = new List<Storylet>();
+			m_basicStorylets = new Dictionary<string, Storylet>();
+			m_locationStorylets = new Dictionary<string, Storylet>();
+			m_actionStorylets = new Dictionary<string, Storylet>();
 			m_story = new Ink.Runtime.Story( m_storyJson.text );
 
 			LoadStorylets();
@@ -185,7 +191,7 @@ namespace Calypso
 		#region Public Methods
 
 		/// <summary>
-		/// Called by the GameManager when we are ready to start the game.
+		/// Run all setup-tasks before starting the story.
 		/// </summary>
 		public void Initialize()
 		{
@@ -226,6 +232,9 @@ namespace Calypso
 			TickCharacterSchedules();
 		}
 
+		/// <summary>
+		/// Start the story.
+		/// </summary>
 		public void StartStory()
 		{
 			// Generally, the starting storylet should not contain a query, but if it does, then
@@ -302,15 +311,18 @@ namespace Calypso
 		/// <summary>
 		/// Sets the games background image to the given location
 		/// </summary>
-		/// <param name="location"></param>
+		/// <param name="locationID"></param>
+		/// <param name="tags"></param>
 		public void SetStoryLocation(string locationID, params string[] tags)
 		{
 			m_locationManager.SetBackground( locationID, tags );
+			OnStoryLocationChange?.Invoke( m_locationManager.GetLocation( locationID ) );
 		}
 
 		/// <summary>
 		/// Move an Actor to a new location.
 		/// </summary>
+		/// <param name="character"></param>
 		/// <param name="location"></param>
 		public void SetCharacterLocation(Character character, Location location)
 		{
@@ -321,7 +333,7 @@ namespace Calypso
 				DB.Delete(
 					$"{character.Location.UniqueID}.characters.{character.UniqueID}" );
 				DB.Delete(
-					$"{character.UniqueID}.location.{character.Location.UniqueID}" );
+					$"{character.UniqueID}.location!{character.Location.UniqueID}" );
 				character.Location = null;
 			}
 
@@ -330,16 +342,19 @@ namespace Calypso
 				location.AddCharacter( character );
 				character.Location = location;
 				DB.Insert( $"{location.UniqueID}.characters.{character.UniqueID}" );
-				DB.Insert( $"{character.UniqueID}.location.{location.UniqueID}" );
+				DB.Insert( $"{character.UniqueID}.location!{location.UniqueID}" );
 			}
 		}
 
 		/// <summary>
 		/// Set the player's current location and change the background
 		/// </summary>
-		/// <param name="location"></param>
-		public void SetPlayerLocation(Location location)
+		/// <param name="locationID"></param>
+		/// <param name="tags"></param>
+		public void SetPlayerLocation(string locationID, params string[] tags)
 		{
+			Location location = m_locationManager.GetLocation( locationID );
+
 			if ( m_player.Location != location )
 			{
 				SetCharacterLocation( m_player, location );
@@ -351,7 +366,7 @@ namespace Calypso
 				return;
 			}
 
-			SetStoryLocation( location.UniqueID );
+			SetStoryLocation( locationID, tags );
 		}
 
 		/// <summary>
@@ -371,15 +386,37 @@ namespace Calypso
 		/// <returns></returns>
 		public string GetNextLine()
 		{
-			// Get the next line of text from Ink
-			string line = m_storyletInstance.Story.Continue();
+			// Follow the current storylet until it is exhausted
+			if ( m_currentStorylet.Story.canContinue )
+			{
+				// Get the next line of text from Ink
+				string line = m_currentStorylet.Story.Continue().Trim();
 
-			line = PreProcessDialogueLine( line );
+				line = PreProcessDialogueLine( line );
 
-			// Process tags
-			ProcessTags( m_storyletInstance.Story.currentTags );
+				// Process tags
+				ProcessTags( m_currentStorylet.Story.currentTags );
 
-			return line;
+				return line;
+			}
+
+			if ( m_storyletOnDeck != null )
+			{
+				RunStoryletInstance( m_storyletOnDeck );
+				m_storyletOnDeck = null;
+
+				// Get the next line of text from Ink
+				string line = m_currentStorylet.Story.Continue();
+
+				line = PreProcessDialogueLine( line );
+
+				// Process tags
+				ProcessTags( m_currentStorylet.Story.currentTags );
+
+				return line;
+			}
+
+			throw new Exception( "Cannot get next line of dialogue that ended." );
 		}
 
 		/// <summary>
@@ -388,7 +425,7 @@ namespace Calypso
 		/// <returns></returns>
 		public string[] GetChoices()
 		{
-			return m_storyletInstance.Story.currentChoices.Select( choice => choice.text ).ToArray();
+			return m_currentStorylet.Story.currentChoices.Select( choice => choice.text ).ToArray();
 		}
 
 		/// <summary>
@@ -397,7 +434,7 @@ namespace Calypso
 		/// <param name="choiceIndex"></param>
 		public void MakeChoice(int choiceIndex)
 		{
-			m_storyletInstance.Story.ChooseChoiceIndex( choiceIndex );
+			m_currentStorylet.Story.ChooseChoiceIndex( choiceIndex );
 		}
 
 		/// <summary>
@@ -406,60 +443,82 @@ namespace Calypso
 		/// <returns></returns>
 		public bool HasChoices()
 		{
-			return m_storyletInstance.Story.currentChoices.Count > 0;
+			return m_currentStorylet.Story.currentChoices.Count > 0;
 		}
 
 		/// <summary>
-		/// Check if the dialogue can continue further
+		/// Check if the dialogue can continue further.
 		/// </summary>
 		/// <returns></returns>
 		public bool CanContinue()
 		{
-			return m_storyletInstance.Story.canContinue;
+			// The story can continue if the current storylet can continue
+			if ( m_currentStorylet.Story.canContinue ) return true;
+
+			// We cannot continue if there are choices.
+			if ( HasChoices() ) return false;
+
+			// If the current story can continue and it does not have any choices,
+			// check if there is a storylet on deck to transition to
+			if ( !HasChoices() && m_storyletOnDeck != null ) return true;
+
+			return false;
 		}
 
 		/// <summary>
-		/// Check if the dialogue has reached its end
+		/// Progress the story from the given storylet instance.
 		/// </summary>
-		/// <returns></returns>
-		public bool AtDialogueEnd()
-		{
-			return !CanContinue() && !HasChoices();
-		}
-
+		/// <param name="instance"></param>
 		public void RunStoryletInstance(StoryletInstance instance)
 		{
-			m_storyletInstance = instance;
+			m_currentStorylet = instance;
 
-			m_storyletInstance.Storylet.IncrementTimesPlayed();
+			m_currentStorylet.Storylet.IncrementTimesPlayed();
 
-			m_storyletInstance.BindInstanceVariables();
+			m_currentStorylet.BindInstanceVariables();
 
-			m_storyletInstance.Story.ChoosePathString( m_storyletInstance.KnotID );
+			m_currentStorylet.Story.ChoosePathString( m_currentStorylet.KnotID );
 
-			IsDialogueActive = true;
+			if ( IsDialogueActive == false )
+			{
+				IsDialogueActive = true;
 
-			OnDialogueStart?.Invoke();
+				OnDialogueStart?.Invoke();
+			}
 		}
 
+		/// <summary>
+		/// End the current dialogue and let the player select another action or location.
+		/// </summary>
 		public void EndDialogue()
 		{
 			IsDialogueActive = false;
 
 			OnDialogueEnd?.Invoke();
+
+			m_characterManager.HideSpeaker();
 		}
 
+		/// <summary>
+		/// Get a list of all location storylets a player could execute.
+		/// </summary>
+		/// <returns></returns>
 		public List<StoryletInstance> GetEligibleLocationStorylets()
 		{
 			List<StoryletInstance> instances = new List<StoryletInstance>();
+			HashSet<string> eligibleLocations = new HashSet<string>(
+				m_player.Location.ConnectedLocations.Select( s => s.UniqueID )
+			);
 
-			foreach ( var storylet in m_locationStorylets )
+			foreach ( var (uid, storylet) in m_locationStorylets )
 			{
 				// Skip storylets still on cooldown
 				if ( storylet.CooldownTimeRemaining > 0 ) continue;
 
 				// Skip storylets that are not repeatable
 				if ( !storylet.IsRepeatable && storylet.TimesPlayed > 0 ) continue;
+
+				if ( !eligibleLocations.Contains( storylet.LocationID ) ) continue;
 
 				// Query the social engine database
 				if ( storylet.Precondition != null )
@@ -490,11 +549,15 @@ namespace Calypso
 			return instances;
 		}
 
+		/// <summary>
+		/// Get a list of all action storylets a player could execute.
+		/// </summary>
+		/// <returns></returns>
 		public List<StoryletInstance> GetEligibleActionStorylets()
 		{
 			List<StoryletInstance> instances = new List<StoryletInstance>();
 
-			foreach ( var storylet in m_actionStorylets )
+			foreach ( var (uid, storylet) in m_actionStorylets )
 			{
 				// Skip storylets still on cooldown
 				if ( storylet.CooldownTimeRemaining > 0 ) continue;
@@ -509,22 +572,39 @@ namespace Calypso
 
 					if ( !results.Success ) continue;
 
-					foreach ( var bindingDict in results.Bindings )
+					if ( results.Bindings.Length == 0 )
 					{
-						instances.Add( new StoryletInstance(
-						storylet,
-						bindingDict,
-						storylet.Weight
-					) );
+						instances.Add(
+							new StoryletInstance(
+								storylet,
+								new Dictionary<string, string>(),
+								storylet.Weight
+							)
+						);
+					}
+					else
+					{
+						foreach ( var bindingDict in results.Bindings )
+						{
+							instances.Add(
+								new StoryletInstance(
+									storylet,
+									bindingDict,
+									storylet.Weight
+								)
+							);
+						}
 					}
 				}
 				else
 				{
-					instances.Add( new StoryletInstance(
-						storylet,
-						new Dictionary<string, string>(),
-						storylet.Weight
-					) );
+					instances.Add(
+						new StoryletInstance(
+							storylet,
+							new Dictionary<string, string>(),
+							storylet.Weight
+						)
+					);
 				}
 			}
 
@@ -552,29 +632,28 @@ namespace Calypso
 					// This is our entry storylet
 					hasStartStorylet = true;
 					var storylet = CreateStorylet( m_story, knotID, StoryletType.Basic );
-					m_basicStorylets.Add( storylet );
+					m_basicStorylets[knotID] = storylet;
 					m_startingStorylet = storylet;
 				}
 				else if ( knotID.StartsWith( STORYLET_ID_PREFIX ) )
 				{
 					// This is a basic storylet
-					string idNoPrefix = knotID.Substring( STORYLET_ID_PREFIX.Length );
 					var storylet = CreateStorylet( m_story, knotID, StoryletType.Basic );
-					m_basicStorylets.Add( storylet );
+					m_basicStorylets[knotID] = storylet;
 				}
 				else if ( knotID.StartsWith( LOCATION_ID_PREFIX ) )
 				{
 					// This storylet corresponds to a location
-					string idNoPrefix = knotID.Substring( LOCATION_ID_PREFIX.Length );
 					var storylet = CreateStorylet( m_story, knotID, StoryletType.Location );
-					m_locationStorylets.Add( storylet );
+					m_locationStorylets[knotID] = storylet;
+					storylet.LocationID = knotID.Substring( LOCATION_ID_PREFIX.Length );
 				}
 				else if ( knotID.StartsWith( ACTION_ID_PREFIX ) )
 				{
 					// This storylet corresponds to an action
-					string idNoPrefix = knotID.Substring( ACTION_ID_PREFIX.Length );
 					var storylet = CreateStorylet( m_story, knotID, StoryletType.Action );
-					m_actionStorylets.Add( storylet );
+					m_actionStorylets[knotID] = storylet;
+					storylet.ActionID = knotID.Substring( ACTION_ID_PREFIX.Length );
 				}
 			}
 
@@ -701,16 +780,36 @@ namespace Calypso
 				}
 
 				// This line specifies an ink variable to set from a query variable
+				if ( line.StartsWith( "@using" ) )
+				{
+					List<string> arguments = line.Substring( "@using".Length )
+						.Trim().Split( " " ).Select( s => s.Trim() ).ToList();
+
+					if ( arguments.Count != 3 )
+					{
+						throw new ArgumentException(
+							$"Invalid Using-expression '{line}' in knot '{knotID}'. "
+							+ "Using expression must be of the form `@using X as ?Y"
+						);
+					}
+
+					storylet.InputBindings[arguments[0]] = arguments[2];
+
+					lineIndex++;
+					continue;
+				}
+
+				// This line specifies an ink variable to set from a query variable
 				if ( line.StartsWith( "@set" ) )
 				{
 					List<string> arguments = line.Substring( "@set".Length )
-						.Split( " " ).Select( s => s.Trim() ).ToList();
+						.Trim().Split( " " ).Select( s => s.Trim() ).ToList();
 
 					if ( arguments.Count != 3 )
 					{
 						throw new ArgumentException(
 							$"Invalid Set-expression '{line}' in knot '{knotID}'. "
-							+ "Set expression must be of the form `set >> X to Y"
+							+ "Set expression must be of the form `@set X to Y"
 						);
 					}
 
@@ -803,21 +902,33 @@ namespace Calypso
 				// This is the first line declaring a query
 				if ( line.StartsWith( "@query" ) )
 				{
-					DBQuery precondition = PreconditionQueryFromTags(
+					storylet.Precondition = PreconditionQueryFromTags(
 						knotID, knotTags, lineIndex, out lineIndex );
 				}
+
+				lineIndex++;
+				continue;
 			}
 
 			return storylet;
 		}
 
+		/// <summary>
+		/// Construct a RePraxis query from tags in a storylet header
+		/// </summary>
+		/// <param name="knotID"></param>
+		/// <param name="tags"></param>
+		/// <param name="startingIndex"></param>
+		/// <param name="lineIndex"></param>
+		/// <returns></returns>
+		/// <exception cref="ArgumentException"></exception>
 		private static DBQuery PreconditionQueryFromTags(
 			string knotID, List<string> tags, int startingIndex, out int lineIndex)
 		{
 			List<string> queryLines = new List<string>();
 			bool endReached = false;
 
-			int i = startingIndex;
+			int i = startingIndex + 1;
 
 			while ( i < tags.Count )
 			{
@@ -885,12 +996,18 @@ namespace Calypso
 			Dictionary<string, string> bindings
 		)
 		{
+			Dictionary<string, string> inputBindings = new Dictionary<string, string>( bindings );
+
+			foreach ( var (inkVar, queryVar) in storylet.InputBindings )
+			{
+				inputBindings[queryVar] = m_story.variablesState[inkVar].ToString();
+			}
 
 			List<StoryletInstance> instances = new List<StoryletInstance>();
 
 			if ( storylet.Precondition != null )
 			{
-				var results = storylet.Precondition.Run( db, bindings );
+				var results = storylet.Precondition.Run( db, inputBindings );
 
 				if ( results.Success )
 				{
@@ -911,7 +1028,7 @@ namespace Calypso
 				instances.Add(
 					new StoryletInstance(
 						storylet,
-						bindings,
+						inputBindings,
 						storylet.Weight
 					)
 				);
@@ -943,7 +1060,31 @@ namespace Calypso
 		/// <param name="line"></param>
 		private string PreProcessDialogueLine(string line)
 		{
-			return line;
+			Match match = Regex.Match( line, @"^(\w+[\.\w+]*):(.*)$" );
+
+			if ( match.Value == "" )
+			{
+				m_characterManager.HideSpeaker();
+				OnSpeakerChange?.Invoke( null );
+				return line;
+			}
+			else
+			{
+				List<string> speakerSpec = match.Groups[1].Value
+					.Split( "." ).Select( s => s.Trim() ).ToList();
+
+				string speakerId = speakerSpec[0];
+				speakerSpec.RemoveAt( 0 );
+				string[] speakerTags = speakerSpec.ToArray();
+
+				m_characterManager.SetSpeaker( speakerId, speakerTags );
+
+				OnSpeakerChange?.Invoke( m_characterManager.GetCharacter( speakerId ) );
+
+				string dialogueText = match.Groups[2].Value.Trim();
+
+				return dialogueText;
+			}
 		}
 
 		/// <summary>
@@ -1037,6 +1178,19 @@ namespace Calypso
 						.Where( s => s != "" )
 						.ToArray();
 
+					SetPlayerLocation( locationID, tagsArr );
+				}
+			);
+
+			m_story.BindExternalFunction(
+				"SetBackgroundOnly",
+				(string locationID, string tags) =>
+				{
+					string[] tagsArr = tags.Split( "," )
+						.Select( s => s.Trim() )
+						.Where( s => s != "" )
+						.ToArray();
+
 					SetStoryLocation( locationID, tagsArr );
 				}
 			);
@@ -1053,6 +1207,129 @@ namespace Calypso
 					SetSpeaker( characterID, tagsArr );
 				}
 			);
+
+			m_story.BindExternalFunction(
+				"DbInsert",
+				(string statement) =>
+				{
+					DB.Insert( statement );
+				}
+			);
+
+			m_story.BindExternalFunction(
+				"DbDelete",
+				(string statement) =>
+				{
+					return DB.Delete( statement );
+				}
+			);
+
+			m_story.BindExternalFunction(
+				"DbAssert",
+				(string statement) =>
+				{
+					return DB.Assert( statement );
+				}
+			);
+
+			m_story.BindExternalFunction(
+				"AdvanceTime",
+				() =>
+				{
+					Tick();
+				}
+			);
+
+			m_story.BindExternalFunction(
+				"QueueStorylet",
+				(string storyletId) =>
+				{
+					Storylet storylet = m_basicStorylets[storyletId];
+
+					List<StoryletInstance> instances = CreateStoryletInstances(
+						storylet,
+						DB,
+						new Dictionary<string, string>()
+					);
+
+					if ( instances.Count == 0 ) return;
+
+					StoryletInstance selectedInstance = instances
+						.RandomElementByWeight( s => s.Weight );
+
+					m_storyletOnDeck = selectedInstance;
+				}
+			);
+
+			m_story.BindExternalFunction(
+				"QueueStoryletWithTags",
+				(string tags, string fallback) =>
+				{
+					List<string> tagList = new List<string>();
+					foreach ( var tag in tags.Split( "," ) )
+					{
+						tagList.Add( tag.Trim() );
+					}
+
+
+					List<StoryletInstance> storyletInstances = new List<StoryletInstance>();
+
+					foreach ( var (_, storylet) in m_basicStorylets )
+					{
+						if ( !storylet.HasTags( tagList ) ) continue;
+
+						List<StoryletInstance> instances = CreateStoryletInstances(
+							storylet,
+							DB,
+							new Dictionary<string, string>()
+						);
+
+						foreach ( var entry in instances )
+						{
+							storyletInstances.Add( entry );
+						}
+					}
+
+					if ( storyletInstances.Count > 0 )
+					{
+						StoryletInstance selectedInstance = storyletInstances
+							.RandomElementByWeight( s => s.Weight );
+
+						m_storyletOnDeck = selectedInstance;
+					}
+					else
+					{
+						Storylet fallbackStorylet = m_basicStorylets[fallback];
+
+						List<StoryletInstance> instances = CreateStoryletInstances(
+							fallbackStorylet,
+							DB,
+							new Dictionary<string, string>()
+						);
+
+						if ( instances.Count == 0 )
+						{
+							throw new Exception( "Could not create instance of fallback storylet" );
+						}
+
+						StoryletInstance selectedInstance = instances
+							.RandomElementByWeight( s => s.Weight );
+
+						m_storyletOnDeck = selectedInstance;
+					}
+				}
+			);
+
+			m_story.BindExternalFunction(
+				"GetInput",
+				(string prompt, string varName, string varType, string callback) =>
+				{
+					// Try to find a storylet with the given tags
+					// If found, add it to the storylet queue
+					// If not found, queue the fallback
+				}
+			);
+
 		}
 
 		#endregion
