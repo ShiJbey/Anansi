@@ -1,4 +1,5 @@
 INCLUDE ./EvelynDialogue.ink
+INCLUDE ./SampleDialogue.ink
 
 // Calypso provides various external functions to assist with communicating with external systems such as the GUI, Story Database, and Time System.
 
@@ -14,9 +15,9 @@ EXTERNAL GetInput(prompt, variableName, callback)
 
 // Global variables are shared across all storylets because they use the same story instance. Storylet queries may overwrite these values. So, be mindful of your variable usage
 
-VAR speaker = "not-specified"
-VAR player = "player"
-VAR location = "not-specified"
+// VAR speaker = "not-specified"
+// VAR player = "player"
+// VAR location = "not-specified"
 VAR timesKnocked = 0
 
 // Do not use any top-level diverts. The StoryController will automatically jump to the "start" knot.
@@ -157,7 +158,7 @@ You're in your room.
 # ===
 
 ~speaker = "astrid"
-{QueueStoryletWithTags("convo", "storylet_conversation_fallback")}
+{QueueStoryletWithTags("convo, astrid", "storylet_conversation_fallback")}
 
 -> DONE
 
@@ -185,7 +186,7 @@ You're in your room.
 # ===
 
 ~speaker = "momo"
-{QueueStoryletWithTags("convo", "storylet_conversation_fallback")}
+{QueueStoryletWithTags("convo, momo", "storylet_conversation_fallback")}
 
 -> DONE
 

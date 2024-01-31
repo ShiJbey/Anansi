@@ -309,6 +309,36 @@ namespace Calypso
 		}
 
 		/// <summary>
+		/// Update location background variants.
+		/// </summary>
+		public void TickLocations()
+		{
+			string variant = "morning";
+
+			switch ( m_timeManager.DateTime.TimeOfDay )
+			{
+				case TimeOfDay.Morning:
+					variant = "morning";
+					break;
+				case TimeOfDay.Afternoon:
+					variant = "afternoon";
+					break;
+				case TimeOfDay.Evening:
+					variant = "eventing";
+					break;
+				case TimeOfDay.Night:
+					variant = "night";
+					break;
+			}
+
+			foreach ( var location in m_locationManager.Locations )
+			{
+				location.TimeOfDayVariant = variant;
+				location.SetSprite();
+			}
+		}
+
+		/// <summary>
 		/// Sets the games background image to the given location
 		/// </summary>
 		/// <param name="locationID"></param>

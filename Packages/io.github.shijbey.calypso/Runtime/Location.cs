@@ -27,6 +27,12 @@ namespace Calypso
 		protected Location[] m_connectedLocations;
 
 		/// <summary>
+		/// An additional tag added to the location sprite selection to filter based on time
+		/// of the day.
+		/// </summary>
+		protected string m_timeOfDayVariant = "morning";
+
+		/// <summary>
 		/// Collection of all characters currently at this location
 		/// </summary>
 		protected List<Character> m_actors = new List<Character>();
@@ -56,6 +62,19 @@ namespace Calypso
 		public IEnumerable<Character> Characters => m_actors;
 
 		public IEnumerable<Location> ConnectedLocations => m_connectedLocations;
+
+		public string TimeOfDayVariant
+		{
+			get
+			{
+				return m_timeOfDayVariant;
+			}
+
+			set
+			{
+				m_timeOfDayVariant = value;
+			}
+		}
 
 		#endregion
 

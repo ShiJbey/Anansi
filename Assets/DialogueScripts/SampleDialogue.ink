@@ -6,7 +6,7 @@ VAR ChoseRedPill = false
 VAR HealthPoints = 50
 VAR other_character = "other_character"
 
-=== sample_conversation ===
+=== storylet_sample_conversation ===
 # ---
 # choice_label: 
 # tags: convo, astrid
@@ -80,6 +80,11 @@ VAR other_character = "other_character"
 === no_red_pill_comment ===
 
 {speaker}: You didn't choose the red pill. I'm not sure I can trust you.
+
+-> DONE
+
+-> END
+ trust you.
 
 -> DONE
 

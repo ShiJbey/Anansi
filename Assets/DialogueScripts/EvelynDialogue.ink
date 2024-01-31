@@ -24,7 +24,11 @@
 # @end
 # ===
 
-{speaker}.surprised: Hi, nice to meet you.
+{speaker}.annoyed: Hi, nice to meet you.
+
+{player}: kdkdkdkdkd
+
+{QueueStorylet("storylet_evelyn_c")}
 
 -> DONE
 
@@ -55,3 +59,8 @@
 {speaker}: Eww. Leave me alone.
 
 -> DONE
+
+=== function _storylet_evelyn_d() ===
+
+
+~ return 7
