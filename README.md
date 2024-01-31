@@ -7,11 +7,7 @@
 
 **Calypso** is a framework for creating social simulation-driven visual novel experiences in Unity. It combines the [Ink](https://www.inklestudios.com/ink/) narrative scripting language, a storylet architecture, and a social simulation that manages non-player character (NPC) schedules, emotions, personality traits, and relationships. Interactions with NPCs affect their feelings toward the player and other NPCs. Additionally, NPCs can reason about their relationship with the player and respond to events that happen to other characters in their social circle. For example, betraying a character will make their friends and family like you less. In short, adding this element of social simulation to visual novels should allow game developers to create dynamic and reactive interactive storytelling experiences more quickly than starting from scratch. Calypso draws most of its inspiration from _Persona 5's_ use of life simulation, time, and character relationships to drive narrative progression.
 
-Since Calypso is built on top of Ink, users can start with a normal Ink story and incrementally add Calypso-specific features into their games. It provides additional structure to Ink's scripting language that breaks up content into:
-
-- _Storylets_: chunks of narrative content that can be dynamically templated to involve different characters
-- _Locations_: places in the story where the player and NPCs can be
-- _Actions_: things that players can do at a location
+Calypso is a good solution for people who want to quickly port their Ink games to Unity. Setting up UI and dialogue management can be cumbersome. Calypso provides starting UI prefabs to help with this. Also, since Calypso is built on top of Ink, users can start with a normal Ink story and incrementally add Calypso-specific features into their games. While Calypso can handle almost any Ink story, it really shines with stories that revolve around character relationships and navigation from one location to another.
 
 ## Features
 
@@ -67,6 +63,10 @@ If you built a game using Calypso, we would love to hear about it. Please get in
 - TBD
 
 ## Frequently Asked Questions
+
+### What are storylets?
+
+Storylets are an approach to narrative design where the narrative experience is broken into discrete pieces that are dynamically served to the player based on some preconditions. Emily Short provides a [helpful blog](https://emshort.blog/2019/11/29/storylets-you-want-them/) going into more depth about Storylets and various potential application areas. Also, Max Kreminski provides an [informative survey](https://mkremins.github.io/publications/Storylets_SketchingAMap.pdf) of the design space of storylets in games.
 
 ### Why use Ink?
 
