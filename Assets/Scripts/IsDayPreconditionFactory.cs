@@ -1,6 +1,6 @@
 using System.Xml;
-using Calypso;
-using Calypso.Scheduling;
+using Anansi;
+using Anansi.Scheduling;
 using UnityEngine;
 
 public class IsDayPreconditionFactory : MonoBehaviour, IPreconditionFactory

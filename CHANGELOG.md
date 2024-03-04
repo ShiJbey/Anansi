@@ -8,4 +8,4 @@ The format is based on <https://common-changelog.org/>, and this project adheres
 
 _Initial release._
 
-[1.0.0]: https://github.com/ShiJbey/Calypso/releases/tag/v1.0.0
+[1.0.0]: https://github.com/ShiJbey/Anansi/releases/tag/v1.0.0

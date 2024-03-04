@@ -1,0 +1,30 @@
+{
+  "name": "com.shijbey.anansi",
+  "version": "1.0.0",
+  "displayName": "Anansi",
+  "description": "Create simulation-driven visual novels in Unity",
+  "unity": "2021.1",
+  "documentationUrl": "https://github.com/ShiJbey/Anansi/wiki",
+  "changelogUrl": "https://github.com/ShiJbey/Anansi/blob/main/CHANGELOG.md",
+  "licensesUrl": "https://github.com/ShiJbey/Anansi/blob/main/LICENSE.md",
+  "keywords": [
+    "Social Simulation",
+    "AI",
+    "NPC",
+    "Visual Novel",
+    "Dating Sim",
+    "Relationships"
+  ],
+  "author": "Shi Johnson-Bey <shijbey@gmail.com>",
+  "dependencies": {
+    "com.unity.textmeshpro": "3.0.6"
+  },
+  "samples": [
+    {
+      "displayName": "Assets",
+      "description": "Basic Assets",
+      "path": "Assets"
+    }
+  ],
+  "hideInEditor": false
+}

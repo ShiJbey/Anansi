@@ -7,6 +7,14 @@
       "dependencies": {},
       "hash": "f7a5ed16b93fe2d220d8833a82e0324276cd2d0e"
     },
+    "com.shijbey.anansi": {
+      "version": "file:com.shijbey.anansi",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "com.unity.textmeshpro": "3.0.6"
+      }
+    },
     "com.shijbey.tdrs": {
       "version": "https://github.com/ShiJbey/TDRS.git?path=/Packages/com.shijbey.tdrs#v2.0.0",
       "depth": 0,
@@ -238,14 +246,6 @@
         "com.unity.modules.jsonserialize": "1.0.0"
       },
       "url": "https://packages.unity.com"
-    },
-    "io.github.shijbey.calypso": {
-      "version": "file:io.github.shijbey.calypso",
-      "depth": 0,
-      "source": "embedded",
-      "dependencies": {
-        "com.unity.textmeshpro": "3.0.6"
-      }
     },
     "com.unity.modules.ai": {
       "version": "1.0.0",

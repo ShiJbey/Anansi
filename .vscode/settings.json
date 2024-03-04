@@ -1,5 +1,5 @@
 {
-    "dotnet.defaultSolution": "Calypso.sln",
+    "dotnet.defaultSolution": "Anansi.sln",
     "files.exclude": {
         ".vs": true,
         ".vsconfig": true,
@@ -13,5 +13,5 @@
         "Temp/": true,
         "UserSettings/": true
     },
-    "cSpell.words": ["cooldown", "Cooldowns", "Storylets", "VNUI"]
+    "cSpell.words": ["cooldown","Cooldowns","Storylets","VNUI"]
 }

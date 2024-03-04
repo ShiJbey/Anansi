@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-"""Calypso package bundler script.
+"""Anansi package bundler script.
 
 This Python script to facilitates creating package distributions.
 Running it will create a `dist` directory and output the bundled Unity
@@ -20,7 +20,7 @@ PROJECT_ROOT = pathlib.Path(__file__).parent.parent
 DIST_PATH = PROJECT_ROOT / "dist"
 """The path to place the tar archive."""
 
-PACKAGE_ROOT = PROJECT_ROOT / "Packages" / "com.shijbey.calypso"
+PACKAGE_ROOT = PROJECT_ROOT / "Packages" / "com.shijbey.anansi"
 """The path to the root folder of the package."""
 
 
@@ -83,14 +83,14 @@ def main() -> None:
 
     package_version = get_package_version()
 
-    print(f"=== Bundling Calypso version {package_version} ===")
+    print(f"=== Bundling Anansi version {package_version} ===")
 
     make_dist_directory()
 
-    create_package_tar(DIST_PATH / f"calypso_{package_version}.tgz")
+    create_package_tar(DIST_PATH / f"anansi_{package_version}.tgz")
 
     print("=== Bundling complete! ===")
-    print(DIST_PATH / f"calypso_{package_version}.tgz")
+    print(DIST_PATH / f"anansi_{package_version}.tgz")
 
 
 if __name__ == "__main__":

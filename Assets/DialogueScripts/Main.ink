@@ -1,7 +1,7 @@
 INCLUDE ./EvelynDialogue.ink
 INCLUDE ./SampleDialogue.ink
 
-// Calypso provides various external functions to assist with communicating with external systems such as the GUI, Story Database, and Time System.
+// Anansi provides various external functions to assist with communicating with external systems such as the GUI, Story Database, and Time System.
 
 EXTERNAL SetLocation(location, tags)
 EXTERNAL SetBackgroundOnly(location, tags)
@@ -42,7 +42,7 @@ You decided to take a nap...
 
 {AdvanceTime()}
 
-Time has advanced. 
+Time has advanced.
 
 -> DONE
 
@@ -144,7 +144,7 @@ You're standing outside of the campus library. {SetLocation("outside_library", "
 
 {SetLocation("player_dormroom", "")}
 
-You're in your room. 
+You're in your room.
 
 -> DONE
 
