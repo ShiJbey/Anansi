@@ -186,7 +186,7 @@ You're in your room.
 # ===
 
 ~speaker = "momo"
-{QueueStoryletWithTags("convo, momo", "storylet_conversation_fallback")}
+{QueueStoryletWithTags("convo, astrid", "storylet_conversation_fallback")}
 
 -> DONE
 

@@ -89,3 +89,8 @@ VAR other_character = "other_character"
 -> DONE
 
 -> END
+trust you.
+
+-> DONE
+
+-> END

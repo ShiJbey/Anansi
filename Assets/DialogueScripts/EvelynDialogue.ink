@@ -26,9 +26,9 @@
 
 {speaker}.annoyed: Hi, nice to meet you.
 
-{player}: kdkdkdkdkd
+{player}: Hi I'm the player
 
-{QueueStorylet("storylet_evelyn_c")}
+{QueueStorylet("storylet_sample_conversation")}
 
 -> DONE
 
