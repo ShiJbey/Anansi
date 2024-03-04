@@ -66,7 +66,7 @@ namespace Calypso
 		/// <summary>
 		/// Bindings to input into the precondition query.
 		/// </summary>
-		public Dictionary<string, string> InputBindings { get; }
+		public Dictionary<string, object> InputBindings { get; }
 
 		/// <summary>
 		/// Variable substitutions to apply using the precondition query results.
@@ -127,7 +127,7 @@ namespace Calypso
 			EligibleLocations = new List<string>();
 			Tags = new HashSet<string>();
 			VariableSubstitutions = new Dictionary<string, string>();
-			InputBindings = new Dictionary<string, string>();
+			InputBindings = new Dictionary<string, object>();
 			LocationID = "";
 			ActionID = "";
 		}

@@ -39,7 +39,7 @@ namespace Calypso
 		/// <summary>
 		/// RePraxis variable names mapped to their bound values from the database.
 		/// </summary>
-		public Dictionary<string, string> PreconditionBindings { get; }
+		public Dictionary<string, object> PreconditionBindings { get; }
 
 		#endregion
 
@@ -47,12 +47,12 @@ namespace Calypso
 
 		public StoryletInstance(
 			Storylet storylet,
-			Dictionary<string, string> preconditionBindings,
+			Dictionary<string, object> preconditionBindings,
 			int weight
 		)
 		{
 			Storylet = storylet;
-			PreconditionBindings = new Dictionary<string, string>(
+			PreconditionBindings = new Dictionary<string, object>(
 				preconditionBindings
 			);
 			Weight = weight;

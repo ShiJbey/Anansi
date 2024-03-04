@@ -243,7 +243,7 @@ namespace Calypso
 			List<StoryletInstance> startInstances = CreateStoryletInstances(
 				m_startingStorylet,
 				DB,
-				new Dictionary<string, string>()
+				new Dictionary<string, object>()
 			);
 
 			if ( startInstances.Count == 0 )
@@ -570,7 +570,7 @@ namespace Calypso
 				{
 					instances.Add( new StoryletInstance(
 						storylet,
-						new Dictionary<string, string>(),
+						new Dictionary<string, object>(),
 						storylet.Weight
 					) );
 				}
@@ -607,7 +607,7 @@ namespace Calypso
 						instances.Add(
 							new StoryletInstance(
 								storylet,
-								new Dictionary<string, string>(),
+								new Dictionary<string, object>(),
 								storylet.Weight
 							)
 						);
@@ -631,7 +631,7 @@ namespace Calypso
 					instances.Add(
 						new StoryletInstance(
 							storylet,
-							new Dictionary<string, string>(),
+							new Dictionary<string, object>(),
 							storylet.Weight
 						)
 					);
@@ -1023,14 +1023,14 @@ namespace Calypso
 		private List<StoryletInstance> CreateStoryletInstances(
 			Storylet storylet,
 			RePraxisDatabase db,
-			Dictionary<string, string> bindings
+			Dictionary<string, object> bindings
 		)
 		{
-			Dictionary<string, string> inputBindings = new Dictionary<string, string>( bindings );
+			Dictionary<string, object> inputBindings = new Dictionary<string, object>( bindings );
 
 			foreach ( var (inkVar, queryVar) in storylet.InputBindings )
 			{
-				inputBindings[queryVar] = m_story.variablesState[inkVar].ToString();
+				inputBindings[queryVar.ToString()] = m_story.variablesState[inkVar].ToString();
 			}
 
 			List<StoryletInstance> instances = new List<StoryletInstance>();
@@ -1279,7 +1279,7 @@ namespace Calypso
 					List<StoryletInstance> instances = CreateStoryletInstances(
 						storylet,
 						DB,
-						new Dictionary<string, string>()
+						new Dictionary<string, object>()
 					);
 
 					if ( instances.Count == 0 ) return;
@@ -1311,7 +1311,7 @@ namespace Calypso
 						List<StoryletInstance> instances = CreateStoryletInstances(
 							storylet,
 							DB,
-							new Dictionary<string, string>()
+							new Dictionary<string, object>()
 						);
 
 						foreach ( var entry in instances )
@@ -1334,7 +1334,7 @@ namespace Calypso
 						List<StoryletInstance> instances = CreateStoryletInstances(
 							fallbackStorylet,
 							DB,
-							new Dictionary<string, string>()
+							new Dictionary<string, object>()
 						);
 
 						if ( instances.Count == 0 )

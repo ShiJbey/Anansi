@@ -205,7 +205,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df7f135ecf2f643018e127458354937d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_statSchema: {fileID: 11400000, guid: 20d4d6723ab2743a6b7991979264925e, type: 2}
+  m_owner: {fileID: 977957754}
+  m_target: {fileID: 6354242567126787389}
+  m_baseRelationshipType: 
   m_baseStats:
   - name: Friendship
     baseValue: 0
@@ -222,8 +224,9 @@ MonoBehaviour:
   OnTick:
     m_PersistentCalls:
       m_Calls: []
-  m_owner: {fileID: 977957754}
-  m_target: {fileID: 6354242567126787389}
+  OnRegistered:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &163843621
 GameObject:
   m_ObjectHideFlags: 0
@@ -268,7 +271,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df7f135ecf2f643018e127458354937d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_statSchema: {fileID: 11400000, guid: 20d4d6723ab2743a6b7991979264925e, type: 2}
+  m_owner: {fileID: 6354242567126787389}
+  m_target: {fileID: 977957754}
+  m_baseRelationshipType: 
   m_baseStats: []
   m_baseTraits: []
   OnTraitAdded:
@@ -283,8 +288,9 @@ MonoBehaviour:
   OnTick:
     m_PersistentCalls:
       m_Calls: []
-  m_owner: {fileID: 6354242567126787389}
-  m_target: {fileID: 977957754}
+  OnRegistered:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!114 &181000375 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 2044414443077979063, guid: aac11052ca3864fad823b522214e6ec9, type: 3}
@@ -397,71 +403,6 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!1001 &275682442
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 675034621709735290, guid: 290ddeb23afa6430881d614c02bf2ad9, type: 3}
-      propertyPath: m_definitionFiles.Array.size
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 675034621709735290, guid: 290ddeb23afa6430881d614c02bf2ad9, type: 3}
-      propertyPath: m_definitionFiles.Array.data[0]
-      value: 
-      objectReference: {fileID: 4900000, guid: 0c47655670b1248e88ea8c9296cddc6b, type: 3}
-    - target: {fileID: 2762433546224048856, guid: 290ddeb23afa6430881d614c02bf2ad9, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2762433546224048856, guid: 290ddeb23afa6430881d614c02bf2ad9, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2762433546224048856, guid: 290ddeb23afa6430881d614c02bf2ad9, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2762433546224048856, guid: 290ddeb23afa6430881d614c02bf2ad9, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 2762433546224048856, guid: 290ddeb23afa6430881d614c02bf2ad9, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2762433546224048856, guid: 290ddeb23afa6430881d614c02bf2ad9, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2762433546224048856, guid: 290ddeb23afa6430881d614c02bf2ad9, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2762433546224048856, guid: 290ddeb23afa6430881d614c02bf2ad9, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2762433546224048856, guid: 290ddeb23afa6430881d614c02bf2ad9, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2762433546224048856, guid: 290ddeb23afa6430881d614c02bf2ad9, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7378574934789867301, guid: 290ddeb23afa6430881d614c02bf2ad9, type: 3}
-      propertyPath: m_Name
-      value: SocialEngine
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 290ddeb23afa6430881d614c02bf2ad9, type: 3}
 --- !u!1 &349879699
 GameObject:
   m_ObjectHideFlags: 0
@@ -853,7 +794,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df7f135ecf2f643018e127458354937d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_statSchema: {fileID: 11400000, guid: 20d4d6723ab2743a6b7991979264925e, type: 2}
+  m_owner: {fileID: 6354242567126787389}
+  m_target: {fileID: 1929199638}
+  m_baseRelationshipType: 
   m_baseStats: []
   m_baseTraits:
   - rival
@@ -869,8 +812,9 @@ MonoBehaviour:
   OnTick:
     m_PersistentCalls:
       m_Calls: []
-  m_owner: {fileID: 6354242567126787389}
-  m_target: {fileID: 1929199638}
+  OnRegistered:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &547822313
 GameObject:
   m_ObjectHideFlags: 0
@@ -1389,7 +1333,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df7f135ecf2f643018e127458354937d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_statSchema: {fileID: 11400000, guid: 20d4d6723ab2743a6b7991979264925e, type: 2}
+  m_owner: {fileID: 977957754}
+  m_target: {fileID: 3410163666078535680}
+  m_baseRelationshipType: 
   m_baseStats: []
   m_baseTraits:
   - friend
@@ -1405,8 +1351,9 @@ MonoBehaviour:
   OnTick:
     m_PersistentCalls:
       m_Calls: []
-  m_owner: {fileID: 977957754}
-  m_target: {fileID: 3410163666078535680}
+  OnRegistered:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &968897416
 GameObject:
   m_ObjectHideFlags: 0
@@ -1569,7 +1516,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1165db2bee8ed4e828113077a4c2cd1a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_statSchema: {fileID: 11400000, guid: 26d2d790799bf4e81bf3f8042ba1f04b, type: 2}
+  m_UID: evelyn
+  m_agentSchema: {fileID: 0}
   m_baseStats: []
   m_baseTraits: []
   OnTraitAdded:
@@ -1584,7 +1532,9 @@ MonoBehaviour:
   OnTick:
     m_PersistentCalls:
       m_Calls: []
-  m_UID: evelyn
+  OnRegistered:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!212 &977957756
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -1660,17 +1610,6 @@ MonoBehaviour:
     tags:
     - default
     isFallback: 0
---- !u!114 &1049956961 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 6292888019506514160, guid: 290ddeb23afa6430881d614c02bf2ad9, type: 3}
-  m_PrefabInstance: {fileID: 275682442}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3643f8d86d34b46a98f5794ed7f28d85, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &1054832510
 GameObject:
   m_ObjectHideFlags: 0
@@ -1715,7 +1654,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df7f135ecf2f643018e127458354937d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_statSchema: {fileID: 11400000, guid: 20d4d6723ab2743a6b7991979264925e, type: 2}
+  m_owner: {fileID: 1400764428}
+  m_target: {fileID: 1929199638}
+  m_baseRelationshipType: 
   m_baseStats: []
   m_baseTraits:
   - friend
@@ -1731,8 +1672,9 @@ MonoBehaviour:
   OnTick:
     m_PersistentCalls:
       m_Calls: []
-  m_owner: {fileID: 1400764428}
-  m_target: {fileID: 1929199638}
+  OnRegistered:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &1075693838
 GameObject:
   m_ObjectHideFlags: 0
@@ -1817,7 +1759,6 @@ MonoBehaviour:
   m_characterManager: {fileID: 1379823679}
   m_locationManager: {fileID: 1465694114}
   m_timeManager: {fileID: 1075693841}
-  m_socialEngine: {fileID: 1049956961}
   m_storyJson: {fileID: 4900000, guid: ce567535abd3d4c3084e6a2fca5be443, type: 3}
 --- !u!1 &1095505044
 GameObject:
@@ -1931,7 +1872,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df7f135ecf2f643018e127458354937d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_statSchema: {fileID: 11400000, guid: 20d4d6723ab2743a6b7991979264925e, type: 2}
+  m_owner: {fileID: 6354242567126787389}
+  m_target: {fileID: 3410163666078535680}
+  m_baseRelationshipType: 
   m_baseStats: []
   m_baseTraits: []
   OnTraitAdded:
@@ -1946,8 +1889,9 @@ MonoBehaviour:
   OnTick:
     m_PersistentCalls:
       m_Calls: []
-  m_owner: {fileID: 6354242567126787389}
-  m_target: {fileID: 3410163666078535680}
+  OnRegistered:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &1119048862
 GameObject:
   m_ObjectHideFlags: 0
@@ -1992,7 +1936,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df7f135ecf2f643018e127458354937d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_statSchema: {fileID: 11400000, guid: 20d4d6723ab2743a6b7991979264925e, type: 2}
+  m_owner: {fileID: 3410163666078535680}
+  m_target: {fileID: 6354242567126787389}
+  m_baseRelationshipType: 
   m_baseStats: []
   m_baseTraits: []
   OnTraitAdded:
@@ -2007,8 +1953,9 @@ MonoBehaviour:
   OnTick:
     m_PersistentCalls:
       m_Calls: []
-  m_owner: {fileID: 3410163666078535680}
-  m_target: {fileID: 6354242567126787389}
+  OnRegistered:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &1261603559
 GameObject:
   m_ObjectHideFlags: 0
@@ -2053,7 +2000,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df7f135ecf2f643018e127458354937d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_statSchema: {fileID: 11400000, guid: 20d4d6723ab2743a6b7991979264925e, type: 2}
+  m_owner: {fileID: 3410163666078535680}
+  m_target: {fileID: 1929199638}
+  m_baseRelationshipType: 
   m_baseStats: []
   m_baseTraits:
   - friend
@@ -2069,8 +2018,9 @@ MonoBehaviour:
   OnTick:
     m_PersistentCalls:
       m_Calls: []
-  m_owner: {fileID: 3410163666078535680}
-  m_target: {fileID: 1929199638}
+  OnRegistered:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!114 &1324560021 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 3673202021974055871, guid: aac11052ca3864fad823b522214e6ec9, type: 3}
@@ -2126,7 +2076,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df7f135ecf2f643018e127458354937d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_statSchema: {fileID: 11400000, guid: 20d4d6723ab2743a6b7991979264925e, type: 2}
+  m_owner: {fileID: 1400764428}
+  m_target: {fileID: 6354242567126787389}
+  m_baseRelationshipType: 
   m_baseStats: []
   m_baseTraits: []
   OnTraitAdded:
@@ -2141,8 +2093,9 @@ MonoBehaviour:
   OnTick:
     m_PersistentCalls:
       m_Calls: []
-  m_owner: {fileID: 1400764428}
-  m_target: {fileID: 6354242567126787389}
+  OnRegistered:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &1379823677
 GameObject:
   m_ObjectHideFlags: 0
@@ -2343,7 +2296,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1165db2bee8ed4e828113077a4c2cd1a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_statSchema: {fileID: 11400000, guid: 26d2d790799bf4e81bf3f8042ba1f04b, type: 2}
+  m_UID: momo
+  m_agentSchema: {fileID: 0}
   m_baseStats: []
   m_baseTraits: []
   OnTraitAdded:
@@ -2358,7 +2312,9 @@ MonoBehaviour:
   OnTick:
     m_PersistentCalls:
       m_Calls: []
-  m_UID: momo
+  OnRegistered:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!212 &1400764430
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -2627,7 +2583,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df7f135ecf2f643018e127458354937d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_statSchema: {fileID: 11400000, guid: 20d4d6723ab2743a6b7991979264925e, type: 2}
+  m_owner: {fileID: 3410163666078535680}
+  m_target: {fileID: 977957754}
+  m_baseRelationshipType: 
   m_baseStats: []
   m_baseTraits:
   - friend
@@ -2643,8 +2601,9 @@ MonoBehaviour:
   OnTick:
     m_PersistentCalls:
       m_Calls: []
-  m_owner: {fileID: 3410163666078535680}
-  m_target: {fileID: 977957754}
+  OnRegistered:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &1832311791
 GameObject:
   m_ObjectHideFlags: 0
@@ -2689,7 +2648,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df7f135ecf2f643018e127458354937d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_statSchema: {fileID: 11400000, guid: 20d4d6723ab2743a6b7991979264925e, type: 2}
+  m_owner: {fileID: 1400764428}
+  m_target: {fileID: 977957754}
+  m_baseRelationshipType: 
   m_baseStats: []
   m_baseTraits:
   - friend
@@ -2705,8 +2666,9 @@ MonoBehaviour:
   OnTick:
     m_PersistentCalls:
       m_Calls: []
-  m_owner: {fileID: 1400764428}
-  m_target: {fileID: 977957754}
+  OnRegistered:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &1865965898
 GameObject:
   m_ObjectHideFlags: 0
@@ -2966,7 +2928,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1165db2bee8ed4e828113077a4c2cd1a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_statSchema: {fileID: 11400000, guid: 26d2d790799bf4e81bf3f8042ba1f04b, type: 2}
+  m_UID: giyu
+  m_agentSchema: {fileID: 0}
   m_baseStats: []
   m_baseTraits: []
   OnTraitAdded:
@@ -2981,7 +2944,9 @@ MonoBehaviour:
   OnTick:
     m_PersistentCalls:
       m_Calls: []
-  m_UID: giyu
+  OnRegistered:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!114 &1929199639
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3207,7 +3172,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df7f135ecf2f643018e127458354937d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_statSchema: {fileID: 11400000, guid: 20d4d6723ab2743a6b7991979264925e, type: 2}
+  m_owner: {fileID: 1929199638}
+  m_target: {fileID: 6354242567126787389}
+  m_baseRelationshipType: 
   m_baseStats:
   - name: Friendship
     baseValue: 40
@@ -3224,8 +3191,9 @@ MonoBehaviour:
   OnTick:
     m_PersistentCalls:
       m_Calls: []
-  m_owner: {fileID: 1929199638}
-  m_target: {fileID: 6354242567126787389}
+  OnRegistered:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &1993906968
 GameObject:
   m_ObjectHideFlags: 0
@@ -3371,7 +3339,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df7f135ecf2f643018e127458354937d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_statSchema: {fileID: 11400000, guid: 20d4d6723ab2743a6b7991979264925e, type: 2}
+  m_owner: {fileID: 1929199638}
+  m_target: {fileID: 977957754}
+  m_baseRelationshipType: 
   m_baseStats: []
   m_baseTraits:
   - friend
@@ -3387,8 +3357,9 @@ MonoBehaviour:
   OnTick:
     m_PersistentCalls:
       m_Calls: []
-  m_owner: {fileID: 1929199638}
-  m_target: {fileID: 977957754}
+  OnRegistered:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1001 &2420692042241072552
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3403,7 +3374,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1121604756887958389, guid: aac11052ca3864fad823b522214e6ec9, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0
+      value: 400
       objectReference: {fileID: 0}
     - target: {fileID: 1149510492301742689, guid: aac11052ca3864fad823b522214e6ec9, type: 3}
       propertyPath: m_Inertia
@@ -4005,7 +3976,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8726248483740984755, guid: aac11052ca3864fad823b522214e6ec9, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0.00041928233
+      value: 0.000696737
       objectReference: {fileID: 0}
     - target: {fileID: 9052050573325085665, guid: aac11052ca3864fad823b522214e6ec9, type: 3}
       propertyPath: m_dateTimeText
@@ -4187,7 +4158,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1165db2bee8ed4e828113077a4c2cd1a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_statSchema: {fileID: 11400000, guid: 26d2d790799bf4e81bf3f8042ba1f04b, type: 2}
+  m_UID: astrid
+  m_agentSchema: {fileID: 0}
   m_baseStats: []
   m_baseTraits: []
   OnTraitAdded:
@@ -4202,7 +4174,9 @@ MonoBehaviour:
   OnTick:
     m_PersistentCalls:
       m_Calls: []
-  m_UID: astrid
+  OnRegistered:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!212 &3410163666078535681
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -4272,7 +4246,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1165db2bee8ed4e828113077a4c2cd1a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_statSchema: {fileID: 11400000, guid: 26d2d790799bf4e81bf3f8042ba1f04b, type: 2}
+  m_UID: player
+  m_agentSchema: {fileID: 0}
   m_baseStats: []
   m_baseTraits: []
   OnTraitAdded:
@@ -4287,7 +4262,9 @@ MonoBehaviour:
   OnTick:
     m_PersistentCalls:
       m_Calls: []
-  m_UID: player
+  OnRegistered:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1001 &6595488659289774178
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4355,7 +4332,7 @@ PrefabInstance:
     - target: {fileID: 7637924957314695651, guid: b3d1efb89c38b4554a861b9ef9f4f794, type: 3}
       propertyPath: m_socialEngine
       value: 
-      objectReference: {fileID: 1049956961}
+      objectReference: {fileID: 0}
     - target: {fileID: 7637924957314695651, guid: b3d1efb89c38b4554a861b9ef9f4f794, type: 3}
       propertyPath: startingLocation
       value: 
@@ -4395,4 +4372,3 @@ SceneRoots:
   - {fileID: 1379823678}
   - {fileID: 1465694113}
   - {fileID: 1075693840}
-  - {fileID: 275682442}

@@ -8,10 +8,11 @@
       "hash": "f7a5ed16b93fe2d220d8833a82e0324276cd2d0e"
     },
     "com.shijbey.tdrs": {
-      "version": "file:/Users/shijbey/Workspace/Unity/Unity-TDRS/dist/unity-tdrs_1.0.0.tgz",
+      "version": "https://github.com/ShiJbey/TDRS.git?path=/Packages/com.shijbey.tdrs#v2.0.0",
       "depth": 0,
-      "source": "local-tarball",
-      "dependencies": {}
+      "source": "git",
+      "dependencies": {},
+      "hash": "a392188deef1b26787e970581f3aaab18015dcc5"
     },
     "com.unity.2d.animation": {
       "version": "9.0.3",
@@ -243,9 +244,7 @@
       "depth": 0,
       "source": "embedded",
       "dependencies": {
-        "com.unity.textmeshpro": "3.0.6",
-        "com.inkle.ink-unity-integration": "1.1.8",
-        "com.shijbey.tdrs": "1.0.0"
+        "com.unity.textmeshpro": "3.0.6"
       }
     },
     "com.unity.modules.ai": {
