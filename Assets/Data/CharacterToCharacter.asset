@@ -9,17 +9,20 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3d194bac1067f48d1b57523c8558c611, type: 3}
-  m_Name: RelationshipStats
+  m_Script: {fileID: 11500000, guid: e0b77af52522043aa8a648789ace171e, type: 3}
+  m_Name: CharacterToCharacter
   m_EditorClassIdentifier: 
+  ownerType: {fileID: 11400000, guid: 0513d6b4b334c4b959aa3062822de27b, type: 2}
+  targetType: {fileID: 11400000, guid: 0513d6b4b334c4b959aa3062822de27b, type: 2}
   stats:
   - statName: Friendship
     baseValue: 0
     maxValue: 50
-    minValue: -50
+    minValue: 0
     isDiscrete: 1
   - statName: Romance
     baseValue: 0
     maxValue: 50
-    minValue: -50
+    minValue: 0
     isDiscrete: 1
+  traits: []

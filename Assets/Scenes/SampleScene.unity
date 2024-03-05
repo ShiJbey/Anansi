@@ -1517,7 +1517,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UID: evelyn
-  m_agentSchema: {fileID: 0}
+  m_agentSchema: {fileID: 11400000, guid: 0513d6b4b334c4b959aa3062822de27b, type: 2}
   m_baseStats: []
   m_baseTraits: []
   OnTraitAdded:
@@ -1687,6 +1687,8 @@ GameObject:
   - component: {fileID: 1075693839}
   - component: {fileID: 1075693841}
   - component: {fileID: 1075693845}
+  - component: {fileID: 1075693847}
+  - component: {fileID: 1075693846}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -1759,7 +1761,42 @@ MonoBehaviour:
   m_characterManager: {fileID: 1379823679}
   m_locationManager: {fileID: 1465694114}
   m_timeManager: {fileID: 1075693841}
+  m_socialEngine: {fileID: 1075693847}
   m_storyJson: {fileID: 4900000, guid: ce567535abd3d4c3084e6a2fca5be443, type: 3}
+--- !u!114 &1075693846
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1075693838}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 82d22cfd725b6480f95f2597fe3647d8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_traitYamlFiles:
+  - {fileID: 4900000, guid: 0c47655670b1248e88ea8c9296cddc6b, type: 3}
+--- !u!114 &1075693847
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1075693838}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3643f8d86d34b46a98f5794ed7f28d85, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_agentSchemas:
+  - {fileID: 11400000, guid: 0513d6b4b334c4b959aa3062822de27b, type: 2}
+  m_relationshipSchemas:
+  - {fileID: 11400000, guid: 6608eb0a68c1e4f62b1143880d5c49b4, type: 2}
+  m_socialEvents: []
+  m_socialRules: []
+  m_traits: []
+  m_dontDestroyOnLoad: 0
 --- !u!1 &1095505044
 GameObject:
   m_ObjectHideFlags: 0
@@ -2297,7 +2334,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UID: momo
-  m_agentSchema: {fileID: 0}
+  m_agentSchema: {fileID: 11400000, guid: 0513d6b4b334c4b959aa3062822de27b, type: 2}
   m_baseStats: []
   m_baseTraits: []
   OnTraitAdded:
@@ -2929,7 +2966,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UID: giyu
-  m_agentSchema: {fileID: 0}
+  m_agentSchema: {fileID: 11400000, guid: 0513d6b4b334c4b959aa3062822de27b, type: 2}
   m_baseStats: []
   m_baseTraits: []
   OnTraitAdded:
@@ -3976,7 +4013,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8726248483740984755, guid: aac11052ca3864fad823b522214e6ec9, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0.000696737
+      value: 0.00002650779
       objectReference: {fileID: 0}
     - target: {fileID: 9052050573325085665, guid: aac11052ca3864fad823b522214e6ec9, type: 3}
       propertyPath: m_dateTimeText
@@ -4159,7 +4196,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UID: astrid
-  m_agentSchema: {fileID: 0}
+  m_agentSchema: {fileID: 11400000, guid: 0513d6b4b334c4b959aa3062822de27b, type: 2}
   m_baseStats: []
   m_baseTraits: []
   OnTraitAdded:
@@ -4247,7 +4284,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UID: player
-  m_agentSchema: {fileID: 0}
+  m_agentSchema: {fileID: 11400000, guid: 0513d6b4b334c4b959aa3062822de27b, type: 2}
   m_baseStats: []
   m_baseTraits: []
   OnTraitAdded:

@@ -9,7 +9,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3d194bac1067f48d1b57523c8558c611, type: 3}
-  m_Name: CharacterStats
+  m_Script: {fileID: 11500000, guid: 37a6dbb2403fe401ca757e75c0229b28, type: 3}
+  m_Name: CharacterAgent
   m_EditorClassIdentifier: 
+  agentType: character
   stats: []
+  traits: []

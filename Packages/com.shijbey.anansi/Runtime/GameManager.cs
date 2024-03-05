@@ -1,4 +1,5 @@
 using UnityEngine;
+using TDRS;
 
 namespace Anansi
 {
@@ -27,6 +28,8 @@ namespace Anansi
 
 		private void Start()
 		{
+			SocialEngineController.Instance.Initialize();
+			SocialEngineController.Instance.RegisterAgentsAndRelationships();
 			m_storyController.Initialize();
 			m_storyController.StartStory();
 		}

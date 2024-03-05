@@ -65,7 +65,7 @@ namespace Anansi
 		/// Manages character relationships and all information in the logical database.
 		/// </summary>
 		[SerializeField]
-		private SocialEngine m_socialEngine;
+		private SocialEngineController m_socialEngine;
 
 		/// <summary>
 		/// A reference to the JSON file containing the compiled Ink story.
