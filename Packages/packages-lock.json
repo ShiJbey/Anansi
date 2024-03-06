@@ -11,9 +11,7 @@
       "version": "file:com.shijbey.anansi",
       "depth": 0,
       "source": "embedded",
-      "dependencies": {
-        "com.unity.textmeshpro": "3.0.6"
-      }
+      "dependencies": {}
     },
     "com.shijbey.tdrs": {
       "version": "https://github.com/ShiJbey/TDRS.git?path=/Packages/com.shijbey.tdrs#v2.0.0",

@@ -9,7 +9,7 @@
 </h1>
 
 ![Static Badge](https://img.shields.io/badge/Unity-2022.3-black)
-![Static Badge](https://img.shields.io/badge/Version-1.0.0-green)
+![Static Badge](https://img.shields.io/badge/Version-0.1.0-green)
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/J3J0UNJ1Q)
 

@@ -1,6 +1,6 @@
 {
   "name": "com.shijbey.anansi",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "displayName": "Anansi",
   "description": "Create simulation-driven visual novels in Unity",
   "unity": "2021.1",
@@ -16,15 +16,11 @@
     "Relationships"
   ],
   "author": "Shi Johnson-Bey <shijbey@gmail.com>",
-  "dependencies": {
-    "com.unity.textmeshpro": "3.0.6"
-  },
   "samples": [
     {
       "displayName": "Assets",
       "description": "Basic Assets",
       "path": "Assets"
     }
-  ],
-  "hideInEditor": false
+  ]
 }
