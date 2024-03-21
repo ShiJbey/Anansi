@@ -53,6 +53,9 @@ namespace Anansi
 		[SerializeField]
 		private ChoiceDialogController m_choiceDialog;
 
+		[SerializeField]
+		private InputPanelController m_inputPanel;
+
 		/// <summary>
 		/// A reference to the coroutine that handles sliding the dialogue panel on and off screen
 		/// </summary>
@@ -168,6 +171,7 @@ namespace Anansi
 			m_storyController.OnDialogueStart += HandleOnDialogueStart;
 			m_storyController.OnDialogueEnd += HandleOnDialogueEnd;
 			m_storyController.OnSpeakerChange += HandleSpeakerChange;
+			m_storyController.OnNextDialogueLine += HandleDialogueLine;
 
 			Hide();
 		}
@@ -179,7 +183,7 @@ namespace Anansi
 			m_storyController.OnDialogueStart -= HandleOnDialogueStart;
 			m_storyController.OnDialogueEnd -= HandleOnDialogueEnd;
 			m_storyController.OnSpeakerChange -= HandleSpeakerChange;
-
+			m_storyController.OnNextDialogueLine -= HandleDialogueLine;
 		}
 
 		#endregion
@@ -248,40 +252,58 @@ namespace Anansi
 		/// </summary>
 		public void AdvanceDialogue()
 		{
-			if (
-				m_storyController.CanContinue()
-				&& !IsTyping
-			)
-			{
-				string text = m_storyController.GetNextLine().Trim();
+			m_storyController.AdvanceDialogue();
+			// if (
+			// 	m_storyController.CanContinue()
+			// 	&& !IsTyping
+			// )
+			// {
+			// 	string text = m_storyController.GetNextLine().Trim();
 
-				// Sometimes on navigation, we don't show any text. If this is the case,
-				// do not even show the dialogue panel and try to get another line
-				if ( text == "" )
-				{
-					Hide();
-					AdvanceDialogue();
-					return;
-				}
+			// 	// Sometimes on navigation, we don't show any text. If this is the case,
+			// 	// do not even show the dialogue panel and try to get another line
+			// 	if ( text == "" )
+			// 	{
+			// 		// Hide();
+			// 		AdvanceDialogue();
+			// 		return;
+			// 	}
 
-				if ( m_isPanelHidden ) Show();
+			// 	if ( m_isPanelHidden ) Show();
 
-				if ( m_typingCoroutine != null ) StopCoroutine( m_typingCoroutine );
+			// 	if ( m_typingCoroutine != null ) StopCoroutine( m_typingCoroutine );
 
-				IsTyping = true;
-				m_advanceDialogueButton.interactable = false;
+			// 	IsTyping = true;
+			// 	m_advanceDialogueButton.interactable = false;
 
-				m_typingCoroutine = StartCoroutine( DisplayTextCoroutine( text ) );
-			}
-			else
-			{
-				m_storyController.EndDialogue();
-			}
+			// 	m_typingCoroutine = StartCoroutine( DisplayTextCoroutine( text ) );
+			// }
+			// else if ( m_storyController.IsWaitingForInput )
+			// {
+			// 	m_advanceDialogueButton.interactable = false;
+			// 	return;
+			// }
+			// else
+			// {
+			// 	m_storyController.EndDialogue();
+			// }
 		}
 
 		#endregion
 
 		#region Private Methods
+
+		private void HandleDialogueLine(string text)
+		{
+			if ( m_isPanelHidden ) Show();
+
+			if ( m_typingCoroutine != null ) StopCoroutine( m_typingCoroutine );
+
+			IsTyping = true;
+			m_advanceDialogueButton.interactable = false;
+
+			m_typingCoroutine = StartCoroutine( DisplayTextCoroutine( text ) );
+		}
 
 		/// <summary>
 		/// A callback executed when the advance dialogue button is clicked
@@ -343,6 +365,21 @@ namespace Anansi
 
 				m_dialogueText.text += letter;
 				yield return new WaitForSeconds( m_typingSpeed );
+			}
+
+			if ( m_storyController.IsWaitingForInput )
+			{
+				// m_inputPanel.SetPrompt( m_storyController.InputRequest.Prompt );
+				// m_inputPanel.SetDataType( m_storyController.InputRequest.DataType );
+				// m_inputPanel.SetVariableName( m_storyController.InputRequest.VariableName );
+
+				m_inputPanel.HandleGetInput( m_storyController.InputRequest );
+
+				yield return new WaitUntil( () => !m_storyController.IsWaitingForInput );
+
+				m_inputPanel.Hide();
+
+				AdvanceDialogue();
 			}
 
 			if ( m_storyController.HasChoices() )

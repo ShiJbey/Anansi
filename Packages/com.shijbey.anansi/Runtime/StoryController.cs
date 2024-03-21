@@ -118,9 +118,16 @@ namespace Anansi
 		public RePraxisDatabase DB => m_socialEngine.DB;
 
 		/// <summary>
+		/// What is the story controller currently doing.
+		/// </summary>
+		public bool IsWaitingForInput { get; private set; }
+
+		/// <summary>
 		/// Is there currently dialogue being displayed on the screen.
 		/// </summary>
-		public bool IsDialogueActive { get; private set; }
+		public bool IsDisplayingDialogue { get; private set; }
+
+		public InputRequest InputRequest { get; private set; }
 
 		#endregion
 
@@ -156,6 +163,16 @@ namespace Anansi
 		/// </summary>
 		public UnityAction<Character> OnSpeakerChange;
 
+		/// <summary>
+		/// Action invoked when attempting to get user input.
+		/// </summary>
+		public UnityAction<InputRequest> OnGetInput;
+
+		/// <summary>
+		/// Invoked when we have the next line of story dialogue.
+		/// </summary>
+		public UnityAction<string> OnNextDialogueLine;
+
 		#endregion
 
 		#region Unity Messages
@@ -172,6 +189,8 @@ namespace Anansi
 			m_locationStorylets = new Dictionary<string, Storylet>();
 			m_actionStorylets = new Dictionary<string, Storylet>();
 			m_story = new Ink.Runtime.Story( m_storyJson.text );
+			IsDisplayingDialogue = false;
+			IsWaitingForInput = false;
 
 			LoadStorylets();
 		}
@@ -411,10 +430,40 @@ namespace Anansi
 		}
 
 		/// <summary>
+		/// Show the next line of dialogue or close if at the end
+		/// </summary>
+		public void AdvanceDialogue()
+		{
+			if ( CanContinue() )
+			{
+				string text = GetNextLine().Trim();
+
+				// Sometimes on navigation, we don't show any text. If this is the case,
+				// do not even show the dialogue panel and try to get another line
+				if ( text == "" )
+				{
+					// Hide();
+					AdvanceDialogue();
+					return;
+				}
+
+				OnNextDialogueLine?.Invoke( text );
+			}
+			else if ( IsWaitingForInput )
+			{
+				return;
+			}
+			else
+			{
+				EndDialogue();
+			}
+		}
+
+		/// <summary>
 		/// Get the next line of dialogue
 		/// </summary>
 		/// <returns></returns>
-		public string GetNextLine()
+		private string GetNextLine()
 		{
 			// Follow the current storylet until it is exhausted
 			if ( m_currentStorylet.Story.canContinue )
@@ -426,6 +475,8 @@ namespace Anansi
 
 				// Process tags
 				ProcessTags( m_currentStorylet.Story.currentTags );
+
+				IsDisplayingDialogue = true;
 
 				return line;
 			}
@@ -442,6 +493,8 @@ namespace Anansi
 
 				// Process tags
 				ProcessTags( m_currentStorylet.Story.currentTags );
+
+				IsDisplayingDialogue = true;
 
 				return line;
 			}
@@ -482,6 +535,9 @@ namespace Anansi
 		/// <returns></returns>
 		public bool CanContinue()
 		{
+			// Cannot continue if waiting for input
+			if ( IsWaitingForInput ) return false;
+
 			// The story can continue if the current storylet can continue
 			if ( m_currentStorylet.Story.canContinue ) return true;
 
@@ -509,9 +565,9 @@ namespace Anansi
 
 			m_currentStorylet.Story.ChoosePathString( m_currentStorylet.KnotID );
 
-			if ( IsDialogueActive == false )
+			if ( !IsDisplayingDialogue )
 			{
-				IsDialogueActive = true;
+				IsDisplayingDialogue = true;
 
 				OnDialogueStart?.Invoke();
 			}
@@ -522,7 +578,8 @@ namespace Anansi
 		/// </summary>
 		public void EndDialogue()
 		{
-			IsDialogueActive = false;
+			IsDisplayingDialogue = false;
+			IsWaitingForInput = false;
 
 			OnDialogueEnd?.Invoke();
 
@@ -639,6 +696,14 @@ namespace Anansi
 			}
 
 			return instances;
+		}
+
+		public void SetInput(string variableName, object input)
+		{
+			IsWaitingForInput = false;
+			InputRequest = null;
+			this.m_story.state.variablesState[variableName] = input;
+			AdvanceDialogue();
 		}
 
 		#endregion
@@ -1351,17 +1416,69 @@ namespace Anansi
 			);
 
 			m_story.BindExternalFunction(
-				"GetInput",
-				(string prompt, string varName, string varType, string callback) =>
+				"GetStringInput",
+				(string prompt, string varName) =>
 				{
-					// Try to find a storylet with the given tags
-					// If found, add it to the storylet queue
-					// If not found, queue the fallback
+					IsWaitingForInput = true;
+					InputRequest = new InputRequest(
+						prompt, varName, InputDataType.String
+					);
+					OnGetInput?.Invoke(
+						InputRequest
+					);
 				}
 			);
 
+			m_story.BindExternalFunction(
+				"GetIntInput",
+				(string prompt, string varName) =>
+				{
+					IsWaitingForInput = true;
+					InputRequest = new InputRequest(
+						prompt, varName, InputDataType.Int
+					);
+					OnGetInput?.Invoke(
+						InputRequest
+					);
+				}
+			);
+
+			m_story.BindExternalFunction(
+				"GetFloatInput",
+				(string prompt, string varName, string dataType) =>
+				{
+					IsWaitingForInput = true;
+					InputRequest = new InputRequest(
+						prompt, varName, InputDataType.Float
+					);
+					OnGetInput?.Invoke(
+						InputRequest
+					);
+				}
+			);
 		}
 
 		#endregion
+	}
+
+	public enum InputDataType
+	{
+		String,
+		Int,
+		Float
+	}
+
+	public class InputRequest
+	{
+		public string Prompt { get; }
+		public string VariableName { get; }
+		public InputDataType DataType { get; }
+
+		public InputRequest(string prompt, string variableName, InputDataType dataType)
+		{
+			Prompt = prompt;
+			VariableName = variableName;
+			DataType = dataType;
+		}
 	}
 }

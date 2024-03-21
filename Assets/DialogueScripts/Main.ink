@@ -11,14 +11,16 @@ EXTERNAL DbAssert(statement)
 EXTERNAL AdvanceTime()
 EXTERNAL QueueStorylet(storyletId)
 EXTERNAL QueueStoryletWithTags(tags, fallback)
-EXTERNAL GetInput(prompt, variableName, callback)
+EXTERNAL GetStringInput(prompt, variableName)
+EXTERNAL GetIntInput(prompt, variableName)
 
 // Global variables are shared across all storylets because they use the same story instance. Storylet queries may overwrite these values. So, be mindful of your variable usage
 
 // VAR speaker = "not-specified"
-// VAR player = "player"
+VAR PlayerName = "player"
+VAR WorldSeed = 0
 // VAR location = "not-specified"
-VAR timesKnocked = 0
+// VAR timesKnocked = 0
 
 // Do not use any top-level diverts. The StoryController will automatically jump to the "start" knot.
 
@@ -59,7 +61,19 @@ Time has advanced.
 # choiceLabel: Go to Outside Library.
 #===
 
-You're standing outside of the campus library. {SetLocation("outside_library", "")}
+{SetLocation("outside_library", "")}
+
+{location_outside_library == 1:
+    You're standing outside of the campus library.
+    
+    You look at your Student ID. The name says... {GetStringInput("What is your name?", "PlayerName")}
+    
+    It says {PlayerName}. They usually spell it wrong, but the registrar manager had the same name.
+    
+    What are the chances of that?
+    
+    Your student ID number is...{GetIntInput("Enter student ID...", "WorldSeed")}
+}  
 
 -> DONE
 
@@ -116,7 +130,7 @@ You're standing outside of the campus library. {SetLocation("outside_library", "
 {SetLocation("evelyn_dormroom", "")}
 
 {
-    - DbAssert("evelyn.location!astrid_dormroom"):
+    - DbAssert("evelyn.location!evelyn_dormroom"):
         You are in Evelyn's room. She is looking looking out the window, listening to music
     - else:
         Evelyn is not here.
@@ -131,8 +145,11 @@ You're standing outside of the campus library. {SetLocation("outside_library", "
 
 {SetLocation("astrid_dormroom", "")}
 
-{DbAssert("astrid.location!astrid_dormroom") == false:
-    Astrid is not here.
+{
+    - DbAssert("astrid.location!astrid_dormroom"):
+        Astrid is studying at her desk.
+    - else:
+        Astrid is not here.
 }
 
 -> DONE
