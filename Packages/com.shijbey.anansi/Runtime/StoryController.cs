@@ -197,12 +197,18 @@ namespace Anansi
 
 		public void OnEnable()
 		{
-			m_story.onError += HandleStoryErrors;
+			if (m_story)
+			{
+				m_story.onError += HandleStoryErrors;
+			}
 		}
 
 		public void OnDisable()
 		{
-			m_story.onError -= HandleStoryErrors;
+			if (m_story)
+			{
+				m_story.onError -= HandleStoryErrors;
+			}
 		}
 
 		#endregion

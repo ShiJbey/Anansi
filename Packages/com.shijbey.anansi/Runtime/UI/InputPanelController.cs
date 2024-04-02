@@ -63,13 +63,12 @@ namespace Anansi
 		{
 			string inputText = m_inputField.text;
 
-			Debug.Log( $"Submitting: {inputText}" );
-
 			switch ( m_requestDataType )
 			{
 				case InputDataType.String:
 					m_storyController.SetInput( m_requestVariableName, inputText );
 					m_errorText.text = "";
+					m_inputField.text = "";
 					m_errorText.gameObject.SetActive( false );
 					Hide();
 					break;
@@ -78,6 +77,7 @@ namespace Anansi
 					{
 						m_storyController.SetInput( m_requestVariableName, intValue );
 						m_errorText.text = "";
+						m_inputField.text = "";
 						m_errorText.gameObject.SetActive( false );
 						Hide();
 					}
@@ -92,6 +92,7 @@ namespace Anansi
 					{
 						m_storyController.SetInput( m_requestVariableName, floatValue );
 						m_errorText.text = "";
+						m_inputField.text = "";
 						m_errorText.gameObject.SetActive( false );
 						Hide();
 					}
