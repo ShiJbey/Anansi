@@ -8,12 +8,6 @@ using UnityEngine.Events;
 using Anansi.Scheduling;
 using TDRS;
 
-<<<<<<< HEAD
-=======
-using Codice.CM.Common;
-using UnityEditor.UI;
-using System.Text;
->>>>>>> 2a2e93f (Implement weight functions)
 namespace Anansi
 {
 	/// <summary>
@@ -114,8 +108,6 @@ namespace Anansi
 		/// </summary>
 		private StoryletInstance m_storyletOnDeck = null;
 
-<<<<<<< HEAD
-=======
 		private List<StoryletInstance> m_dynamicChoices;
 
 		private HashSet<string> m_dynamicChoiceIds;
@@ -126,7 +118,6 @@ namespace Anansi
 		/// </summary>
 		private StoryletInstance m_boundStoryletInstance = null;
 
->>>>>>> 2a2e93f (Implement weight functions)
 		#endregion
 
 		#region Properties
