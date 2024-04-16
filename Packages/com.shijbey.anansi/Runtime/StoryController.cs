@@ -8,6 +8,12 @@ using UnityEngine.Events;
 using Anansi.Scheduling;
 using TDRS;
 
+<<<<<<< HEAD
+=======
+using Codice.CM.Common;
+using UnityEditor.UI;
+using System.Text;
+>>>>>>> 2a2e93f (Implement weight functions)
 namespace Anansi
 {
 	/// <summary>
@@ -108,6 +114,19 @@ namespace Anansi
 		/// </summary>
 		private StoryletInstance m_storyletOnDeck = null;
 
+<<<<<<< HEAD
+=======
+		private List<StoryletInstance> m_dynamicChoices;
+
+		private HashSet<string> m_dynamicChoiceIds;
+
+		/// <summary>
+		/// This variable caches a reference to a storylet instance and is used by the
+		/// GetBindingVar() external function when evaluating storylet instance weights.
+		/// </summary>
+		private StoryletInstance m_boundStoryletInstance = null;
+
+>>>>>>> 2a2e93f (Implement weight functions)
 		#endregion
 
 		#region Properties
@@ -197,7 +216,7 @@ namespace Anansi
 
 		public void OnEnable()
 		{
-			if (m_story)
+			if ( m_story )
 			{
 				m_story.onError += HandleStoryErrors;
 			}
@@ -205,7 +224,7 @@ namespace Anansi
 
 		public void OnDisable()
 		{
-			if (m_story)
+			if ( m_story )
 			{
 				m_story.onError -= HandleStoryErrors;
 			}
@@ -564,6 +583,8 @@ namespace Anansi
 		public void RunStoryletInstance(StoryletInstance instance)
 		{
 			m_currentStorylet = instance;
+
+			m_boundStoryletInstance = instance;
 
 			m_currentStorylet.Storylet.IncrementTimesPlayed();
 
@@ -926,15 +947,22 @@ namespace Anansi
 					List<string> arguments = line.Substring( "weight:".Length )
 						.Split( "," ).Select( s => s.Trim() ).ToList();
 
-					if ( !int.TryParse( arguments[0], out var weight ) )
+					if ( int.TryParse( arguments[0], out var weight ) )
 					{
-						throw new ArgumentException(
-							$"Invalid value for weight in '{line}' of knot '{knotID}'. "
-							+ "Acceptable values are integers greater than or equal to zero."
-						);
-					}
+						if ( weight < 0 )
+						{
+							throw new ArgumentException(
+								$"Invalid value for weight in '{line}' of knot '{knotID}'. "
+								+ "Acceptable values are integers greater than or equal to zero."
+							);
+						}
 
-					storylet.Weight = weight;
+						storylet.Weight = weight;
+					}
+					else
+					{
+						storylet.WeightFunctionName = arguments[0];
+					}
 
 					lineIndex++;
 					continue;
@@ -1114,25 +1142,43 @@ namespace Anansi
 				{
 					foreach ( var bindingDict in results.Bindings )
 					{
-						instances.Add(
-							new StoryletInstance(
-								storylet,
-								bindingDict,
-								storylet.Weight
-							)
+						var instance = new StoryletInstance(
+							storylet,
+							bindingDict,
+							storylet.Weight
 						);
+
+						if ( storylet.WeightFunctionName != null )
+						{
+							m_boundStoryletInstance = instance;
+
+							instance.Weight = (int)m_story.EvaluateFunction(
+								storylet.WeightFunctionName
+							);
+						}
+
+						instances.Add( instance );
 					}
 				}
 			}
 			else
 			{
-				instances.Add(
-					new StoryletInstance(
-						storylet,
-						inputBindings,
-						storylet.Weight
-					)
+				var instance = new StoryletInstance(
+					storylet,
+					inputBindings,
+					storylet.Weight
 				);
+
+				if ( storylet.WeightFunctionName != null )
+				{
+					m_boundStoryletInstance = instance;
+
+					instance.Weight = (int)m_story.EvaluateFunction(
+						storylet.WeightFunctionName
+					);
+				}
+
+				instances.Add( instance );
 			}
 
 			return instances;
@@ -1460,6 +1506,116 @@ namespace Anansi
 					OnGetInput?.Invoke(
 						InputRequest
 					);
+				}
+			);
+
+			m_story.BindExternalFunction(
+				"GetBindingVar",
+				(string variableName) =>
+				{
+					return m_boundStoryletInstance.PreconditionBindings[variableName];
+				}
+			);
+
+			m_story.BindExternalFunction(
+				"GoToChoice",
+				(string storyletId) =>
+				{
+					Storylet storylet = m_basicStorylets[storyletId];
+
+					List<StoryletInstance> instances = CreateStoryletInstances(
+						storylet,
+						DB,
+						new Dictionary<string, object>()
+					);
+
+					if ( instances.Count == 0 ) return;
+
+					StoryletInstance selectedInstance = instances
+						.RandomElementByWeight( s => s.Weight );
+
+					m_dynamicChoices.Add( selectedInstance );
+					m_dynamicChoiceIds.Add( selectedInstance.KnotID );
+				}
+			);
+
+			m_story.BindExternalFunction(
+				"ChoiceWithTags",
+				(string tags) =>
+				{
+					List<string> tagList = new List<string>();
+					foreach ( var tag in tags.Split( "," ) )
+					{
+						tagList.Add( tag.Trim() );
+					}
+
+					List<StoryletInstance> storyletInstances = new List<StoryletInstance>();
+
+					foreach ( var (_, storylet) in m_basicStorylets )
+					{
+						if ( !storylet.HasTags( tagList ) ) continue;
+						if ( m_dynamicChoiceIds.Contains( storylet.KnotID ) ) continue;
+
+						List<StoryletInstance> instances = CreateStoryletInstances(
+							storylet,
+							DB,
+							new Dictionary<string, object>()
+						);
+
+						foreach ( var entry in instances )
+						{
+							storyletInstances.Add( entry );
+						}
+					}
+
+					if ( storyletInstances.Count > 0 )
+					{
+						StoryletInstance selectedInstance = storyletInstances
+							.RandomElementByWeight( s => s.Weight );
+
+						// StringBuilder sb = new StringBuilder();
+						// sb.AppendLine( $"Found the following choices with tags '{tags}'" );
+						// foreach ( var entry in storyletInstances )
+						// {
+						// 	sb.AppendLine( $"Label: {entry.ChoiceLabel}, Weight: {entry.Weight}" );
+						// }
+						// sb.AppendLine( $"And we presented: {selectedInstance.ChoiceLabel}" );
+
+						// Debug.Log( sb.ToString() );
+
+						m_dynamicChoices.Add( selectedInstance );
+						m_dynamicChoiceIds.Add( selectedInstance.KnotID );
+					}
+				}
+			);
+
+			m_story.BindExternalFunction(
+				"AvailableActionChoices",
+				() =>
+				{
+					foreach ( var storyletInstance in GetEligibleActionStorylets() )
+					{
+						if ( !m_dynamicChoiceIds.Contains( storyletInstance.KnotID ) )
+						{
+							m_dynamicChoices.Add( storyletInstance );
+							m_dynamicChoiceIds.Add( storyletInstance.KnotID );
+						}
+					}
+				}
+			);
+
+			m_story.BindExternalFunction(
+				"AvailableLocationChoices",
+				() =>
+				{
+					foreach ( var storyletInstance in GetEligibleLocationStorylets() )
+					{
+						if ( !m_dynamicChoiceIds.Contains( storyletInstance.KnotID ) )
+						{
+							m_dynamicChoices.Add( storyletInstance );
+							m_dynamicChoiceIds.Add( storyletInstance.KnotID );
+						}
+					}
 				}
 			);
 		}

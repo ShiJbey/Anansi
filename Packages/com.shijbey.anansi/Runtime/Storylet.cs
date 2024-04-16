@@ -79,6 +79,11 @@ namespace Anansi
 		public int Weight { get; set; }
 
 		/// <summary>
+		/// The name of the Ink function to use to calculate the weight of a particular instance.
+		/// </summary>
+		public string WeightFunctionName { get; set; }
+
+		/// <summary>
 		/// (Location storylets only) A list of locations connected to this one
 		/// </summary>
 		public List<string> ConnectedLocations { get; }
@@ -130,6 +135,8 @@ namespace Anansi
 			InputBindings = new Dictionary<string, object>();
 			LocationID = "";
 			ActionID = "";
+			Weight = 1;
+			WeightFunctionName = null;
 		}
 
 		#endregion

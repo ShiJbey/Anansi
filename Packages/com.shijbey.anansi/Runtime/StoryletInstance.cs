@@ -34,7 +34,7 @@ namespace Anansi
 		/// <summary>
 		/// The weight of this storylet instance.
 		/// </summary>
-		public int Weight { get; }
+		public int Weight { get; set; }
 
 		/// <summary>
 		/// RePraxis variable names mapped to their bound values from the database.
