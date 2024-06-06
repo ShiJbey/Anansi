@@ -30,22 +30,22 @@ namespace Anansi
 
 		#region Unity Messages
 
-		private void Awake()
-		{
-			m_storyController = FindObjectOfType<StoryController>();
-		}
+		// private void Awake()
+		// {
+		// 	m_storyController = FindObjectOfType<StoryController>();
+		// }
 
-		private void OnEnable()
-		{
-			TimeManager.OnTimeChanged += HandleTimeChange;
-			m_storyController.OnStoryLocationChange += HandleLocationChange;
-		}
+		// private void OnEnable()
+		// {
+		// 	TimeManager.OnTimeChanged += HandleTimeChange;
+		// 	m_storyController.OnStoryLocationChange += HandleLocationChange;
+		// }
 
-		private void OnDisable()
-		{
-			TimeManager.OnTimeChanged -= HandleTimeChange;
-			m_storyController.OnStoryLocationChange -= HandleLocationChange;
-		}
+		// private void OnDisable()
+		// {
+		// 	TimeManager.OnTimeChanged -= HandleTimeChange;
+		// 	m_storyController.OnStoryLocationChange -= HandleLocationChange;
+		// }
 
 		#endregion
 
@@ -55,7 +55,7 @@ namespace Anansi
 		/// Callback executed when the current time in the story changes.
 		/// </summary>
 		/// <param name="dateTime"></param>
-		private void HandleTimeChange(SimDateTime dateTime)
+		public void HandleTimeChange(SimDateTime dateTime)
 		{
 			m_dateTimeText.SetText( dateTime.ToString() );
 		}
@@ -64,7 +64,7 @@ namespace Anansi
 		/// Callback executed when the story's location changes.
 		/// </summary>
 		/// <param name="location"></param>
-		private void HandleLocationChange(Location location)
+		public void HandleLocationChange(Location location)
 		{
 			m_locationText.SetText( location.DisplayName );
 		}

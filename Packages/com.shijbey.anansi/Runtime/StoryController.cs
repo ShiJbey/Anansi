@@ -5,8 +5,7 @@ using System.Linq;
 using UnityEngine;
 using RePraxis;
 using UnityEngine.Events;
-using Anansi.Scheduling;
-using TDRS;
+using UnityEditor;
 
 namespace Anansi
 {
@@ -36,36 +35,6 @@ namespace Anansi
 		#endregion
 
 		#region Fields
-
-		/// <summary>
-		/// A reference to the player's character.
-		/// </summary>
-		[SerializeField]
-		protected Character m_player;
-
-		/// <summary>
-		/// Manages a lookup table for all characters in the game.
-		/// </summary>
-		[SerializeField]
-		private CharacterManager m_characterManager;
-
-		/// <summary>
-		/// Manages a look-up table for all the locations in the game.
-		/// </summary>
-		[SerializeField]
-		private LocationManager m_locationManager;
-
-		/// <summary>
-		/// Manages the current time in the game.
-		/// </summary>
-		[SerializeField]
-		private TimeManager m_timeManager;
-
-		/// <summary>
-		/// Manages character relationships and all information in the logical database.
-		/// </summary>
-		[SerializeField]
-		private SocialEngineController m_socialEngine;
 
 		/// <summary>
 		/// A reference to the JSON file containing the compiled Ink story.
@@ -108,8 +77,15 @@ namespace Anansi
 		/// </summary>
 		private StoryletInstance m_storyletOnDeck = null;
 
+		/// <summary>
+		/// An internal cache of dynamic choices to present the player. This list is added to
+		/// when we want to present storylet diverts as if they are native Ink choices.
+		/// </summary>
 		private List<StoryletInstance> m_dynamicChoices;
 
+		/// <summary>
+		/// The IDs of all the choices currently in the m_dynamic choices list.
+		/// </summary>
 		private HashSet<string> m_dynamicChoiceIds;
 
 		/// <summary>
@@ -123,9 +99,14 @@ namespace Anansi
 		#region Properties
 
 		/// <summary>
+		/// All tags belonging to the current line of dialogue.
+		/// </summary>
+		public List<string> LineTags { get; private set; }
+
+		/// <summary>
 		/// The database used for storylet queries.
 		/// </summary>
-		public RePraxisDatabase DB => m_socialEngine.DB;
+		public RePraxisDatabase DB { get; set; }
 
 		/// <summary>
 		/// What is the story controller currently doing.
@@ -137,6 +118,9 @@ namespace Anansi
 		/// </summary>
 		public bool IsDisplayingDialogue { get; private set; }
 
+		/// <summary>
+		///	The current input request the controller is waiting to complete.
+		/// </summary>
 		public InputRequest InputRequest { get; private set; }
 
 		#endregion
@@ -164,14 +148,9 @@ namespace Anansi
 		public UnityAction<IList<string>> OnProcessLineTags;
 
 		/// <summary>
-		/// Action invoked when the location of the story changes
-		/// </summary>
-		public UnityAction<Location> OnStoryLocationChange;
-
-		/// <summary>
 		/// Action invoked when the current speaker changes
 		/// </summary>
-		public UnityAction<Character> OnSpeakerChange;
+		public UnityAction<SpeakerInfo> OnSpeakerChange;
 
 		/// <summary>
 		/// Action invoked when attempting to get user input.
@@ -182,6 +161,11 @@ namespace Anansi
 		/// Invoked when we have the next line of story dialogue.
 		/// </summary>
 		public UnityAction<string> OnNextDialogueLine;
+
+		/// <summary>
+		/// Allow external listeners to contribute the the weight of a storylet instance.
+		/// </summary>
+		public UnityAction<StoryletInstance> OnScoreStoryletInstance;
 
 		#endregion
 
@@ -194,13 +178,13 @@ namespace Anansi
 				throw new NullReferenceException( "StoryController is missing storyJSON" );
 			}
 
-			m_startingStorylet = null;
+			DB = new RePraxisDatabase();
 			m_basicStorylets = new Dictionary<string, Storylet>();
-			m_locationStorylets = new Dictionary<string, Storylet>();
-			m_actionStorylets = new Dictionary<string, Storylet>();
 			m_story = new Ink.Runtime.Story( m_storyJson.text );
 			IsDisplayingDialogue = false;
 			IsWaitingForInput = false;
+			m_locationStorylets = new Dictionary<string, Storylet>();
+			m_actionStorylets = new Dictionary<string, Storylet>();
 
 			LoadStorylets();
 		}
@@ -231,218 +215,6 @@ namespace Anansi
 		public void Initialize()
 		{
 			RegisterExternalFunctions();
-
-			m_characterManager.InitializeLookUpTable();
-			m_locationManager.InitializeLookUpTable();
-
-			// Insert initial character entry into database
-			foreach ( var character in m_characterManager.Characters )
-			{
-				DB.Insert( $"{character.UniqueID}" );
-			}
-
-			// Insert initial location entry into the database
-			foreach ( var location in m_locationManager.Locations )
-			{
-				DB.Insert( $"{location.UniqueID}" );
-			}
-
-			// Reposition character and background sprites
-			m_locationManager.ResetBackgrounds();
-			m_characterManager.ResetSprites();
-
-			// Add the current date to the social engine's database
-			SimDateTime currentDate = m_timeManager.DateTime;
-
-			DB.Insert(
-				$"date.time_of_day!{Enum.GetName( typeof( TimeOfDay ), currentDate.TimeOfDay )}" );
-			DB.Insert(
-				$"date.day!{currentDate.Day}" );
-			DB.Insert(
-				$"date.weekday!{Enum.GetName( typeof( WeekDay ), currentDate.WeekDay )}" );
-			DB.Insert(
-				$"date.week!{currentDate.Week}" );
-
-			// Move NPCs to their starting positions
-			TickCharacterSchedules();
-		}
-
-		/// <summary>
-		/// Start the story.
-		/// </summary>
-		public void StartStory()
-		{
-			// Generally, the starting storylet should not contain a query, but if it does, then
-			// there is the possibility that we will fail to create any storylet instances.
-			// This is a bug that designers should figure out and is not a fault of Anansi.
-			List<StoryletInstance> startInstances = CreateStoryletInstances(
-				m_startingStorylet,
-				DB,
-				new Dictionary<string, object>()
-			);
-
-			if ( startInstances.Count == 0 )
-			{
-				throw new Exception( "Failed to create instance of starting storylet." );
-			}
-
-			// These should all be weighted the same, but this code will remain incase future
-			// implementations allow for instances of the same storylet to have varying weights
-			StoryletInstance selectedInstance = startInstances
-				.RandomElementByWeight( s => s.Weight );
-
-			RunStoryletInstance( selectedInstance );
-		}
-
-		/// <summary>
-		/// Tick the simulation
-		/// </summary>
-		public void Tick()
-		{
-			TickTime();
-			TickCharacterSchedules();
-		}
-
-		/// <summary>
-		/// Update advance the current time by one step.
-		/// </summary>
-		public void TickTime()
-		{
-			m_timeManager.AdvanceTime();
-
-			SimDateTime currentDate = m_timeManager.DateTime;
-
-			DB.Insert(
-				$"date.time_of_day!{Enum.GetName( typeof( TimeOfDay ), currentDate.TimeOfDay )}" );
-			DB.Insert(
-				$"date.day!{currentDate.Day}" );
-			DB.Insert(
-				$"date.weekday!{Enum.GetName( typeof( WeekDay ), currentDate.WeekDay )}" );
-			DB.Insert(
-				$"date.week!{currentDate.Week}" );
-		}
-
-		/// <summary>
-		/// Update character states based on what their schedules dictate.
-		/// </summary>
-		public void TickCharacterSchedules()
-		{
-			SimDateTime currentDate = m_timeManager.DateTime;
-
-			foreach ( Character character in m_characterManager.Characters )
-			{
-				if ( character == m_player ) continue;
-
-				var scheduleManager = character.gameObject.GetComponent<ScheduleManager>();
-
-				ScheduleEntry entry = scheduleManager.GetEntry( currentDate );
-
-				if ( entry == null ) continue;
-
-				SetCharacterLocation( character, m_locationManager.GetLocation( entry.Location ) );
-			}
-		}
-
-		/// <summary>
-		/// Update location background variants.
-		/// </summary>
-		public void TickLocations()
-		{
-			string variant = "morning";
-
-			switch ( m_timeManager.DateTime.TimeOfDay )
-			{
-				case TimeOfDay.Morning:
-					variant = "morning";
-					break;
-				case TimeOfDay.Afternoon:
-					variant = "afternoon";
-					break;
-				case TimeOfDay.Evening:
-					variant = "eventing";
-					break;
-				case TimeOfDay.Night:
-					variant = "night";
-					break;
-			}
-
-			foreach ( var location in m_locationManager.Locations )
-			{
-				location.TimeOfDayVariant = variant;
-				location.SetSprite();
-			}
-		}
-
-		/// <summary>
-		/// Sets the games background image to the given location
-		/// </summary>
-		/// <param name="locationID"></param>
-		/// <param name="tags"></param>
-		public void SetStoryLocation(string locationID, params string[] tags)
-		{
-			m_locationManager.SetBackground( locationID, tags );
-			OnStoryLocationChange?.Invoke( m_locationManager.GetLocation( locationID ) );
-		}
-
-		/// <summary>
-		/// Move an Actor to a new location.
-		/// </summary>
-		/// <param name="character"></param>
-		/// <param name="location"></param>
-		public void SetCharacterLocation(Character character, Location location)
-		{
-			// Remove the character from their current location
-			if ( character.Location != null )
-			{
-				character.Location.RemoveCharacter( character );
-				DB.Delete(
-					$"{character.Location.UniqueID}.characters.{character.UniqueID}" );
-				DB.Delete(
-					$"{character.UniqueID}.location!{character.Location.UniqueID}" );
-				character.Location = null;
-			}
-
-			if ( location != null )
-			{
-				location.AddCharacter( character );
-				character.Location = location;
-				DB.Insert( $"{location.UniqueID}.characters.{character.UniqueID}" );
-				DB.Insert( $"{character.UniqueID}.location!{location.UniqueID}" );
-			}
-		}
-
-		/// <summary>
-		/// Set the player's current location and change the background
-		/// </summary>
-		/// <param name="locationID"></param>
-		/// <param name="tags"></param>
-		public void SetPlayerLocation(string locationID, params string[] tags)
-		{
-			Location location = m_locationManager.GetLocation( locationID );
-
-			if ( m_player.Location != location )
-			{
-				SetCharacterLocation( m_player, location );
-			}
-
-			if ( location == null )
-			{
-				m_characterManager.HideSpeaker();
-				return;
-			}
-
-			SetStoryLocation( locationID, tags );
-		}
-
-		/// <summary>
-		/// Set the speaker sprite shown on screen.
-		/// </summary>
-		/// <param name="characterID"></param>
-		/// <param name="tags"></param>
-		public void SetSpeaker(string characterID, params string[] tags)
-		{
-			var character = m_characterManager.GetCharacter( characterID );
-			m_characterManager.SetSpeaker( characterID, tags );
 		}
 
 		/// <summary>
@@ -577,7 +349,15 @@ namespace Anansi
 
 			m_boundStoryletInstance = instance;
 
+			// Decrement the cooldowns of all storylets
+			foreach ( Storylet storylet in m_basicStorylets.Values )
+			{
+				storylet.DecrementCooldown();
+			}
+
 			m_currentStorylet.Storylet.IncrementTimesPlayed();
+
+			m_currentStorylet.Storylet.ResetCooldown();
 
 			m_currentStorylet.BindInstanceVariables();
 
@@ -600,128 +380,199 @@ namespace Anansi
 			IsWaitingForInput = false;
 
 			OnDialogueEnd?.Invoke();
-
-			m_characterManager.HideSpeaker();
 		}
 
 		/// <summary>
-		/// Get a list of all location storylets a player could execute.
+		/// Provide input if the system is waiting for input.
 		/// </summary>
-		/// <returns></returns>
-		public List<StoryletInstance> GetEligibleLocationStorylets()
-		{
-			List<StoryletInstance> instances = new List<StoryletInstance>();
-			HashSet<string> eligibleLocations = new HashSet<string>(
-				m_player.Location.ConnectedLocations.Select( s => s.UniqueID )
-			);
-
-			foreach ( var (uid, storylet) in m_locationStorylets )
-			{
-				// Skip storylets still on cooldown
-				if ( storylet.CooldownTimeRemaining > 0 ) continue;
-
-				// Skip storylets that are not repeatable
-				if ( !storylet.IsRepeatable && storylet.TimesPlayed > 0 ) continue;
-
-				if ( !eligibleLocations.Contains( storylet.LocationID ) ) continue;
-
-				// Query the social engine database
-				if ( storylet.Precondition != null )
-				{
-					var results = storylet.Precondition.Run( DB );
-
-					if ( !results.Success ) continue;
-
-					foreach ( var bindingDict in results.Bindings )
-					{
-						instances.Add( new StoryletInstance(
-						storylet,
-						bindingDict,
-						storylet.Weight
-					) );
-					}
-				}
-				else
-				{
-					instances.Add( new StoryletInstance(
-						storylet,
-						new Dictionary<string, object>(),
-						storylet.Weight
-					) );
-				}
-			}
-
-			return instances;
-		}
-
-		/// <summary>
-		/// Get a list of all action storylets a player could execute.
-		/// </summary>
-		/// <returns></returns>
-		public List<StoryletInstance> GetEligibleActionStorylets()
-		{
-			List<StoryletInstance> instances = new List<StoryletInstance>();
-
-			foreach ( var (uid, storylet) in m_actionStorylets )
-			{
-				// Skip storylets still on cooldown
-				if ( storylet.CooldownTimeRemaining > 0 ) continue;
-
-				// Skip storylets that are not repeatable
-				if ( !storylet.IsRepeatable && storylet.TimesPlayed > 0 ) continue;
-
-				// Query the social engine database
-				if ( storylet.Precondition != null )
-				{
-					var results = storylet.Precondition.Run( DB );
-
-					if ( !results.Success ) continue;
-
-					if ( results.Bindings.Length == 0 )
-					{
-						instances.Add(
-							new StoryletInstance(
-								storylet,
-								new Dictionary<string, object>(),
-								storylet.Weight
-							)
-						);
-					}
-					else
-					{
-						foreach ( var bindingDict in results.Bindings )
-						{
-							instances.Add(
-								new StoryletInstance(
-									storylet,
-									bindingDict,
-									storylet.Weight
-								)
-							);
-						}
-					}
-				}
-				else
-				{
-					instances.Add(
-						new StoryletInstance(
-							storylet,
-							new Dictionary<string, object>(),
-							storylet.Weight
-						)
-					);
-				}
-			}
-
-			return instances;
-		}
-
 		public void SetInput(string variableName, object input)
 		{
 			IsWaitingForInput = false;
 			InputRequest = null;
 			this.m_story.state.variablesState[variableName] = input;
 			AdvanceDialogue();
+		}
+
+		/// <summary>
+		/// Start the story.
+		/// </summary>
+		public void StartStory()
+		{
+			// Generally, the starting storylet should not contain a query, but if it does, then
+			// there is the possibility that we will fail to create any storylet instances.
+			// This is a bug that designers should figure out and is not a fault of Anansi.
+			List<StoryletInstance> startInstances = CreateStoryletInstances(
+				m_startingStorylet,
+				DB,
+				new Dictionary<string, object>()
+			);
+
+			if ( startInstances.Count == 0 )
+			{
+				throw new Exception( "Failed to create instance of starting storylet." );
+			}
+
+			// These should all be weighted the same, but this code will remain incase future
+			// implementations allow for instances of the same storylet to have varying weights
+			StoryletInstance selectedInstance = startInstances
+				.RandomElementByWeight( s => s.Weight );
+
+			RunStoryletInstance( selectedInstance );
+		}
+
+		/// <summary>
+		/// Get a storylet by it's ID
+		/// </summary>
+		/// <param name="storyletId"></param>
+		/// <returns></returns>
+		public Storylet GetStorylet(string storyletId)
+		{
+			return this.m_basicStorylets[storyletId];
+		}
+
+		/// <summary>
+		/// Returns all storylets satisfying the given tags.
+		/// </summary>
+		/// <param name="tags"></param>
+		/// <returns></returns>
+		public List<Storylet> GetStoryletsWithTags(IEnumerable<string> tags)
+		{
+			List<(Storylet, int)> matches = new List<(Storylet, int)>();
+			int maxMatchScore = 0;
+
+			HashSet<string> mandatoryTags = new HashSet<string>( tags.Where( t => t[0] != '~' ) );
+			HashSet<string> optionalTags = new HashSet<string>( tags.Where( t => t[0] == '~' ) );
+
+			foreach ( var storylet in m_basicStorylets.Values )
+			{
+				var unsatisfiedMandatoryTags = mandatoryTags.Except( storylet.Tags );
+				var hasAllMandatoryTags = unsatisfiedMandatoryTags.Count() == 0;
+
+				if ( !hasAllMandatoryTags )
+				{
+					continue;
+				}
+
+				var satisfiedOptionalTags = optionalTags.Intersect( storylet.Tags );
+				var optionalTagsCount = satisfiedOptionalTags.Count();
+
+				matches.Add( (storylet, optionalTagsCount) );
+
+				maxMatchScore = Math.Max( optionalTagsCount, maxMatchScore );
+			}
+
+			if ( matches.Count > 0 )
+			{
+				matches.Sort( (a, b) =>
+				{
+					if ( a.Item2 > b.Item2 )
+					{
+						return 1;
+					}
+					else if ( a.Item2 == b.Item2 )
+					{
+						return 0;
+					}
+					else
+					{
+						return -1;
+					}
+				} );
+
+				List<Storylet> bestMatches = matches
+					.Where( entry => entry.Item2 == maxMatchScore )
+					.Select( entry => entry.Item1 )
+					.ToList();
+
+				return bestMatches;
+			}
+
+			return new List<Storylet>();
+		}
+
+		/// <summary>
+		/// Create storylet instances for a given storylet.
+		/// </summary>
+		/// <param name="storylet"></param>
+		/// <param name="db"></param>
+		/// <param name="bindings"></param>
+		/// <returns></returns>
+		public List<StoryletInstance> CreateStoryletInstances(
+			Storylet storylet,
+			RePraxisDatabase db,
+			Dictionary<string, object> bindings
+		)
+		{
+			Dictionary<string, object> inputBindings = new Dictionary<string, object>( bindings );
+
+			foreach ( var (inkVar, queryVar) in storylet.InputBindings )
+			{
+				inputBindings[queryVar.ToString()] = m_story.variablesState[inkVar].ToString();
+			}
+
+			List<StoryletInstance> instances = new List<StoryletInstance>();
+
+			if ( storylet.Precondition != null )
+			{
+				var results = storylet.Precondition.Run( db, inputBindings );
+
+				if ( results.Success )
+				{
+					foreach ( var bindingDict in results.Bindings )
+					{
+						var instance = new StoryletInstance(
+							storylet,
+							bindingDict,
+							storylet.Weight
+						);
+
+						if ( storylet.WeightFunctionName != null )
+						{
+							m_boundStoryletInstance = instance;
+
+							instance.Weight = (int)m_story.EvaluateFunction(
+								storylet.WeightFunctionName
+							);
+						}
+
+						this.OnScoreStoryletInstance?.Invoke( instance );
+
+						instances.Add( instance );
+					}
+				}
+			}
+			else
+			{
+				var instance = new StoryletInstance(
+					storylet,
+					inputBindings,
+					storylet.Weight
+				);
+
+				if ( storylet.WeightFunctionName != null )
+				{
+					m_boundStoryletInstance = instance;
+
+					instance.Weight = (int)m_story.EvaluateFunction(
+						storylet.WeightFunctionName
+					);
+				}
+
+				this.OnScoreStoryletInstance?.Invoke( instance );
+
+				instances.Add( instance );
+			}
+
+			return instances;
+		}
+
+		public void AddDynamicChoice(StoryletInstance instance)
+		{
+			if ( !m_dynamicChoiceIds.Contains( instance.KnotID ) )
+			{
+				m_dynamicChoices.Add( instance );
+				m_dynamicChoiceIds.Add( instance.KnotID );
+			}
 		}
 
 		#endregion
@@ -1104,78 +955,6 @@ namespace Anansi
 		}
 
 		/// <summary>
-		/// Create storylet instances for a given storylet.
-		/// </summary>
-		/// <param name="storylet"></param>
-		/// <param name="db"></param>
-		/// <param name="bindings"></param>
-		/// <returns></returns>
-		private List<StoryletInstance> CreateStoryletInstances(
-			Storylet storylet,
-			RePraxisDatabase db,
-			Dictionary<string, object> bindings
-		)
-		{
-			Dictionary<string, object> inputBindings = new Dictionary<string, object>( bindings );
-
-			foreach ( var (inkVar, queryVar) in storylet.InputBindings )
-			{
-				inputBindings[queryVar.ToString()] = m_story.variablesState[inkVar].ToString();
-			}
-
-			List<StoryletInstance> instances = new List<StoryletInstance>();
-
-			if ( storylet.Precondition != null )
-			{
-				var results = storylet.Precondition.Run( db, inputBindings );
-
-				if ( results.Success )
-				{
-					foreach ( var bindingDict in results.Bindings )
-					{
-						var instance = new StoryletInstance(
-							storylet,
-							bindingDict,
-							storylet.Weight
-						);
-
-						if ( storylet.WeightFunctionName != null )
-						{
-							m_boundStoryletInstance = instance;
-
-							instance.Weight = (int)m_story.EvaluateFunction(
-								storylet.WeightFunctionName
-							);
-						}
-
-						instances.Add( instance );
-					}
-				}
-			}
-			else
-			{
-				var instance = new StoryletInstance(
-					storylet,
-					inputBindings,
-					storylet.Weight
-				);
-
-				if ( storylet.WeightFunctionName != null )
-				{
-					m_boundStoryletInstance = instance;
-
-					instance.Weight = (int)m_story.EvaluateFunction(
-						storylet.WeightFunctionName
-					);
-				}
-
-				instances.Add( instance );
-			}
-
-			return instances;
-		}
-
-		/// <summary>
 		/// Log story errors
 		/// </summary>
 		/// <param name="message"></param>
@@ -1202,7 +981,6 @@ namespace Anansi
 
 			if ( match.Value == "" )
 			{
-				m_characterManager.HideSpeaker();
 				OnSpeakerChange?.Invoke( null );
 				return line;
 			}
@@ -1215,9 +993,7 @@ namespace Anansi
 				speakerSpec.RemoveAt( 0 );
 				string[] speakerTags = speakerSpec.ToArray();
 
-				m_characterManager.SetSpeaker( speakerId, speakerTags );
-
-				OnSpeakerChange?.Invoke( m_characterManager.GetCharacter( speakerId ) );
+				OnSpeakerChange?.Invoke( new SpeakerInfo( speakerId, speakerTags ) );
 
 				string dialogueText = match.Groups[2].Value.Trim();
 
@@ -1263,41 +1039,8 @@ namespace Anansi
 				}
 			}
 
-			foreach ( string line in tags )
-			{
-				// Get the different parts of the line
-				// string[] parts = line.Split( ">>" ).Select( s => s.Trim() ).ToArray();
-
-				// if ( parts.Length != 2 )
-				// {
-				// 	throw new System.ArgumentException(
-				// 		$"Invalid expression '{line}' in knot '{m_storyletInstance.KnotID}'."
-				// 	);
-				// }
-
-				// string command = parts[0];
-				// List<string> arguments = parts[1].Split( " " )
-				// 	.Select( s => s.Trim() ).ToList();
-
-				// switch (command)
-				// {
-				//     case "speaker":
-				//         string speakerID = arguments[0];
-
-				//         if (m_currentSpeaker != speakerID)
-				//         {
-				//             m_currentSpeaker = speakerID;
-				//             arguments.RemoveAt(0);
-				//             string[] speakerTags = arguments.ToArray();
-				//             m_gameManager.SetSpeaker(
-				//                 speakerID, speakerTags
-				//             );
-				//         }
-
-				//         break;
-				// }
-
-			}
+			LineTags = filteredTags;
+			OnProcessLineTags?.Invoke( filteredTags );
 		}
 
 		/// <summary>
@@ -1305,47 +1048,6 @@ namespace Anansi
 		/// </summary>
 		private void RegisterExternalFunctions()
 		{
-			OnRegisterExternalFunctions?.Invoke( m_story );
-
-			m_story.BindExternalFunction(
-				"SetLocation",
-				(string locationID, string tags) =>
-				{
-					string[] tagsArr = tags.Split( "," )
-						.Select( s => s.Trim() )
-						.Where( s => s != "" )
-						.ToArray();
-
-					SetPlayerLocation( locationID, tagsArr );
-				}
-			);
-
-			m_story.BindExternalFunction(
-				"SetBackgroundOnly",
-				(string locationID, string tags) =>
-				{
-					string[] tagsArr = tags.Split( "," )
-						.Select( s => s.Trim() )
-						.Where( s => s != "" )
-						.ToArray();
-
-					SetStoryLocation( locationID, tagsArr );
-				}
-			);
-
-			m_story.BindExternalFunction(
-				"SetSpeaker",
-				(string characterID, string tags) =>
-				{
-					string[] tagsArr = tags.Split( "," )
-						.Select( s => s.Trim() )
-						.Where( s => s != "" )
-						.ToArray();
-
-					SetSpeaker( characterID, tagsArr );
-				}
-			);
-
 			m_story.BindExternalFunction(
 				"DbInsert",
 				(string statement) =>
@@ -1367,14 +1069,6 @@ namespace Anansi
 				(string statement) =>
 				{
 					return DB.Assert( statement );
-				}
-			);
-
-			m_story.BindExternalFunction(
-				"AdvanceTime",
-				() =>
-				{
-					Tick();
 				}
 			);
 
@@ -1403,19 +1097,16 @@ namespace Anansi
 				"QueueStoryletWithTags",
 				(string tags, string fallback) =>
 				{
-					List<string> tagList = new List<string>();
-					foreach ( var tag in tags.Split( "," ) )
-					{
-						tagList.Add( tag.Trim() );
-					}
+					IEnumerable<string> tagList = tags.Split( "," ).Select( t => t.Trim() );
 
+					IEnumerable<Storylet> storyletsWithTags = GetStoryletsWithTags( tagList )
+						.Where( storylet => storylet.IsEligible );
 
 					List<StoryletInstance> storyletInstances = new List<StoryletInstance>();
+					List<StoryletInstance> mandatoryStorylets = new List<StoryletInstance>();
 
-					foreach ( var (_, storylet) in m_basicStorylets )
+					foreach ( Storylet storylet in storyletsWithTags )
 					{
-						if ( !storylet.HasTags( tagList ) ) continue;
-
 						List<StoryletInstance> instances = CreateStoryletInstances(
 							storylet,
 							DB,
@@ -1425,10 +1116,22 @@ namespace Anansi
 						foreach ( var entry in instances )
 						{
 							storyletInstances.Add( entry );
+
+							if ( storylet.IsMandatory )
+							{
+								mandatoryStorylets.Add( entry );
+							}
 						}
 					}
 
-					if ( storyletInstances.Count > 0 )
+					if ( mandatoryStorylets.Count > 0 )
+					{
+						StoryletInstance selectedInstance = mandatoryStorylets
+							.RandomElementByWeight( s => s.Weight );
+
+						m_storyletOnDeck = selectedInstance;
+					}
+					else if ( storyletInstances.Count > 0 )
 					{
 						StoryletInstance selectedInstance = storyletInstances
 							.RandomElementByWeight( s => s.Weight );
@@ -1459,41 +1162,35 @@ namespace Anansi
 			);
 
 			m_story.BindExternalFunction(
-				"GetStringInput",
-				(string prompt, string varName) =>
+				"GetInput",
+				(string dataTypeName, string prompt, string varName) =>
 				{
 					IsWaitingForInput = true;
-					InputRequest = new InputRequest(
-						prompt, varName, InputDataType.String
-					);
-					OnGetInput?.Invoke(
-						InputRequest
-					);
-				}
-			);
+					InputDataType dataType = InputDataType.String;
 
-			m_story.BindExternalFunction(
-				"GetIntInput",
-				(string prompt, string varName) =>
-				{
-					IsWaitingForInput = true;
-					InputRequest = new InputRequest(
-						prompt, varName, InputDataType.Int
-					);
-					OnGetInput?.Invoke(
-						InputRequest
-					);
-				}
-			);
+					switch ( dataTypeName )
+					{
+						case "int":
+							dataType = InputDataType.Int;
+							break;
+						case "float":
+							dataType = InputDataType.Float;
+							break;
+						case "number":
+							dataType = InputDataType.Float;
+							break;
+						case "text":
+							dataType = InputDataType.String;
+							break;
+						default:
+							dataType = InputDataType.String;
+							break;
+					}
 
-			m_story.BindExternalFunction(
-				"GetFloatInput",
-				(string prompt, string varName, string dataType) =>
-				{
-					IsWaitingForInput = true;
 					InputRequest = new InputRequest(
-						prompt, varName, InputDataType.Float
+						prompt, varName, dataType
 					);
+
 					OnGetInput?.Invoke(
 						InputRequest
 					);
@@ -1534,17 +1231,16 @@ namespace Anansi
 				"ChoiceWithTags",
 				(string tags) =>
 				{
-					List<string> tagList = new List<string>();
-					foreach ( var tag in tags.Split( "," ) )
-					{
-						tagList.Add( tag.Trim() );
-					}
+					IEnumerable<string> tagList = tags.Split( "," ).Select( t => t.Trim() );
+
+					IEnumerable<Storylet> storyletsWithTags = GetStoryletsWithTags( tagList )
+						.Where( storylet => storylet.IsEligible );
 
 					List<StoryletInstance> storyletInstances = new List<StoryletInstance>();
+					List<StoryletInstance> mandatoryStorylets = new List<StoryletInstance>();
 
-					foreach ( var (_, storylet) in m_basicStorylets )
+					foreach ( Storylet storylet in storyletsWithTags )
 					{
-						if ( !storylet.HasTags( tagList ) ) continue;
 						if ( m_dynamicChoiceIds.Contains( storylet.KnotID ) ) continue;
 
 						List<StoryletInstance> instances = CreateStoryletInstances(
@@ -1556,23 +1252,26 @@ namespace Anansi
 						foreach ( var entry in instances )
 						{
 							storyletInstances.Add( entry );
+
+							if ( storylet.IsMandatory )
+							{
+								mandatoryStorylets.Add( entry );
+							}
 						}
 					}
 
-					if ( storyletInstances.Count > 0 )
+					if ( mandatoryStorylets.Count > 0 )
+					{
+						StoryletInstance selectedInstance = mandatoryStorylets
+							.RandomElementByWeight( s => s.Weight );
+
+						m_dynamicChoices.Add( selectedInstance );
+						m_dynamicChoiceIds.Add( selectedInstance.KnotID );
+					}
+					else if ( storyletInstances.Count > 0 )
 					{
 						StoryletInstance selectedInstance = storyletInstances
 							.RandomElementByWeight( s => s.Weight );
-
-						// StringBuilder sb = new StringBuilder();
-						// sb.AppendLine( $"Found the following choices with tags '{tags}'" );
-						// foreach ( var entry in storyletInstances )
-						// {
-						// 	sb.AppendLine( $"Label: {entry.ChoiceLabel}, Weight: {entry.Weight}" );
-						// }
-						// sb.AppendLine( $"And we presented: {selectedInstance.ChoiceLabel}" );
-
-						// Debug.Log( sb.ToString() );
 
 						m_dynamicChoices.Add( selectedInstance );
 						m_dynamicChoiceIds.Add( selectedInstance.KnotID );
@@ -1580,35 +1279,8 @@ namespace Anansi
 				}
 			);
 
-			m_story.BindExternalFunction(
-				"AvailableActionChoices",
-				() =>
-				{
-					foreach ( var storyletInstance in GetEligibleActionStorylets() )
-					{
-						if ( !m_dynamicChoiceIds.Contains( storyletInstance.KnotID ) )
-						{
-							m_dynamicChoices.Add( storyletInstance );
-							m_dynamicChoiceIds.Add( storyletInstance.KnotID );
-						}
-					}
-				}
-			);
-
-			m_story.BindExternalFunction(
-				"AvailableLocationChoices",
-				() =>
-				{
-					foreach ( var storyletInstance in GetEligibleLocationStorylets() )
-					{
-						if ( !m_dynamicChoiceIds.Contains( storyletInstance.KnotID ) )
-						{
-							m_dynamicChoices.Add( storyletInstance );
-							m_dynamicChoiceIds.Add( storyletInstance.KnotID );
-						}
-					}
-				}
-			);
+			// Load functions from external classes.
+			OnRegisterExternalFunctions?.Invoke( m_story );
 		}
 
 		#endregion
@@ -1632,6 +1304,18 @@ namespace Anansi
 			Prompt = prompt;
 			VariableName = variableName;
 			DataType = dataType;
+		}
+	}
+
+	public class SpeakerInfo
+	{
+		public string SpeakerId { get; }
+		public string[] Tags { get; }
+
+		public SpeakerInfo(string speakerId, string[] tags)
+		{
+			this.SpeakerId = speakerId;
+			this.Tags = tags;
 		}
 	}
 }

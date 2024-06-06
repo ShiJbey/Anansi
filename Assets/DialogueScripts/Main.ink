@@ -3,16 +3,14 @@ INCLUDE ./SampleDialogue.ink
 
 // Anansi provides various external functions to assist with communicating with external systems such as the GUI, Story Database, and Time System.
 
-EXTERNAL SetLocation(location, tags)
-EXTERNAL SetBackgroundOnly(location, tags)
+EXTERNAL SetPlayerLocation(locationId)
 EXTERNAL DbInsert(statement)
 EXTERNAL DbDelete(statement)
 EXTERNAL DbAssert(statement)
 EXTERNAL AdvanceTime()
 EXTERNAL QueueStorylet(storyletId)
 EXTERNAL QueueStoryletWithTags(tags, fallback)
-EXTERNAL GetStringInput(prompt, variableName)
-EXTERNAL GetIntInput(prompt, variableName)
+EXTERNAL GetInput(dataType, prompt, variableName)
 
 // Global variables are shared across all storylets because they use the same story instance. Storylet queries may overwrite these values. So, be mindful of your variable usage
 
@@ -61,18 +59,18 @@ Time has advanced.
 # choiceLabel: Go to Outside Library.
 #===
 
-{SetLocation("outside_library", "")}
+{SetPlayerLocation("outside_library")}
 
 {location_outside_library == 1:
     You're standing outside of the campus library.
     
-    You look at your Student ID. The name says... {GetStringInput("What is your name?", "PlayerName")}
+    You look at your Student ID. The name says... {GetInput("text", "What is your name?", "PlayerName")}
     
     It says {PlayerName}. They usually spell it wrong, but the registrar manager had the same name.
     
     What are the chances of that?
     
-    Your student ID number is...{GetIntInput("Enter student ID...", "WorldSeed")}
+    Your student ID number is...{GetInput("int", "Enter student ID...", "WorldSeed")}
 }  
 
 -> DONE
@@ -82,7 +80,7 @@ Time has advanced.
 # choiceLabel: Go to Dining Hall.
 #===
 
-{SetLocation("dining_hall", "")}
+{SetPlayerLocation("dining_hall")}
 
 -> DONE
 
@@ -91,7 +89,7 @@ Time has advanced.
 # choiceLabel: Go to Library.
 #===
 
-{SetLocation("library", "")}
+{SetPlayerLocation("library")}
 
 -> DONE
 
@@ -100,7 +98,7 @@ Time has advanced.
 # choiceLabel: Go to Gym.
 #===
 
-{SetLocation("gym", "")}
+{SetPlayerLocation("gym")}
 
 -> DONE
 
@@ -109,7 +107,7 @@ Time has advanced.
 # choiceLabel: Go to Classroom.
 #===
 
-{SetLocation("classroom", "")}
+{SetPlayerLocation("classroom")}
 
 -> DONE
 
@@ -118,7 +116,7 @@ Time has advanced.
 # choiceLabel: Go to Campus Walkway.
 #===
 
-{SetLocation("campus_walkway", "")}
+{SetPlayerLocation("campus_walkway")}
 
 -> DONE
 
@@ -127,7 +125,7 @@ Time has advanced.
 # choiceLabel: Go to Evelyn's room.
 #===
 
-{SetLocation("evelyn_dormroom", "")}
+{SetPlayerLocation("evelyn_dormroom")}
 
 {
     - DbAssert("evelyn.location!evelyn_dormroom"):
@@ -143,7 +141,7 @@ Time has advanced.
 # choiceLabel: Go to Astrid's room.
 #===
 
-{SetLocation("astrid_dormroom", "")}
+{SetPlayerLocation("astrid_dormroom")}
 
 {
     - DbAssert("astrid.location!astrid_dormroom"):
@@ -159,7 +157,7 @@ Time has advanced.
 # choiceLabel: Go to your room.
 #===
 
-{SetLocation("player_dormroom", "")}
+{SetPlayerLocation("player_dormroom")}
 
 You're in your room.
 

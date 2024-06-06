@@ -1617,7 +1617,7 @@ MonoBehaviour:
   m_dialogueText: {fileID: 439416730586825665}
   m_speakerName: {fileID: 8600478633032997089}
   m_choiceDialog: {fileID: 3673202021974055871}
-  m_inputPanel: {fileID: 0}
+  m_inputPanel: {fileID: 3197443838560017815}
   m_slideOutSeconds: 0.2
   m_slideInSeconds: 0.2
   m_typingSpeed: 0.02

@@ -26,6 +26,17 @@ namespace Anansi
 		private TimeOfDay m_startingTimeOfDay = TimeOfDay.Morning;
 
 		/// <summary>
+		/// The number of simulation ticks associated with
+		/// </summary>
+		[SerializeField]
+		private int m_ticksPerTimeOfDay;
+
+		/// <summary>
+		/// The number of simulation ticks that have elapsed since the last time of day change.
+		/// </summary>
+		private int m_elapsedTicks;
+
+		/// <summary>
 		/// The current date
 		/// </summary>
 		[SerializeField]
@@ -57,6 +68,7 @@ namespace Anansi
 		private void Awake()
 		{
 			m_dateTime = new SimDateTime( m_startingDay, m_startingTimeOfDay );
+			m_elapsedTicks = 0;
 		}
 
 		// Start is called before the first frame update
@@ -68,6 +80,21 @@ namespace Anansi
 		#endregion
 
 		#region Public Methods
+
+		/// <summary>
+		/// Tick the time manager.
+		/// </summary>
+		public void Tick()
+		{
+			if ( m_elapsedTicks >= m_ticksPerTimeOfDay )
+			{
+				AdvanceTime();
+			}
+			else
+			{
+				m_elapsedTicks++;
+			}
+		}
 
 		/// <summary>
 		/// Advance the time by one timestep

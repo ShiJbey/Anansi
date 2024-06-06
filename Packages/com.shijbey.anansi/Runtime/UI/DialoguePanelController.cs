@@ -20,6 +20,11 @@ namespace Anansi
 		private StoryController m_storyController;
 
 		/// <summary>
+		/// A reference to the game manager
+		/// </summary>
+		private GameManager m_gameManager;
+
+		/// <summary>
 		/// A reference to the button that advances to the next set of dialogue
 		/// </summary>
 		[SerializeField]
@@ -153,6 +158,7 @@ namespace Anansi
 		{
 			m_rectTransform = gameObject.transform as RectTransform;
 			m_storyController = FindObjectOfType<StoryController>();
+			m_gameManager = FindObjectOfType<GameManager>();
 		}
 
 		private void Start()
@@ -333,15 +339,15 @@ namespace Anansi
 			Hide();
 		}
 
-		private void HandleSpeakerChange(Character speaker)
+		private void HandleSpeakerChange(SpeakerInfo info)
 		{
-			if ( speaker == null )
+			if ( info == null )
 			{
 				SetSpeakerName( "" );
 			}
 			else
 			{
-				SetSpeakerName( speaker.DisplayName );
+				SetSpeakerName( info.SpeakerId );
 			}
 		}
 

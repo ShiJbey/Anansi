@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 640525242105120166}
   - component: {fileID: 7637924957314695651}
+  - component: {fileID: 6786583128324118469}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -44,8 +45,36 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a87d45ce4787efc41860cc8d323fde6d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _displayName: Player
-  _uniqueID: player
-  _startingLocation: {fileID: 0}
-  _sprites: []
-  _storyDatabase: {fileID: 0}
+  m_displayName: 
+  m_uniqueID: 
+--- !u!114 &6786583128324118469
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5213090793703540277}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1165db2bee8ed4e828113077a4c2cd1a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_UID: 
+  m_agentSchema: {fileID: 0}
+  m_baseStats: []
+  m_baseTraits: []
+  OnTraitAdded:
+    m_PersistentCalls:
+      m_Calls: []
+  OnTraitRemoved:
+    m_PersistentCalls:
+      m_Calls: []
+  OnStatChange:
+    m_PersistentCalls:
+      m_Calls: []
+  OnTick:
+    m_PersistentCalls:
+      m_Calls: []
+  OnRegistered:
+    m_PersistentCalls:
+      m_Calls: []

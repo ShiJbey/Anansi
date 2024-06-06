@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace Anansi
 {
@@ -109,6 +108,24 @@ namespace Anansi
 		/// </summary>
 		public string ChoiceLabel { get; set; }
 
+		/// <summary>
+		/// Is this storylet not under cooldown and not reached its max number of plays.
+		/// </summary>
+		/// <value></value>
+		public bool IsEligible
+		{
+			get
+			{
+				bool hasCooldown = Cooldown > 0;
+
+				if ( hasCooldown && CooldownTimeRemaining > 0 ) return false;
+
+				if ( !IsRepeatable && TimesPlayed > 0 ) return false;
+
+				return true;
+			}
+		}
+
 		#endregion
 
 		#region Constructors
@@ -142,21 +159,6 @@ namespace Anansi
 		#endregion
 
 		#region Public Methods
-
-		/// <summary>
-		/// Check if a storylet has the given tags.
-		/// </summary>
-		/// <param name="tags"></param>
-		/// <returns></returns>
-		public bool HasTags(IList<string> tags)
-		{
-			foreach ( string tag in tags )
-			{
-				if ( !Tags.Contains( tag ) ) return false;
-			}
-
-			return true;
-		}
 
 		/// <summary>
 		/// Decrement the cool down time and return the remaining time.
