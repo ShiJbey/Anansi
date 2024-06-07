@@ -72,7 +72,7 @@ namespace Anansi
 						() =>
 						{
 							m_choiceDialog.Hide();
-							m_gameManager.StoryController.RunStoryletInstance( storyletInstance );
+							m_gameManager.Story.RunStoryletInstance( storyletInstance );
 						}
 					);
 				}

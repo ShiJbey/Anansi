@@ -10,12 +10,7 @@ using System.Linq;
 namespace Anansi
 {
 	/// <summary>
-	/// The GameManager coordinates the start of the game.
-	///
-	/// <remark>
-	/// You can replace this manager with another class in your own projects. Just ensure that it
-	/// calls <c>StoryController.Initialize()</c> and <c>StoryController.StartStory</c>
-	/// </remark>
+	/// Coordinates all game-specific logic.
 	/// </summary>
 	[DefaultExecutionOrder( 2 )]
 	public class GameManager : MonoBehaviour
@@ -27,12 +22,6 @@ namespace Anansi
 		/// </summary>
 		[SerializeField]
 		protected Character m_player;
-
-		/// <summary>
-		/// Manages all the progression of the story and all storylets.
-		/// </summary>
-		[SerializeField]
-		private StoryController m_storyController;
 
 		/// <summary>
 		/// Manages a lookup table for all characters in the game.
@@ -59,11 +48,6 @@ namespace Anansi
 		private SocialEngineController m_socialEngine;
 
 		/// <summary>
-		/// A reference to the starting storylet.
-		/// </summary>
-		private Storylet m_startingStorylet;
-
-		/// <summary>
 		/// All storylets related to locations on the map.
 		/// </summary>
 		private Dictionary<string, Storylet> m_locationStorylets;
@@ -73,13 +57,30 @@ namespace Anansi
 		/// </summary>
 		private Dictionary<string, Storylet> m_actionStorylets;
 
+		/// <summary>
+		/// A reference to the JSON file containing the compiled Ink story.
+		/// </summary>
+		[SerializeField]
+		private TextAsset m_storyJson;
+
+		/// <summary>
+		/// A reference to the story constructed from the JSON data.
+		/// </summary>
+		private AnansiStory m_story;
+
 		#endregion
 
 		#region Properties
 
+		/// <summary>
+		/// A reference to the simulations database.
+		/// </summary>
 		public RePraxis.RePraxisDatabase DB => m_socialEngine.DB;
 
-		public StoryController StoryController => m_storyController;
+		/// <summary>
+		/// A reference to the controller's story instance.
+		/// </summary>
+		public AnansiStory Story => m_story;
 
 		#endregion
 
@@ -94,9 +95,15 @@ namespace Anansi
 
 		private void Awake()
 		{
-			m_startingStorylet = null;
 			m_locationStorylets = new Dictionary<string, Storylet>();
 			m_actionStorylets = new Dictionary<string, Storylet>();
+
+			if ( m_storyJson == null )
+			{
+				throw new NullReferenceException( "GameManager is missing storyJSON" );
+			}
+
+			m_story = new AnansiStory( m_storyJson.text );
 		}
 
 		private void Start()
@@ -105,19 +112,34 @@ namespace Anansi
 			SocialEngineController.Instance.Initialize();
 			SocialEngineController.Instance.RegisterAgentsAndRelationships();
 
-			m_storyController.OnRegisterExternalFunctions += this.RegisterExternalInkFunctions;
+			m_story.OnRegisterExternalFunctions += this.RegisterExternalInkFunctions;
+			m_story.DB = SocialEngineController.Instance.DB;
+			m_story.Initialize();
 
-			m_storyController.Initialize();
-
-			foreach ( var entry in m_storyController.GetStoryletsWithTags( new string[] { "location" } ) )
+			m_story.OnSpeakerChange += (info) =>
 			{
-				m_locationStorylets.Add( entry.KnotID, entry );
-			}
+				if ( info != null )
+				{
+					this.SetSpeaker( info.SpeakerId, info.Tags );
+				}
+				else
+				{
+					m_characterManager.HideSpeaker();
+				}
+			};
 
-			foreach ( var entry in m_storyController.GetStoryletsWithTags( new string[] { "action" } ) )
+			m_story.OnDialogueEnd += () =>
 			{
-				m_actionStorylets.Add( entry.KnotID, entry );
-			}
+				m_characterManager.HideSpeaker();
+			};
+
+			this.m_actionStorylets = m_story
+				.GetStoryletsWithTags( "action" )
+				.ToDictionary( s => s.KnotID );
+
+			this.m_locationStorylets = m_story
+				.GetStoryletsWithTags( "location" )
+				.ToDictionary( s => s.KnotID );
 
 			m_characterManager.InitializeLookUpTable();
 			m_locationManager.InitializeLookUpTable();
@@ -153,12 +175,21 @@ namespace Anansi
 			// Move NPCs to their starting positions
 			TickCharacterSchedules();
 
-			m_storyController.StartStory();
+			StartStory();
 		}
 
 		#endregion
 
 		#region Public Methods
+
+		/// <summary>
+		/// Start the story.
+		/// </summary>
+		public void StartStory()
+		{
+			Storylet startStorylet = m_story.GetStorylet( "start" );
+			m_story.RunStorylet( startStorylet );
+		}
 
 		/// <summary>
 		/// Tick the simulation
@@ -250,6 +281,17 @@ namespace Anansi
 		}
 
 		/// <summary>
+		/// Set the speaker sprite shown on screen.
+		/// </summary>
+		/// <param name="characterID"></param>
+		/// <param name="tags"></param>
+		public void SetSpeaker(string characterID, params string[] tags)
+		{
+			var character = m_characterManager.GetCharacter( characterID );
+			m_characterManager.SetSpeaker( characterID, tags );
+		}
+
+		/// <summary>
 		/// Set the player's current location and change the background
 		/// </summary>
 		/// <param name="locationID"></param>
@@ -291,7 +333,7 @@ namespace Anansi
 				// Skip storylets that are not repeatable
 				if ( !storylet.IsRepeatable && storylet.TimesPlayed > 0 ) continue;
 
-				if ( !eligibleLocations.Contains( storylet.LocationID ) ) continue;
+				if ( !eligibleLocations.Contains( storylet.KnotID ) ) continue;
 
 				// Query the social engine database
 				if ( storylet.Precondition != null )
@@ -405,7 +447,7 @@ namespace Anansi
 				{
 					foreach ( var storyletInstance in GetEligibleActionStorylets() )
 					{
-						m_storyController.AddDynamicChoice( storyletInstance );
+						m_story.AddDynamicChoice( storyletInstance );
 					}
 				}
 			);
@@ -416,7 +458,7 @@ namespace Anansi
 				{
 					foreach ( var storyletInstance in GetEligibleLocationStorylets() )
 					{
-						m_storyController.AddDynamicChoice( storyletInstance );
+						m_story.AddDynamicChoice( storyletInstance );
 					}
 				}
 			);

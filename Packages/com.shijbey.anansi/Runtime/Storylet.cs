@@ -22,11 +22,6 @@ namespace Anansi
 		public Ink.Runtime.Story Story { get; }
 
 		/// <summary>
-		/// What type of storylet is this.
-		/// </summary>
-		public StoryletType StoryletType { get; }
-
-		/// <summary>
 		/// The number of Storylets that must elapse before this storylet may be used again.
 		/// </summary>
 		public int Cooldown { get; set; }
@@ -83,26 +78,6 @@ namespace Anansi
 		public string WeightFunctionName { get; set; }
 
 		/// <summary>
-		/// (Location storylets only) A list of locations connected to this one
-		/// </summary>
-		public List<string> ConnectedLocations { get; }
-
-		/// <summary>
-		/// (Location storylets only) The ID of the location associated with this storylet.
-		/// </summary>
-		public string LocationID { get; set; }
-
-		/// <summary>
-		/// (Action storylets only) The ID of the action associated with this storylet.
-		/// </summary>
-		public string ActionID { get; set; }
-
-		/// <summary>
-		/// (Action storylets only) A list of locations where this action can be performed
-		/// </summary>
-		public List<string> EligibleLocations { get; }
-
-		/// <summary>
 		/// Text shown to the player when this storylet is an option within the
 		/// action selection menu.
 		/// </summary>
@@ -111,7 +86,6 @@ namespace Anansi
 		/// <summary>
 		/// Is this storylet not under cooldown and not reached its max number of plays.
 		/// </summary>
-		/// <value></value>
 		public bool IsEligible
 		{
 			get
@@ -132,26 +106,20 @@ namespace Anansi
 
 		public Storylet(
 			string knotID,
-			Ink.Runtime.Story story,
-			StoryletType storyletType
+			Ink.Runtime.Story story
 		)
 		{
 			KnotID = knotID;
 			Story = story;
-			StoryletType = storyletType;
 			Cooldown = 0;
 			CooldownTimeRemaining = 0;
 			IsRepeatable = true;
 			IsMandatory = false;
 			Precondition = null;
 			ChoiceLabel = "";
-			ConnectedLocations = new List<string>();
-			EligibleLocations = new List<string>();
 			Tags = new HashSet<string>();
 			VariableSubstitutions = new Dictionary<string, string>();
 			InputBindings = new Dictionary<string, object>();
-			LocationID = "";
-			ActionID = "";
 			Weight = 1;
 			WeightFunctionName = null;
 		}

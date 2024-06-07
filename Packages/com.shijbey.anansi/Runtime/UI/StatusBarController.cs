@@ -24,28 +24,28 @@ namespace Anansi
 		/// <summary>
 		/// A reference to the GameManager instance
 		/// </summary>
-		private StoryController m_storyController;
+		private GameManager m_gameManager;
 
 		#endregion
 
 		#region Unity Messages
 
-		// private void Awake()
-		// {
-		// 	m_storyController = FindObjectOfType<StoryController>();
-		// }
+		private void Awake()
+		{
+			m_gameManager = FindObjectOfType<GameManager>();
+		}
 
-		// private void OnEnable()
-		// {
-		// 	TimeManager.OnTimeChanged += HandleTimeChange;
-		// 	m_storyController.OnStoryLocationChange += HandleLocationChange;
-		// }
+		private void OnEnable()
+		{
+			TimeManager.OnTimeChanged += HandleTimeChange;
+			m_gameManager.OnStoryLocationChange += HandleLocationChange;
+		}
 
-		// private void OnDisable()
-		// {
-		// 	TimeManager.OnTimeChanged -= HandleTimeChange;
-		// 	m_storyController.OnStoryLocationChange -= HandleLocationChange;
-		// }
+		private void OnDisable()
+		{
+			TimeManager.OnTimeChanged -= HandleTimeChange;
+			m_gameManager.OnStoryLocationChange -= HandleLocationChange;
+		}
 
 		#endregion
 

@@ -1566,7 +1566,6 @@ GameObject:
   - component: {fileID: 1075693840}
   - component: {fileID: 1075693839}
   - component: {fileID: 1075693841}
-  - component: {fileID: 1075693845}
   - component: {fileID: 1075693847}
   - component: {fileID: 1075693846}
   m_Layer: 0
@@ -1589,11 +1588,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_player: {fileID: 1538215031}
-  m_storyController: {fileID: 1075693845}
   m_characterManager: {fileID: 1379823679}
   m_locationManager: {fileID: 1465694114}
   m_timeManager: {fileID: 1075693841}
   m_socialEngine: {fileID: 1075693847}
+  m_storyJson: {fileID: 4900000, guid: ce567535abd3d4c3084e6a2fca5be443, type: 3}
 --- !u!4 &1075693840
 Transform:
   m_ObjectHideFlags: 0
@@ -1627,23 +1626,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_startingDay: 1
   m_startingTimeOfDay: 0
-  m_ticksPerTimeOfDay: 0
+  m_ticksPerTimeOfDay: 1
   m_dateTime:
     m_day: 1
     m_timeOfDay: 0
---- !u!114 &1075693845
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1075693838}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c77df19387ee04a29b9479d312e66214, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_storyJson: {fileID: 4900000, guid: ce567535abd3d4c3084e6a2fca5be443, type: 3}
 --- !u!114 &1075693846
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3312,7 +3298,7 @@ PrefabInstance:
     - target: {fileID: 3197443838560017815, guid: aac11052ca3864fad823b522214e6ec9, type: 3}
       propertyPath: m_storyController
       value: 
-      objectReference: {fileID: 1075693845}
+      objectReference: {fileID: 0}
     - target: {fileID: 5218271156194002291, guid: aac11052ca3864fad823b522214e6ec9, type: 3}
       propertyPath: m_AnchorMax.x
       value: 0

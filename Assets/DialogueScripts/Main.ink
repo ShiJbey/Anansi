@@ -20,22 +20,26 @@ VAR WorldSeed = 0
 // VAR location = "not-specified"
 // VAR timesKnocked = 0
 
-// Do not use any top-level diverts. The StoryController will automatically jump to the "start" knot.
+// Do not use any top-level diverts. The GameManager will automatically jump to the "start" knot.
 
 === start ===
+#---
+#===
 
 // The system will always look for a knot with the name "start" to execute first. Inside of this knot, designers should set the current time of day and location. This will move all characters to where they need to be. Optionally, you can include prologue content under this knot to help introduce the player to the game.
 
--> location_outside_library
+-> library
 
 -> DONE
 
-=== action_nap_in_room ===
+=== nap_in_room ===
 # ---
 # choiceLabel: Take a nap
 # @query
 # player.location!player_dormroom
 # @end
+# hidden: true
+# tags: action
 # ===
 
 You decided to take a nap...
@@ -54,75 +58,89 @@ Time has advanced.
 
 ~ return true
 
-=== location_outside_library ===
+=== outside_library ===
 #---
 # choiceLabel: Go to Outside Library.
+# hidden: true
+# tags: location
 #===
 
 {SetPlayerLocation("outside_library")}
 
-{location_outside_library == 1:
+{outside_library == 1:
     You're standing outside of the campus library.
-    
+
     You look at your Student ID. The name says... {GetInput("text", "What is your name?", "PlayerName")}
-    
+
     It says {PlayerName}. They usually spell it wrong, but the registrar manager had the same name.
-    
+
     What are the chances of that?
-    
+
     Your student ID number is...{GetInput("int", "Enter student ID...", "WorldSeed")}
-}  
+}
 
 -> DONE
 
-=== location_dining_hall ===
+=== dining_hall ===
 #---
 # choiceLabel: Go to Dining Hall.
+# hidden: true
+# tags: location
 #===
 
 {SetPlayerLocation("dining_hall")}
 
 -> DONE
 
-=== location_library ===
+=== library ===
 #---
 # choiceLabel: Go to Library.
+# hidden: true
+# tags: location
 #===
 
 {SetPlayerLocation("library")}
 
 -> DONE
 
-=== location_gym ===
+=== gym ===
 #---
 # choiceLabel: Go to Gym.
+# hidden: true
+# tags: location
 #===
 
 {SetPlayerLocation("gym")}
 
 -> DONE
 
-=== location_classroom ===
+=== classroom ===
 #---
 # choiceLabel: Go to Classroom.
+# hidden: true
+# tags: location
 #===
 
 {SetPlayerLocation("classroom")}
 
 -> DONE
 
-=== location_campus_walkway ===
+=== campus_walkway ===
 #---
 # choiceLabel: Go to Campus Walkway.
+# hidden: true
+# tags: location
 #===
 
 {SetPlayerLocation("campus_walkway")}
 
 -> DONE
 
-=== location_evelyn_dormroom ===
+=== evelyn_dormroom ===
 #---
 # choiceLabel: Go to Evelyn's room.
+# hidden: true
+# tags: location
 #===
 
 {SetPlayerLocation("evelyn_dormroom")}
@@ -136,9 +154,11 @@ Time has advanced.
 
 -> DONE
 
-=== location_astrid_dormroom ===
+=== astrid_dormroom ===
 #---
 # choiceLabel: Go to Astrid's room.
+# hidden: true
+# tags: location
 #===
 
 {SetPlayerLocation("astrid_dormroom")}
@@ -152,9 +172,11 @@ Time has advanced.
 
 -> DONE
 
-=== location_player_dormroom ===
+=== player_dormroom ===
 #---
 # choiceLabel: Go to your room.
+# hidden: true
+# tags: location
 #===
 
 {SetPlayerLocation("player_dormroom")}
@@ -163,64 +185,74 @@ You're in your room.
 
 -> DONE
 
-=== action_talk_to_astrid ===
+=== talk_to_astrid ===
 # ---
 # choiceLabel: Talk to Astrid
 # @query
 # astrid.location!?loc
 # player.location!?loc
 # @end
+# hidden: true
+# tags: action
 # ===
 
 ~speaker = "astrid"
-{QueueStoryletWithTags("convo, astrid", "storylet_conversation_fallback")}
+{QueueStoryletWithTags("convo, astrid", "conversation_fallback")}
 
 -> DONE
 
-=== action_talk_to_evelyn ===
+=== talk_to_evelyn ===
 # ---
 # choiceLabel: Talk to Evelyn
 # @query
 # evelyn.location!?loc
 # player.location!?loc
 # @end
+# hidden: true
+# tags: action
 # ===
 
 ~speaker = "evelyn"
-{QueueStoryletWithTags("evelyn, convo", "storylet_conversation_fallback")}
+{QueueStoryletWithTags("evelyn, convo", "conversation_fallback")}
 
 -> DONE
 
-=== action_talk_to_momo ===
+=== talk_to_momo ===
 # ---
 # choiceLabel: Talk to Momo
 # @query
 # momo.location!?loc
 # player.location!?loc
 # @end
+# hidden: true
+# tags: action
 # ===
 
 ~speaker = "momo"
-{QueueStoryletWithTags("convo, astrid", "storylet_conversation_fallback")}
+{QueueStoryletWithTags("convo, astrid", "conversation_fallback")}
 
 -> DONE
 
-=== action_talk_to_giyu ===
+=== talk_to_giyu ===
 # ---
 # choiceLabel: Talk to Giyu
 # @query
 # giyu.location!?loc
 # player.location!?loc
 # @end
+# hidden: true
+# tags: action
 # ===
 
 ~speaker = "giyu"
-{QueueStoryletWithTags("convo", "storylet_conversation_fallback")}
+{QueueStoryletWithTags("convo", "conversation_fallback")}
 
 -> DONE
 
 
-=== storylet_conversation_fallback ===
+=== conversation_fallback ===
+# ---
+# ===
 
 They have nothing to say to you.
 

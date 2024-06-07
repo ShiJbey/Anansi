@@ -1,11 +1,8 @@
 using System;
-using System.Text.RegularExpressions;
-using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
+using System.Collections.Generic;
 using RePraxis;
-using UnityEngine.Events;
-using UnityEditor;
+using System.Text.RegularExpressions;
 
 namespace Anansi
 {
@@ -13,34 +10,9 @@ namespace Anansi
 	/// This class is responsible for managing the progression of the story and the sequencing of
 	/// dynamic content.
 	/// </summary>
-	public class StoryController : MonoBehaviour
+	public class AnansiStory
 	{
-		#region Constants
-
-		/// <summary>
-		/// The prefix value that the manager looks for when loading storylets from a Story.
-		/// </summary>
-		private const string STORYLET_ID_PREFIX = "storylet_";
-
-		/// <summary>
-		/// The ID prefix for Ink knots that correspond to actions.
-		/// </summary>
-		private const string ACTION_ID_PREFIX = "action_";
-
-		/// <summary>
-		/// The ID prefix for Ink knots that correspond to locations.
-		/// </summary>
-		private const string LOCATION_ID_PREFIX = "location_";
-
-		#endregion
-
 		#region Fields
-
-		/// <summary>
-		/// A reference to the JSON file containing the compiled Ink story.
-		/// </summary>
-		[SerializeField]
-		private TextAsset m_storyJson;
 
 		/// <summary>
 		/// A reference to the story constructed from the JSON data.
@@ -48,34 +20,19 @@ namespace Anansi
 		private Ink.Runtime.Story m_story;
 
 		/// <summary>
-		/// A reference to the starting storylet.
-		/// </summary>
-		private Storylet m_startingStorylet;
-
-		/// <summary>
 		/// All storylets related to moving the story forward.
 		/// </summary>
-		private Dictionary<string, Storylet> m_basicStorylets;
-
-		/// <summary>
-		/// All storylets related to locations on the map.
-		/// </summary>
-		private Dictionary<string, Storylet> m_locationStorylets;
-
-		/// <summary>
-		/// All storylets related to actions the player can take at locations.
-		/// </summary>
-		private Dictionary<string, Storylet> m_actionStorylets;
+		private Dictionary<string, Storylet> m_storylets;
 
 		/// <summary>
 		/// The storylet instance being presented to the player.
 		/// </summary>
-		private StoryletInstance m_currentStorylet = null;
+		private StoryletInstance m_currentStorylet;
 
 		/// <summary>
 		/// The next storylet to play after the current storylet concludes.
 		/// </summary>
-		private StoryletInstance m_storyletOnDeck = null;
+		private StoryletInstance m_storyletOnDeck;
 
 		/// <summary>
 		/// An internal cache of dynamic choices to present the player. This list is added to
@@ -92,11 +49,16 @@ namespace Anansi
 		/// This variable caches a reference to a storylet instance and is used by the
 		/// GetBindingVar() external function when evaluating storylet instance weights.
 		/// </summary>
-		private StoryletInstance m_boundStoryletInstance = null;
+		private StoryletInstance m_boundStoryletInstance;
 
 		#endregion
 
 		#region Properties
+
+		/// <summary>
+		/// The reference to the wrapped Ink story instance.
+		/// </summary>
+		public Ink.Runtime.Story InkStory => m_story;
 
 		/// <summary>
 		/// All tags belonging to the current line of dialogue.
@@ -130,79 +92,59 @@ namespace Anansi
 		/// <summary>
 		/// Action invoked when loading external functions to register with the story.
 		/// </summary>
-		public UnityAction<Ink.Runtime.Story> OnRegisterExternalFunctions;
+		public Action<Ink.Runtime.Story> OnRegisterExternalFunctions;
 
 		/// <summary>
 		/// Action invoked when starting a new dialogue;
 		/// </summary>
-		public UnityAction OnDialogueStart;
+		public Action OnDialogueStart;
 
 		/// <summary>
 		/// Action invoked when ending a dialogue;
 		/// </summary>
-		public UnityAction OnDialogueEnd;
+		public Action OnDialogueEnd;
 
 		/// <summary>
 		/// Action invoked when processing the tags of a line of dialogue.
 		/// </summary>
-		public UnityAction<IList<string>> OnProcessLineTags;
+		public Action<IList<string>> OnProcessLineTags;
 
 		/// <summary>
 		/// Action invoked when the current speaker changes
 		/// </summary>
-		public UnityAction<SpeakerInfo> OnSpeakerChange;
+		public Action<SpeakerInfo> OnSpeakerChange;
 
 		/// <summary>
 		/// Action invoked when attempting to get user input.
 		/// </summary>
-		public UnityAction<InputRequest> OnGetInput;
+		public Action<InputRequest> OnGetInput;
 
 		/// <summary>
 		/// Invoked when we have the next line of story dialogue.
 		/// </summary>
-		public UnityAction<string> OnNextDialogueLine;
+		public Action<string> OnNextDialogueLine;
 
 		/// <summary>
 		/// Allow external listeners to contribute the the weight of a storylet instance.
 		/// </summary>
-		public UnityAction<StoryletInstance> OnScoreStoryletInstance;
+		public Action<StoryletInstance> OnScoreStoryletInstance;
 
 		#endregion
 
-		#region Unity Messages
+		#region Constructors
 
-		private void Awake()
+		public AnansiStory(string storyJson)
 		{
-			if ( m_storyJson == null )
-			{
-				throw new NullReferenceException( "StoryController is missing storyJSON" );
-			}
-
 			DB = new RePraxisDatabase();
-			m_basicStorylets = new Dictionary<string, Storylet>();
-			m_story = new Ink.Runtime.Story( m_storyJson.text );
+			m_storylets = new Dictionary<string, Storylet>();
+			m_story = new Ink.Runtime.Story( storyJson );
 			IsDisplayingDialogue = false;
 			IsWaitingForInput = false;
-			m_locationStorylets = new Dictionary<string, Storylet>();
-			m_actionStorylets = new Dictionary<string, Storylet>();
+			m_currentStorylet = null;
+			m_storyletOnDeck = null;
+			m_boundStoryletInstance = null;
 
 			LoadStorylets();
-		}
-
-		public void OnEnable()
-		{
-			if ( m_story )
-			{
-				m_story.onError += HandleStoryErrors;
-			}
-		}
-
-		public void OnDisable()
-		{
-			if ( m_story )
-			{
-				m_story.onError -= HandleStoryErrors;
-			}
 		}
 
 		#endregion
@@ -340,6 +282,33 @@ namespace Anansi
 		}
 
 		/// <summary>
+		/// Attempt to instantiate and run a storylet.
+		/// </summary>
+		/// <param name="storylet"></param>
+		public void RunStorylet(Storylet storylet)
+		{
+			// Generally, the starting storylet should not contain a query, but if it does, then
+			// there is the possibility that we will fail to create any storylet instances.
+			// This is a bug that designers should figure out and is not a fault of Anansi.
+			List<StoryletInstance> startInstances = CreateStoryletInstances(
+				storylet,
+				new Dictionary<string, object>()
+			);
+
+			if ( startInstances.Count == 0 )
+			{
+				throw new Exception( $"Failed to create instance of storylet: {storylet.KnotID}." );
+			}
+
+			// These should all be weighted the same, but this code will remain incase future
+			// implementations allow for instances of the same storylet to have varying weights
+			StoryletInstance selectedInstance = startInstances
+				.RandomElementByWeight( s => s.Weight );
+
+			RunStoryletInstance( selectedInstance );
+		}
+
+		/// <summary>
 		/// Progress the story from the given storylet instance.
 		/// </summary>
 		/// <param name="instance"></param>
@@ -350,7 +319,7 @@ namespace Anansi
 			m_boundStoryletInstance = instance;
 
 			// Decrement the cooldowns of all storylets
-			foreach ( Storylet storylet in m_basicStorylets.Values )
+			foreach ( Storylet storylet in m_storylets.Values )
 			{
 				storylet.DecrementCooldown();
 			}
@@ -394,40 +363,13 @@ namespace Anansi
 		}
 
 		/// <summary>
-		/// Start the story.
-		/// </summary>
-		public void StartStory()
-		{
-			// Generally, the starting storylet should not contain a query, but if it does, then
-			// there is the possibility that we will fail to create any storylet instances.
-			// This is a bug that designers should figure out and is not a fault of Anansi.
-			List<StoryletInstance> startInstances = CreateStoryletInstances(
-				m_startingStorylet,
-				DB,
-				new Dictionary<string, object>()
-			);
-
-			if ( startInstances.Count == 0 )
-			{
-				throw new Exception( "Failed to create instance of starting storylet." );
-			}
-
-			// These should all be weighted the same, but this code will remain incase future
-			// implementations allow for instances of the same storylet to have varying weights
-			StoryletInstance selectedInstance = startInstances
-				.RandomElementByWeight( s => s.Weight );
-
-			RunStoryletInstance( selectedInstance );
-		}
-
-		/// <summary>
 		/// Get a storylet by it's ID
 		/// </summary>
 		/// <param name="storyletId"></param>
 		/// <returns></returns>
 		public Storylet GetStorylet(string storyletId)
 		{
-			return this.m_basicStorylets[storyletId];
+			return this.m_storylets[storyletId];
 		}
 
 		/// <summary>
@@ -443,7 +385,7 @@ namespace Anansi
 			HashSet<string> mandatoryTags = new HashSet<string>( tags.Where( t => t[0] != '~' ) );
 			HashSet<string> optionalTags = new HashSet<string>( tags.Where( t => t[0] == '~' ) );
 
-			foreach ( var storylet in m_basicStorylets.Values )
+			foreach ( var storylet in m_storylets.Values )
 			{
 				var unsatisfiedMandatoryTags = mandatoryTags.Except( storylet.Tags );
 				var hasAllMandatoryTags = unsatisfiedMandatoryTags.Count() == 0;
@@ -491,15 +433,35 @@ namespace Anansi
 		}
 
 		/// <summary>
+		/// Returns all storylets satisfying the given tags.
+		/// </summary>
+		/// <param name="tags"></param>
+		/// <returns></returns>
+		public List<Storylet> GetStoryletsWithTags(params string[] tags)
+		{
+			return GetStoryletsWithTags( tags.ToList() );
+		}
+
+		/// <summary>
 		/// Create storylet instances for a given storylet.
 		/// </summary>
 		/// <param name="storylet"></param>
-		/// <param name="db"></param>
+		/// <returns></returns>
+		public List<StoryletInstance> CreateStoryletInstances(
+			Storylet storylet
+		)
+		{
+			return CreateStoryletInstances( storylet, new Dictionary<string, object>() );
+		}
+
+		/// <summary>
+		/// Create storylet instances for a given storylet.
+		/// </summary>
+		/// <param name="storylet"></param>
 		/// <param name="bindings"></param>
 		/// <returns></returns>
 		public List<StoryletInstance> CreateStoryletInstances(
 			Storylet storylet,
-			RePraxisDatabase db,
 			Dictionary<string, object> bindings
 		)
 		{
@@ -514,7 +476,7 @@ namespace Anansi
 
 			if ( storylet.Precondition != null )
 			{
-				var results = storylet.Precondition.Run( db, inputBindings );
+				var results = storylet.Precondition.Run( this.DB, inputBindings );
 
 				if ( results.Success )
 				{
@@ -584,48 +546,27 @@ namespace Anansi
 		/// </summary>
 		private void LoadStorylets()
 		{
-			List<string> knotIDs = GetAllKnotIDs( m_story );
-			bool hasStartStorylet = false;
+			List<string> knotIDs = GetAllKnotIDs();
 
 			// Loop through all the knots, create storylets, and separate
 			// them based on basic storylets, actions, and locations.
 			foreach ( string knotID in knotIDs )
 			{
-				if ( knotID == "start" )
-				{
-					// This is our entry storylet
-					hasStartStorylet = true;
-					var storylet = CreateStorylet( m_story, knotID, StoryletType.Basic );
-					m_basicStorylets[knotID] = storylet;
-					m_startingStorylet = storylet;
-				}
-				else if ( knotID.StartsWith( STORYLET_ID_PREFIX ) )
-				{
-					// This is a basic storylet
-					var storylet = CreateStorylet( m_story, knotID, StoryletType.Basic );
-					m_basicStorylets[knotID] = storylet;
-				}
-				else if ( knotID.StartsWith( LOCATION_ID_PREFIX ) )
-				{
-					// This storylet corresponds to a location
-					var storylet = CreateStorylet( m_story, knotID, StoryletType.Location );
-					m_locationStorylets[knotID] = storylet;
-					storylet.LocationID = knotID.Substring( LOCATION_ID_PREFIX.Length );
-				}
-				else if ( knotID.StartsWith( ACTION_ID_PREFIX ) )
-				{
-					// This storylet corresponds to an action
-					var storylet = CreateStorylet( m_story, knotID, StoryletType.Action );
-					m_actionStorylets[knotID] = storylet;
-					storylet.ActionID = knotID.Substring( ACTION_ID_PREFIX.Length );
-				}
-			}
+				List<string> knotTags = m_story.TagsForContentAtPath( knotID );
 
-			// Raise an error if the starting storylet is never found.
-			// If it is missing, we cant start the story.
-			if ( !hasStartStorylet )
-			{
-				Debug.LogError( "Could not find entry knot with name 'start'." );
+				// Storylets need to start with a storylet header
+				if (
+					knotTags == null
+					|| knotTags.Count == 0
+					|| !knotTags[0].StartsWith( "---" )
+				)
+				{
+					continue;
+				}
+
+				Storylet storylet = CreateStorylet( knotID );
+
+				m_storylets.Add( storylet.KnotID, storylet );
 			}
 		}
 
@@ -635,19 +576,13 @@ namespace Anansi
 		/// <param name="story"></param>
 		/// <param name="knotID"></param>
 		/// <returns></returns>
-		private static Storylet CreateStorylet(
-			Ink.Runtime.Story story,
-			string knotID,
-			StoryletType storyletType
+		private Storylet CreateStorylet(
+			string knotID
 		)
 		{
-			Storylet storylet = new Storylet( knotID, story, storyletType );
+			Storylet storylet = new Storylet( knotID, m_story );
 
-			// storylet.VariableSubstitutions["speaker"] = "?speaker";
-			// storylet.VariableSubstitutions["player"] = "?player";
-			// storylet.VariableSubstitutions["location"] = "?location";
-
-			List<string> knotTags = story.TagsForContentAtPath( knotID );
+			List<string> knotTags = m_story.TagsForContentAtPath( knotID );
 
 			if ( knotTags == null ) return storylet;
 
@@ -696,36 +631,6 @@ namespace Anansi
 					foreach ( string t in storyletTags )
 					{
 						storylet.Tags.Add( t );
-					}
-
-					lineIndex++;
-					continue;
-				}
-
-				// This line specifies IDs of connected locations
-				if ( storyletType == StoryletType.Location && line.StartsWith( "connectedLocations:" ) )
-				{
-					List<string> arguments = line.Substring( "connectedLocations:".Length )
-						.Split( "," ).Select( s => s.Trim() ).ToList();
-
-					foreach ( string locationId in arguments )
-					{
-						storylet.ConnectedLocations.Add( locationId );
-					}
-
-					lineIndex++;
-					continue;
-				}
-
-				// This line specifies IDs of locations where an action may be selected
-				if ( storyletType == StoryletType.Action && line.StartsWith( "eligibleLocs:" ) )
-				{
-					List<string> arguments = line.Substring( "eligibleLocs:".Length )
-						.Split( "," ).Select( s => s.Trim() ).ToList();
-
-					foreach ( string locationId in arguments )
-					{
-						storylet.EligibleLocations.Add( locationId );
 					}
 
 					lineIndex++;
@@ -934,11 +839,11 @@ namespace Anansi
 		/// </summary>
 		/// <param name="story"></param>
 		/// <returns></returns>
-		private static List<string> GetAllKnotIDs(Ink.Runtime.Story story)
+		private List<string> GetAllKnotIDs()
 		{
 			List<string> knotList = new List<string>();
 
-			Ink.Runtime.Container mainContentContainer = story.mainContentContainer;
+			Ink.Runtime.Container mainContentContainer = m_story.mainContentContainer;
 			if ( mainContentContainer == null )
 				return knotList;
 
@@ -952,23 +857,6 @@ namespace Anansi
 			}
 
 			return knotList;
-		}
-
-		/// <summary>
-		/// Log story errors
-		/// </summary>
-		/// <param name="message"></param>
-		/// <param name="errorType"></param>
-		private void HandleStoryErrors(string message, Ink.ErrorType errorType)
-		{
-			if ( errorType == Ink.ErrorType.Warning )
-			{
-				Debug.LogWarning( message );
-			}
-			else
-			{
-				Debug.LogError( message );
-			}
 		}
 
 		/// <summary>
@@ -1076,11 +964,10 @@ namespace Anansi
 				"QueueStorylet",
 				(string storyletId) =>
 				{
-					Storylet storylet = m_basicStorylets[storyletId];
+					Storylet storylet = m_storylets[storyletId];
 
 					List<StoryletInstance> instances = CreateStoryletInstances(
 						storylet,
-						DB,
 						new Dictionary<string, object>()
 					);
 
@@ -1109,7 +996,6 @@ namespace Anansi
 					{
 						List<StoryletInstance> instances = CreateStoryletInstances(
 							storylet,
-							DB,
 							new Dictionary<string, object>()
 						);
 
@@ -1140,11 +1026,10 @@ namespace Anansi
 					}
 					else
 					{
-						Storylet fallbackStorylet = m_basicStorylets[fallback];
+						Storylet fallbackStorylet = m_storylets[fallback];
 
 						List<StoryletInstance> instances = CreateStoryletInstances(
 							fallbackStorylet,
-							DB,
 							new Dictionary<string, object>()
 						);
 
@@ -1209,11 +1094,10 @@ namespace Anansi
 				"GoToChoice",
 				(string storyletId) =>
 				{
-					Storylet storylet = m_basicStorylets[storyletId];
+					Storylet storylet = m_storylets[storyletId];
 
 					List<StoryletInstance> instances = CreateStoryletInstances(
 						storylet,
-						DB,
 						new Dictionary<string, object>()
 					);
 
@@ -1245,7 +1129,6 @@ namespace Anansi
 
 						List<StoryletInstance> instances = CreateStoryletInstances(
 							storylet,
-							DB,
 							new Dictionary<string, object>()
 						);
 
