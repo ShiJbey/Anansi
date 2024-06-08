@@ -6,25 +6,26 @@ All notable changes to this project will be documented in this file.
 
 The format is based on <https://common-changelog.org/>, and this project adheres mostly to Semantic Versioning.
 
-## [0.3.0] - 2024-06-04
+## [0.3.0] - 2024-06-08
 
-This update focused on making the story controller more general purpose for projects that want to take advantage of the storylet system for dialogue, but who don't need all the bells and whistles involved.
-
-### Fixed
-
-- TBD
+This update focused on making the story controller more general purpose for projects that want to take advantage of the storylet system for dialogue, but who don't need all the additional infrastructure provided by the full framework.
 
 ### Added
 
-- TBD
+- Added `Anansi.Story` class as `Ink.Runtime.Story` wrapper to enable people to use storylets without MonoBehaviour components.
+- Added `Anansi.DialogueManager` to take on some of the responsibilities that once belonged to the `Anansi.StoryController` class.
+- Added skip typewriter effect when space bar is pressed.
+- Added `Anansi.SimulationController` class to manage ticking the simulation and updating characters' positions based on their schedules.
 
 ### Changed
 
-- TBD
+- Background images and character sprites now live within the UI Canvas hierarchy in the scene. They are no longer presented in world-space.
+- Combined various `Get__Input` external functions into a single function.
+- Moved action location storylet management to the `GameManager`
 
 ### Removed
 
-- TBD
+- `Anansi.StoryController` has been removed, and its responsibilities divided among the `GameManager`, `DialogueManager`, and `Story` classes.
 
 ## [0.2.0] - 2024-04-15
 
