@@ -296,57 +296,10 @@ namespace Anansi
 		/// <returns></returns>
 		public List<Storylet> GetStoryletsWithTags(IEnumerable<string> tags)
 		{
-			List<(Storylet, int)> matches = new List<(Storylet, int)>();
-			int maxMatchScore = 0;
-
-			HashSet<string> mandatoryTags = new HashSet<string>( tags.Where( t => t[0] != '~' ) );
-			HashSet<string> optionalTags = new HashSet<string>( tags.Where( t => t[0] == '~' ) );
-
-			foreach ( var storylet in m_storylets.Values )
-			{
-				var unsatisfiedMandatoryTags = mandatoryTags.Except( storylet.Tags );
-				var hasAllMandatoryTags = unsatisfiedMandatoryTags.Count() == 0;
-
-				if ( !hasAllMandatoryTags )
-				{
-					continue;
-				}
-
-				var satisfiedOptionalTags = optionalTags.Intersect( storylet.Tags );
-				var optionalTagsCount = satisfiedOptionalTags.Count();
-
-				matches.Add( (storylet, optionalTagsCount) );
-
-				maxMatchScore = Math.Max( optionalTagsCount, maxMatchScore );
-			}
-
-			if ( matches.Count > 0 )
-			{
-				matches.Sort( (a, b) =>
-				{
-					if ( a.Item2 > b.Item2 )
-					{
-						return 1;
-					}
-					else if ( a.Item2 == b.Item2 )
-					{
-						return 0;
-					}
-					else
-					{
-						return -1;
-					}
-				} );
-
-				List<Storylet> bestMatches = matches
-					.Where( entry => entry.Item2 == maxMatchScore )
-					.Select( entry => entry.Item1 )
-					.ToList();
-
-				return bestMatches;
-			}
-
-			return new List<Storylet>();
+			return ContentSelection.GetWithTags(
+				m_storylets.Values.Select( s => (s, new HashSet<string>( s.Tags )) ),
+				tags
+			);
 		}
 
 		/// <summary>

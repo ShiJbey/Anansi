@@ -49,6 +49,8 @@ namespace Anansi
 
 		private SimulationController m_simulationController;
 
+		private DialogueManager m_dialogueManager;
+
 		#endregion
 
 		#region Properties
@@ -65,6 +67,17 @@ namespace Anansi
 		private void Awake()
 		{
 			m_simulationController = FindObjectOfType<SimulationController>();
+			m_dialogueManager = FindObjectOfType<DialogueManager>();
+		}
+
+		private void OnEnable()
+		{
+			m_dialogueManager.OnSpeakerChange += HandleSpeakerChange;
+		}
+
+		private void OnDisable()
+		{
+			m_dialogueManager.OnSpeakerChange -= HandleSpeakerChange;
 		}
 
 		#endregion
@@ -130,6 +143,17 @@ namespace Anansi
 		#endregion
 
 		#region Private Coroutine Methods
+
+		private void HandleSpeakerChange(SpeakerInfo info)
+		{
+			if ( info == null )
+			{
+				HideSpeaker();
+				return;
+			}
+
+			SetSpeaker( info.SpeakerId, info.Tags );
+		}
 
 		/// <summary>
 		/// Slide the character image off the screen and slide the new on to the screen

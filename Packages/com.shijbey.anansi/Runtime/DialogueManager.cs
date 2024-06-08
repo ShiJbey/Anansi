@@ -17,14 +17,11 @@ namespace Anansi
 	{
 		#region Fields
 
+		/// <summary>
+		/// A reference to the simulation controller to get info on characters and locations.
+		/// </summary>
 		[SerializeField]
 		private SimulationController m_simulationController;
-
-		[SerializeField]
-		private SpeakerSpriteManager m_speakerSpriteManager;
-
-		[SerializeField]
-		private BackgroundManager m_backgroundManager;
 
 		/// <summary>
 		/// A reference to the JSON file containing the compiled Ink story.
@@ -61,10 +58,22 @@ namespace Anansi
 		/// </summary>
 		public InputRequest InputRequest { get; private set; }
 
+		/// <summary>
+		/// Information about the character currently speaking.
+		/// </summary>
+		/// <value></value>
 		public SpeakerInfo CurrentSpeaker { get; private set; }
 
+		/// <summary>
+		/// Information about the background currently presented.
+		/// </summary>
+		/// <value></value>
 		public BackgroundInfo CurrentBackground { get; private set; }
 
+		/// <summary>
+		/// The current dialogue line.
+		/// </summary>
+		/// <value></value>
 		public string CurrentLine { get; private set; }
 
 		#endregion
@@ -140,15 +149,17 @@ namespace Anansi
 		public void Initialize()
 		{
 			RegisterExternalInkFunctions();
-			HideSpeaker();
-			HideBackground();
+			SetSpeaker( null );
+			SetBackground( null );
 		}
 
+		/// <summary>
+		/// Start the dialogue and signal to the UI to open the dialogue box.
+		/// </summary>
 		public void StartDialogue()
 		{
 			IsDisplayingDialogue = true;
 			OnDialogueStart?.Invoke();
-			// AdvanceDialogue();
 		}
 
 		/// <summary>
@@ -158,7 +169,7 @@ namespace Anansi
 		{
 			IsDisplayingDialogue = false;
 			IsWaitingForInput = false;
-			HideSpeaker();
+			SetSpeaker( null );
 			OnDialogueEnd?.Invoke();
 		}
 
@@ -217,44 +228,40 @@ namespace Anansi
 			}
 		}
 
-		public void ShowSpeaker(string characterId, string[] spriteTags)
+		/// <summary>
+		/// Set information about the current speaker. Passing null clears the current speaker.
+		/// </summary>
+		/// <param name="info"></param>
+		public void SetSpeaker(SpeakerInfo info)
 		{
-			m_speakerSpriteManager.SetSpeaker( characterId, spriteTags );
-			CurrentSpeaker = new SpeakerInfo(
-				characterId,
-				m_simulationController.GetCharacter( characterId ).DisplayName,
-				spriteTags
-			);
-			OnSpeakerChange?.Invoke( CurrentSpeaker );
-		}
-
-		public void HideSpeaker()
-		{
-			m_speakerSpriteManager.HideSpeaker();
 			CurrentSpeaker = null;
-			OnSpeakerChange?.Invoke( null );
+			OnSpeakerChange?.Invoke( info );
 		}
 
-		public void ShowBackground(string locationId, string[] spriteTags)
+		/// <summary>
+		/// Set information about the current background. Passing null clears the background.
+		/// </summary>
+		/// <param name="info"></param>
+		public void SetBackground(BackgroundInfo info)
 		{
-			m_backgroundManager.SetBackground( locationId, spriteTags );
-			CurrentBackground = new BackgroundInfo( locationId, spriteTags );
-			OnBackgroundChange?.Invoke( CurrentBackground );
+			CurrentBackground = info;
+			OnBackgroundChange?.Invoke( info );
 		}
 
-		public void HideBackground()
-		{
-			m_backgroundManager.ResetBackgrounds();
-			CurrentBackground = null;
-			OnBackgroundChange?.Invoke( null );
-		}
-
+		/// <summary>
+		/// Jump the story to an instance of the given storylet and start the dialogue.
+		/// </summary>
+		/// <param name="storylet"></param>
 		public void RunStorylet(Storylet storylet)
 		{
 			m_story.GoToStorylet( storylet );
 			StartDialogue();
 		}
 
+		/// <summary>
+		/// Jump the story to the given storylet instance and start the dialogue.
+		/// </summary>
+		/// <param name="instance"></param>
 		public void RunStoryletInstance(StoryletInstance instance)
 		{
 			m_story.GoToStoryletInstance( instance );
@@ -266,9 +273,24 @@ namespace Anansi
 
 		#region Private Methods
 
+		/// <summary>
+		/// Process the Ink tags associated with a line.
+		/// </summary>
 		private void ProcessLineTags()
 		{
-
+			foreach ( string line in m_story.CurrentTags )
+			{
+				List<string> tagParts = line.Split( " " ).Select( s => s.Trim() ).ToList();
+				if ( tagParts[0] == "SetBackground:" )
+				{
+					SetBackground(
+						new BackgroundInfo(
+							backgroundId: tagParts[1],
+							tags: tagParts.GetRange( 2, tagParts.Count - 2 ).ToArray()
+						)
+					);
+				}
+			}
 		}
 
 		/// <summary>
@@ -281,7 +303,7 @@ namespace Anansi
 
 			if ( match.Value == "" )
 			{
-				HideSpeaker();
+				SetSpeaker( null );
 				return line;
 			}
 			else
@@ -293,7 +315,13 @@ namespace Anansi
 				speakerSpec.RemoveAt( 0 );
 				string[] speakerTags = speakerSpec.ToArray();
 
-				ShowSpeaker( speakerId, speakerTags );
+				SetSpeaker(
+					new SpeakerInfo(
+						speakerId,
+						m_simulationController.GetCharacter( speakerId ).DisplayName,
+						speakerTags
+					)
+				);
 
 				string dialogueText = match.Groups[2].Value.Trim();
 

@@ -190,6 +190,14 @@ namespace Anansi
 			m_dialogueManager.OnNextDialogueLine -= HandleDialogueLine;
 		}
 
+		private void Update()
+		{
+			if ( Input.GetKeyUp( KeyCode.Space ) )
+			{
+				JumpToEndOfText();
+			}
+		}
+
 		#endregion
 
 		#region Public Methods

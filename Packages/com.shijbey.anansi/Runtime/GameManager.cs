@@ -1,8 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using TDRS;
-using System;
-using Anansi.Scheduling;
 using UnityEngine.Events;
 using System.Linq;
 
@@ -51,10 +49,10 @@ namespace Anansi
 		private Dictionary<string, Storylet> m_actionStorylets;
 
 		[SerializeField]
-		private SpeakerSpriteManager m_speakerSpriteManager;
+		private BackgroundManager m_backgroundManager;
 
 		[SerializeField]
-		private BackgroundManager m_backgroundManager;
+		private SpeakerSpriteManager m_characterManager;
 
 		#endregion
 
@@ -66,18 +64,18 @@ namespace Anansi
 		public RePraxis.RePraxisDatabase DB => m_socialEngine.DB;
 
 		/// <summary>
-		/// A reference to the controller's story instance.
+		/// A reference to the dialogue manager.
 		/// </summary>
-		public Story Story => m_dialogueManager.Story;
-
 		public DialogueManager DialogueManager => m_dialogueManager;
 
 		#endregion
 
 		#region Actions and Events
 
+		/// <summary>
+		/// Action invoked whenever the player moves to a different location.
+		/// </summary>
 		public UnityAction<Location> OnStoryLocationChange;
-		public UnityAction<Character> OnSpeakerChange;
 
 		#endregion
 
@@ -99,6 +97,9 @@ namespace Anansi
 			m_dialogueManager.Story.DB = SocialEngineController.Instance.DB;
 			m_dialogueManager.Initialize();
 
+			m_characterManager.ResetSprites();
+			m_backgroundManager.ResetBackgrounds();
+
 			this.m_actionStorylets = m_dialogueManager.Story
 				.GetStoryletsWithTags( "action" )
 				.ToDictionary( s => s.ID );
@@ -106,10 +107,6 @@ namespace Anansi
 			this.m_locationStorylets = m_dialogueManager.Story
 				.GetStoryletsWithTags( "location" )
 				.ToDictionary( s => s.ID );
-
-			// Reposition character and background sprites
-			m_backgroundManager.ResetBackgrounds();
-			m_speakerSpriteManager.ResetSprites();
 
 			StartStory();
 		}
@@ -139,6 +136,16 @@ namespace Anansi
 			if ( m_player.Location != location )
 			{
 				m_simulationController.SetCharacterLocation( m_player, location );
+				m_dialogueManager.SetBackground(
+					new BackgroundInfo(
+						locationID,
+						new string[]
+						{
+							// Pass the time of day as an optional tag.
+							$"~{m_simulationController.DateTime.TimeOfDay.ToString()}"
+						}
+					)
+				);
 			}
 		}
 
@@ -253,7 +260,6 @@ namespace Anansi
 
 			return instances;
 		}
-
 
 		#endregion
 

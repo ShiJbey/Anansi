@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Anansi
 {
@@ -10,6 +11,12 @@ namespace Anansi
 	public class BackgroundManager : MonoBehaviour
 	{
 		#region Fields
+
+		/// <summary>
+		/// An overlay image to control fading background to black.
+		/// </summary>
+		[SerializeField]
+		private Image m_backgroundOverlay;
 
 		/// <summary>
 		/// The onscreen position of the speaker image.
@@ -48,13 +55,26 @@ namespace Anansi
 
 		private SimulationController m_simulationController;
 
+		private DialogueManager m_dialogueManager;
+
 		#endregion
 
 		#region Unity Messages
 
-		private void Start()
+		private void Awake()
 		{
 			m_simulationController = FindObjectOfType<SimulationController>();
+			m_dialogueManager = FindObjectOfType<DialogueManager>();
+		}
+
+		private void OnEnable()
+		{
+			m_dialogueManager.OnBackgroundChange += HandleBackgroundChange;
+		}
+
+		private void OnDisable()
+		{
+			m_dialogueManager.OnBackgroundChange -= HandleBackgroundChange;
 		}
 
 		#endregion
@@ -84,7 +104,7 @@ namespace Anansi
 				StopCoroutine( m_transitionCoroutine );
 			}
 
-			m_transitionCoroutine = StartCoroutine( FadeIn( m_displayedLocation ) );
+			m_transitionCoroutine = StartCoroutine( FadeTo( new Color( 0, 0, 0, 0 ), m_fadeInSeconds ) );
 		}
 
 		/// <summary>
@@ -99,7 +119,7 @@ namespace Anansi
 				StopCoroutine( m_transitionCoroutine );
 			}
 
-			m_transitionCoroutine = StartCoroutine( FadeOut( m_displayedLocation ) );
+			m_transitionCoroutine = StartCoroutine( FadeTo( Color.black, m_fadeOutSeconds ) );
 		}
 
 		/// <summary>
@@ -117,15 +137,20 @@ namespace Anansi
 			m_transitionCoroutine = StartCoroutine( TransitionBackground( locationID, tags ) );
 		}
 
-		/// <summary>
-		/// Reset transparency of background image to full opacity
-		/// </summary>
-		/// <param name="location"></param>
-		private void ResetTransparency(Location location)
+		#endregion
+
+		#region Private Methods
+
+		private void HandleBackgroundChange(BackgroundInfo info)
 		{
-			SpriteRenderer spriteRenderer = location.GetComponent<SpriteRenderer>();
-			Color color = spriteRenderer.color;
-			spriteRenderer.color = new Color( color.r, color.g, color.b, 1.0f );
+			if ( info == null )
+			{
+				HideBackground();
+			}
+			else
+			{
+				SetBackground( info.BackgroundId, info.Tags );
+			}
 		}
 
 		/// <summary>
@@ -137,30 +162,28 @@ namespace Anansi
 			if ( m_displayedLocation != null )
 			{
 				// Fade out the existing background
-				yield return FadeOut( m_displayedLocation );
+				yield return FadeTo( Color.black, m_fadeOutSeconds );
 
 				if ( m_displayedLocation.UniqueID == locationID )
 				{
 					// Only change the location sprite
 					m_displayedLocation.SetSprite( tags );
 
-					yield return FadeIn( m_displayedLocation );
+					yield return FadeTo( new Color( 0, 0, 0, 0 ), m_fadeInSeconds );
 				}
 				else
 				{
 					// Move the current location off screen
 					m_displayedLocation.transform.position = m_offScreenPosition.position;
-					// Reset its transparency
-					ResetTransparency( m_displayedLocation );
 
 					m_displayedLocation = m_simulationController.GetLocation( locationID );
 					m_displayedLocation.SetSprite( tags );
 
-					yield return FadeOut( m_displayedLocation );
+					yield return FadeTo( Color.black, m_fadeOutSeconds );
 
 					m_displayedLocation.transform.position = m_onScreenPosition.position;
 
-					yield return FadeIn( m_displayedLocation );
+					yield return FadeTo( new Color( 0, 0, 0, 0 ), m_fadeInSeconds );
 				}
 			}
 			else
@@ -168,65 +191,32 @@ namespace Anansi
 				m_displayedLocation = m_simulationController.GetLocation( locationID );
 				m_displayedLocation.SetSprite( tags );
 
-				yield return FadeOut( m_displayedLocation );
+				yield return FadeTo( Color.black, m_fadeOutSeconds );
 
 				m_displayedLocation.transform.position = m_onScreenPosition.position;
 
-				yield return FadeIn( m_displayedLocation );
+				yield return FadeTo( new Color( 0, 0, 0, 0 ), m_fadeInSeconds );
 			}
 		}
 
 		/// <summary>
-		/// A coroutine that fades the background Image to black.
+		/// A coroutine that fades the background image back to a color.
 		/// </summary>
-		/// <param name="location"></param>
 		/// <returns></returns>
-		private IEnumerator FadeOut(Location location)
+		private IEnumerator FadeTo(Color targetColor, float fadeInSeconds)
 		{
-			SpriteRenderer spriteRenderer = location.GetComponent<SpriteRenderer>();
-			Color initialColor = spriteRenderer.color;
-			Color targetColor = new Color(
-				initialColor.r,
-				initialColor.g,
-				initialColor.b,
-				0 );
+			Color initialColor = m_backgroundOverlay.color;
 			float elapsedTime = 0f;
 
-			while ( elapsedTime < m_fadeOutSeconds )
+			while ( elapsedTime < fadeInSeconds )
 			{
 				elapsedTime += Time.deltaTime;
-				spriteRenderer.color = Color.Lerp(
-					initialColor, targetColor, elapsedTime / m_fadeOutSeconds );
+				m_backgroundOverlay.color = Color.Lerp(
+					initialColor, targetColor, elapsedTime / fadeInSeconds );
 				yield return null;
 			}
 
-			spriteRenderer.color = targetColor;
-		}
-
-		/// <summary>
-		/// A coroutine that fades the background sprite back to normal color.
-		/// </summary>
-		/// <param name="location"></param>
-		/// <returns></returns>
-		private IEnumerator FadeIn(Location location)
-		{
-			SpriteRenderer spriteRenderer = location.GetComponent<SpriteRenderer>();
-			Color initialColor = spriteRenderer.color;
-			Color targetColor = new Color(
-				initialColor.r,
-				initialColor.g,
-				initialColor.b,
-				1f );
-			float elapsedTime = 0f;
-
-			while ( elapsedTime < m_fadeInSeconds )
-			{
-				elapsedTime += Time.deltaTime;
-				spriteRenderer.color = Color.Lerp( initialColor, targetColor, elapsedTime / m_fadeInSeconds );
-				yield return null;
-			}
-
-			spriteRenderer.color = targetColor;
+			m_backgroundOverlay.color = targetColor;
 		}
 
 		#endregion

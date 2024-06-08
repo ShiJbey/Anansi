@@ -118,6 +118,16 @@ namespace Anansi
 			m_actors.Remove( actor );
 		}
 
+		public void Hide()
+		{
+
+		}
+
+		public void Show()
+		{
+
+		}
+
 		#endregion
 	}
 }

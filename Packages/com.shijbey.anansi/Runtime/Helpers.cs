@@ -35,4 +35,65 @@ namespace Anansi
 		}
 
 	}
+
+	public static class ContentSelection
+	{
+		public static List<T> GetWithTags<T>(
+			IEnumerable<(T, HashSet<string>)> items,
+			IEnumerable<string> tags
+		)
+		{
+			List<(T, int)> matches = new List<(T, int)>();
+			int maxMatchScore = 0;
+
+			HashSet<string> mandatoryTags = new HashSet<string>( tags.Where( t => t[0] != '~' ) );
+			HashSet<string> optionalTags = new HashSet<string>( tags.Where( t => t[0] == '~' ) );
+
+			foreach ( var entry in items )
+			{
+				var unsatisfiedMandatoryTags = mandatoryTags.Except( entry.Item2 );
+				var hasAllMandatoryTags = unsatisfiedMandatoryTags.Count() == 0;
+
+				if ( !hasAllMandatoryTags )
+				{
+					continue;
+				}
+
+				var satisfiedOptionalTags = optionalTags.Intersect( entry.Item2 );
+				var optionalTagsCount = satisfiedOptionalTags.Count();
+
+				matches.Add( (entry.Item1, optionalTagsCount) );
+
+				maxMatchScore = Math.Max( optionalTagsCount, maxMatchScore );
+			}
+
+			if ( matches.Count > 0 )
+			{
+				matches.Sort( (a, b) =>
+				{
+					if ( a.Item2 > b.Item2 )
+					{
+						return 1;
+					}
+					else if ( a.Item2 == b.Item2 )
+					{
+						return 0;
+					}
+					else
+					{
+						return -1;
+					}
+				} );
+
+				List<T> bestMatches = matches
+					.Where( entry => entry.Item2 == maxMatchScore )
+					.Select( entry => entry.Item1 )
+					.ToList();
+
+				return bestMatches;
+			}
+
+			return new List<T>();
+		}
+	}
 }
