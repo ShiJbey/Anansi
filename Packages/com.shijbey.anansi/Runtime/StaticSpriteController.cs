@@ -1,5 +1,8 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Anansi
 {
@@ -24,7 +27,7 @@ namespace Anansi
 		/// <summary>
 		/// A reference to the GameObjects's animator component
 		/// </summary>
-		private SpriteRenderer m_spriteRenderer;
+		private Image m_image;
 
 		/// <summary>
 		/// The name of the animation to fallback to if none is found
@@ -37,10 +40,10 @@ namespace Anansi
 
 		public void Awake()
 		{
-			m_spriteRenderer = GetComponent<SpriteRenderer>();
+			m_image = GetComponent<Image>();
 			m_spriteLookupTable = new Dictionary<string, SpriteEntry>();
 
-			if ( m_spriteRenderer == null )
+			if ( m_image == null )
 			{
 				throw new System.Exception(
 					$"SpriteRenderer missing for {gameObject.name}" );
@@ -69,37 +72,20 @@ namespace Anansi
 
 		public override void SetSpriteFromTags(params string[] tags)
 		{
-			var chosenSprite = m_spriteLookupTable[m_fallbackSpriteName];
-			var eligibleSprites = new List<SpriteEntry>();
+			SpriteEntry chosenSprite = m_spriteLookupTable[m_fallbackSpriteName];
+			List<SpriteEntry> bestMatches = ContentSelection.GetWithTags(
+				m_sprites.Select( a => (a, new HashSet<string>( a.tags )) ),
+				tags
+			);
 
-			foreach ( var entry in m_sprites )
+			if ( bestMatches.Count > 0 )
 			{
-				var spriteTags = new HashSet<string>( entry.tags );
-				bool hasTags = true;
-
-				foreach ( string t in tags )
-				{
-					if ( !spriteTags.Contains( t ) )
-					{
-						hasTags = false;
-						break;
-					}
-				}
-
-				if ( hasTags )
-				{
-					eligibleSprites.Add( entry );
-				}
-			}
-
-			if ( eligibleSprites.Count > 0 )
-			{
-				chosenSprite = eligibleSprites[
-					UnityEngine.Random.Range( 0, eligibleSprites.Count )
+				chosenSprite = bestMatches[
+					UnityEngine.Random.Range( 0, bestMatches.Count )
 				];
 			}
 
-			m_spriteRenderer.sprite = chosenSprite.sprite;
+			m_image.sprite = chosenSprite.sprite;
 		}
 
 		#endregion

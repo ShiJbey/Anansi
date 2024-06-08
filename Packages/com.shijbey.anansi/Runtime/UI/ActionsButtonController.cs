@@ -17,7 +17,7 @@ namespace Anansi
 		/// <summary>
 		/// A reference to the GameManager
 		/// </summary>
-		private StoryController m_storyController;
+		private GameManager m_gameManager;
 
 		/// <summary>
 		/// A reference to the panel with buttons to select actions
@@ -33,7 +33,7 @@ namespace Anansi
 		private void Awake()
 		{
 			m_button = GetComponent<Button>();
-			m_storyController = FindObjectOfType<StoryController>();
+			m_gameManager = FindObjectOfType<GameManager>();
 		}
 
 		private void OnEnable()
@@ -59,7 +59,7 @@ namespace Anansi
 			{
 				m_choiceDialog.ClearChoices();
 
-				IList<StoryletInstance> actions = m_storyController.GetEligibleActionStorylets();
+				IList<StoryletInstance> actions = m_gameManager.GetEligibleActionStorylets();
 
 				foreach ( StoryletInstance action in actions )
 				{
@@ -72,7 +72,7 @@ namespace Anansi
 						() =>
 						{
 							m_choiceDialog.Hide();
-							m_storyController.RunStoryletInstance( storyletInstance );
+							m_gameManager.DialogueManager.RunStoryletInstance( storyletInstance );
 						}
 					);
 				}

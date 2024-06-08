@@ -24,7 +24,9 @@ namespace Anansi
 		/// <summary>
 		/// A reference to the GameManager instance
 		/// </summary>
-		private StoryController m_storyController;
+		private GameManager m_gameManager;
+
+		private SimulationController m_simulationController;
 
 		#endregion
 
@@ -32,19 +34,20 @@ namespace Anansi
 
 		private void Awake()
 		{
-			m_storyController = FindObjectOfType<StoryController>();
+			m_gameManager = FindObjectOfType<GameManager>();
+			m_simulationController = FindObjectOfType<SimulationController>();
 		}
 
 		private void OnEnable()
 		{
-			TimeManager.OnTimeChanged += HandleTimeChange;
-			m_storyController.OnStoryLocationChange += HandleLocationChange;
+			m_simulationController.OnTick += HandleTimeChange;
+			m_gameManager.OnStoryLocationChange += HandleLocationChange;
 		}
 
 		private void OnDisable()
 		{
-			TimeManager.OnTimeChanged -= HandleTimeChange;
-			m_storyController.OnStoryLocationChange -= HandleLocationChange;
+			m_simulationController.OnTick -= HandleTimeChange;
+			m_gameManager.OnStoryLocationChange -= HandleLocationChange;
 		}
 
 		#endregion
@@ -55,16 +58,16 @@ namespace Anansi
 		/// Callback executed when the current time in the story changes.
 		/// </summary>
 		/// <param name="dateTime"></param>
-		private void HandleTimeChange(SimDateTime dateTime)
+		public void HandleTimeChange()
 		{
-			m_dateTimeText.SetText( dateTime.ToString() );
+			m_dateTimeText.SetText( m_simulationController.DateTime.ToString() );
 		}
 
 		/// <summary>
 		/// Callback executed when the story's location changes.
 		/// </summary>
 		/// <param name="location"></param>
-		private void HandleLocationChange(Location location)
+		public void HandleLocationChange(Location location)
 		{
 			m_locationText.SetText( location.DisplayName );
 		}

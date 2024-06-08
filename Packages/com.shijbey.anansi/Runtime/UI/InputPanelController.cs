@@ -1,11 +1,10 @@
-using System;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace Anansi
 {
 	/// <summary>
-	/// This controller listens for input request actions from the StoryController, and responds
+	/// This controller listens for input request actions from the Story, and responds
 	/// with input provided by the user.
 	/// </summary>
 	class InputPanelController : MonoBehaviour
@@ -19,8 +18,7 @@ namespace Anansi
 		[SerializeField]
 		private TMPro.TMP_InputField m_inputField;
 
-		[SerializeField]
-		private StoryController m_storyController;
+		private DialogueManager m_dialogueManager;
 
 		private InputDataType m_requestDataType;
 
@@ -31,10 +29,11 @@ namespace Anansi
 
 		private void Start()
 		{
+			m_dialogueManager = FindObjectOfType<DialogueManager>();
 			m_requestDataType = InputDataType.String;
 			m_requestVariableName = "";
 			m_submitButton.onClick.AddListener( SubmitInput );
-			// m_storyController.OnGetInput += HandleGetInput;
+			m_dialogueManager.OnGetInput += HandleGetInput;
 			Hide();
 		}
 
@@ -57,7 +56,7 @@ namespace Anansi
 		}
 
 		/// <summary>
-		/// Send the input to the StoryController.
+		/// Send the input to the Story.
 		/// </summary>
 		public void SubmitInput()
 		{
@@ -66,7 +65,7 @@ namespace Anansi
 			switch ( m_requestDataType )
 			{
 				case InputDataType.String:
-					m_storyController.SetInput( m_requestVariableName, inputText );
+					m_dialogueManager.SetInput( m_requestVariableName, inputText );
 					m_errorText.text = "";
 					m_inputField.text = "";
 					m_errorText.gameObject.SetActive( false );
@@ -75,7 +74,7 @@ namespace Anansi
 				case InputDataType.Int:
 					if ( int.TryParse( inputText, out var intValue ) )
 					{
-						m_storyController.SetInput( m_requestVariableName, intValue );
+						m_dialogueManager.SetInput( m_requestVariableName, intValue );
 						m_errorText.text = "";
 						m_inputField.text = "";
 						m_errorText.gameObject.SetActive( false );
@@ -90,7 +89,7 @@ namespace Anansi
 				case InputDataType.Float:
 					if ( float.TryParse( inputText, out var floatValue ) )
 					{
-						m_storyController.SetInput( m_requestVariableName, floatValue );
+						m_dialogueManager.SetInput( m_requestVariableName, floatValue );
 						m_errorText.text = "";
 						m_inputField.text = "";
 						m_errorText.gameObject.SetActive( false );

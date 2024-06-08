@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace Anansi
 {
@@ -15,17 +14,12 @@ namespace Anansi
 		/// <summary>
 		/// The ID of the knot within an Ink Story.
 		/// </summary>
-		public string KnotID { get; }
+		public string ID { get; }
 
 		/// <summary>
 		/// The Ink Story this storylet belongs to.
 		/// </summary>
-		public Ink.Runtime.Story Story { get; }
-
-		/// <summary>
-		/// What type of storylet is this.
-		/// </summary>
-		public StoryletType StoryletType { get; }
+		public Ink.Runtime.Story InkStory { get; }
 
 		/// <summary>
 		/// The number of Storylets that must elapse before this storylet may be used again.
@@ -84,30 +78,27 @@ namespace Anansi
 		public string WeightFunctionName { get; set; }
 
 		/// <summary>
-		/// (Location storylets only) A list of locations connected to this one
-		/// </summary>
-		public List<string> ConnectedLocations { get; }
-
-		/// <summary>
-		/// (Location storylets only) The ID of the location associated with this storylet.
-		/// </summary>
-		public string LocationID { get; set; }
-
-		/// <summary>
-		/// (Action storylets only) The ID of the action associated with this storylet.
-		/// </summary>
-		public string ActionID { get; set; }
-
-		/// <summary>
-		/// (Action storylets only) A list of locations where this action can be performed
-		/// </summary>
-		public List<string> EligibleLocations { get; }
-
-		/// <summary>
 		/// Text shown to the player when this storylet is an option within the
 		/// action selection menu.
 		/// </summary>
 		public string ChoiceLabel { get; set; }
+
+		/// <summary>
+		/// Is this storylet not under cooldown and not reached its max number of plays.
+		/// </summary>
+		public bool IsEligible
+		{
+			get
+			{
+				bool hasCooldown = Cooldown > 0;
+
+				if ( hasCooldown && CooldownTimeRemaining > 0 ) return false;
+
+				if ( !IsRepeatable && TimesPlayed > 0 ) return false;
+
+				return true;
+			}
+		}
 
 		#endregion
 
@@ -115,26 +106,20 @@ namespace Anansi
 
 		public Storylet(
 			string knotID,
-			Ink.Runtime.Story story,
-			StoryletType storyletType
+			Ink.Runtime.Story story
 		)
 		{
-			KnotID = knotID;
-			Story = story;
-			StoryletType = storyletType;
+			ID = knotID;
+			InkStory = story;
 			Cooldown = 0;
 			CooldownTimeRemaining = 0;
 			IsRepeatable = true;
 			IsMandatory = false;
 			Precondition = null;
 			ChoiceLabel = "";
-			ConnectedLocations = new List<string>();
-			EligibleLocations = new List<string>();
 			Tags = new HashSet<string>();
 			VariableSubstitutions = new Dictionary<string, string>();
 			InputBindings = new Dictionary<string, object>();
-			LocationID = "";
-			ActionID = "";
 			Weight = 1;
 			WeightFunctionName = null;
 		}
@@ -142,21 +127,6 @@ namespace Anansi
 		#endregion
 
 		#region Public Methods
-
-		/// <summary>
-		/// Check if a storylet has the given tags.
-		/// </summary>
-		/// <param name="tags"></param>
-		/// <returns></returns>
-		public bool HasTags(IList<string> tags)
-		{
-			foreach ( string tag in tags )
-			{
-				if ( !Tags.Contains( tag ) ) return false;
-			}
-
-			return true;
-		}
 
 		/// <summary>
 		/// Decrement the cool down time and return the remaining time.

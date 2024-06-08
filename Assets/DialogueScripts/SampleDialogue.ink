@@ -1,3 +1,5 @@
+// This content is borroed from: https://github.com/KlaudiaBronowicka/VisualNovelTutorial
+
 // Global variables
 VAR speaker = "speaker"
 VAR player = "player"
@@ -8,12 +10,13 @@ VAR other_character = "other_character"
 
 === storylet_sample_conversation ===
 # ---
-# choice_label: 
+# choice_label:
 # tags: convo, astrid
+# @using speaker as ?speaker
 # @query
 # ?speaker.relationships.?other.traits.friend
-# neq ?other ?player
-# ?player.relationships.?other.traits.rival
+# neq ?other player
+# player.relationships.?other.traits.rival
 # @end
 # @set other_character to ?other
 # ===
@@ -63,7 +66,7 @@ VAR other_character = "other_character"
 {HealthPoints < 50:
 
     {speaker}: You seem quite weak. I wonder why...
-    
+
 }
 
 {speaker}: Alright. You have answered my question.

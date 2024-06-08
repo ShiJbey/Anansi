@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Ink.Runtime;
 
 namespace Anansi
 {
@@ -14,12 +13,12 @@ namespace Anansi
 		/// <summary>
 		/// The ID of the knot within an Ink Story.
 		/// </summary>
-		public string KnotID => Storylet.KnotID;
+		public string KnotID => Storylet.ID;
 
 		/// <summary>
 		/// The Ink Story this storylet belongs to.
 		/// </summary>
-		public Story Story => Storylet.Story;
+		public Ink.Runtime.Story InkStory => Storylet.InkStory;
 
 		/// <summary>
 		/// Get the label displayed when this storylet is used as a choice.
@@ -52,27 +51,8 @@ namespace Anansi
 		)
 		{
 			Storylet = storylet;
-			PreconditionBindings = new Dictionary<string, object>(
-				preconditionBindings
-			);
+			PreconditionBindings = new Dictionary<string, object>( preconditionBindings );
 			Weight = weight;
-		}
-
-		#endregion
-
-		#region Public Methods
-
-		/// <summary>
-		/// Sets the instance-specific variable values in the main story.
-		/// </summary>
-		public void BindInstanceVariables()
-		{
-			// Set the variables from the preconditionBindings
-			foreach ( var substitution in Storylet.VariableSubstitutions )
-			{
-				Storylet.Story.variablesState[substitution.Key] =
-					PreconditionBindings[substitution.Value];
-			}
 		}
 
 		#endregion

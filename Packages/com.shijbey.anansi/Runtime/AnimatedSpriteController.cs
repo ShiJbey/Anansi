@@ -1,5 +1,7 @@
 
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace Anansi
@@ -63,32 +65,16 @@ namespace Anansi
 		public override void SetSpriteFromTags(params string[] tags)
 		{
 			var chosenAnim = m_fallbackAnimationName;
-			var eligibleAnimations = new List<string>();
 
-			foreach ( var entry in m_animations )
+			List<string> bestMatches = ContentSelection.GetWithTags(
+				m_animations.Select( a => (a.animationName, new HashSet<string>( a.tags )) ),
+				tags
+			);
+
+			if ( bestMatches.Count > 0 )
 			{
-				var spriteTags = new HashSet<string>( entry.tags );
-				bool hasTags = true;
-
-				foreach ( string t in tags )
-				{
-					if ( !spriteTags.Contains( t ) )
-					{
-						hasTags = false;
-						break;
-					}
-				}
-
-				if ( hasTags )
-				{
-					eligibleAnimations.Add( entry.animationName );
-				}
-			}
-
-			if ( eligibleAnimations.Count > 0 )
-			{
-				chosenAnim = eligibleAnimations[
-					UnityEngine.Random.Range( 0, eligibleAnimations.Count )
+				chosenAnim = bestMatches[
+					UnityEngine.Random.Range( 0, bestMatches.Count )
 				];
 			}
 

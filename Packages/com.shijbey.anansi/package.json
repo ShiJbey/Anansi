@@ -1,6 +1,6 @@
 {
   "name": "com.shijbey.anansi",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "displayName": "Anansi",
   "description": "Create simulation-driven visual novels in Unity",
   "unity": "2021.1",
