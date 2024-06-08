@@ -26,6 +26,8 @@ namespace Anansi
 		/// </summary>
 		private GameManager m_gameManager;
 
+		private SimulationController m_simulationController;
+
 		#endregion
 
 		#region Unity Messages
@@ -33,17 +35,18 @@ namespace Anansi
 		private void Awake()
 		{
 			m_gameManager = FindObjectOfType<GameManager>();
+			m_simulationController = FindObjectOfType<SimulationController>();
 		}
 
 		private void OnEnable()
 		{
-			TimeManager.OnTimeChanged += HandleTimeChange;
+			m_simulationController.OnTick += HandleTimeChange;
 			m_gameManager.OnStoryLocationChange += HandleLocationChange;
 		}
 
 		private void OnDisable()
 		{
-			TimeManager.OnTimeChanged -= HandleTimeChange;
+			m_simulationController.OnTick -= HandleTimeChange;
 			m_gameManager.OnStoryLocationChange -= HandleLocationChange;
 		}
 
@@ -55,9 +58,9 @@ namespace Anansi
 		/// Callback executed when the current time in the story changes.
 		/// </summary>
 		/// <param name="dateTime"></param>
-		public void HandleTimeChange(SimDateTime dateTime)
+		public void HandleTimeChange()
 		{
-			m_dateTimeText.SetText( dateTime.ToString() );
+			m_dateTimeText.SetText( m_simulationController.DateTime.ToString() );
 		}
 
 		/// <summary>

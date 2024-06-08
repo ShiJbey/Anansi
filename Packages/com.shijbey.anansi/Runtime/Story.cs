@@ -2,15 +2,14 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using RePraxis;
-using System.Text.RegularExpressions;
 
 namespace Anansi
 {
 	/// <summary>
-	/// This class is responsible for managing the progression of the story and the sequencing of
-	/// dynamic content.
+	/// This class manages the state of the story by wrapping an Ink story and providing
+	/// infrastructure to support dynamic storylet-style content sequencing.
 	/// </summary>
-	public class AnansiStory
+	public class Story
 	{
 		#region Fields
 
@@ -38,7 +37,7 @@ namespace Anansi
 		/// An internal cache of dynamic choices to present the player. This list is added to
 		/// when we want to present storylet diverts as if they are native Ink choices.
 		/// </summary>
-		private List<StoryletInstance> m_dynamicChoices;
+		private List<Choice> m_dynamicChoices;
 
 		/// <summary>
 		/// The IDs of all the choices currently in the m_dynamic choices list.
@@ -63,66 +62,48 @@ namespace Anansi
 		/// <summary>
 		/// All tags belonging to the current line of dialogue.
 		/// </summary>
-		public List<string> LineTags { get; private set; }
+		public List<string> CurrentTags { get; private set; }
+
+		/// <summary>
+		/// A list of choices current available at this point in the story.
+		/// </summary>
+		/// <value></value>
+		public List<Choice> CurrentChoices
+		{
+			get
+			{
+				var choices = new List<Choice>();
+
+				// Return any Ink-native choices first.
+				var choicesFromInk = m_story.currentChoices;
+				if ( choicesFromInk.Count() > 0 )
+				{
+					foreach ( var inkChoice in choicesFromInk )
+					{
+						choices.Add( new Choice( inkChoice ) );
+					}
+				}
+				// Then try to return dynamic choices.
+				else if ( m_dynamicChoices.Count() > 0 )
+				{
+					foreach ( var storyletChoice in m_dynamicChoices )
+					{
+						choices.Add( storyletChoice );
+					}
+				}
+
+				return choices;
+			}
+		}
 
 		/// <summary>
 		/// The database used for storylet queries.
 		/// </summary>
 		public RePraxisDatabase DB { get; set; }
 
-		/// <summary>
-		/// What is the story controller currently doing.
-		/// </summary>
-		public bool IsWaitingForInput { get; private set; }
-
-		/// <summary>
-		/// Is there currently dialogue being displayed on the screen.
-		/// </summary>
-		public bool IsDisplayingDialogue { get; private set; }
-
-		/// <summary>
-		///	The current input request the controller is waiting to complete.
-		/// </summary>
-		public InputRequest InputRequest { get; private set; }
-
 		#endregion
 
 		#region Events and Actions
-
-		/// <summary>
-		/// Action invoked when loading external functions to register with the story.
-		/// </summary>
-		public Action<Ink.Runtime.Story> OnRegisterExternalFunctions;
-
-		/// <summary>
-		/// Action invoked when starting a new dialogue;
-		/// </summary>
-		public Action OnDialogueStart;
-
-		/// <summary>
-		/// Action invoked when ending a dialogue;
-		/// </summary>
-		public Action OnDialogueEnd;
-
-		/// <summary>
-		/// Action invoked when processing the tags of a line of dialogue.
-		/// </summary>
-		public Action<IList<string>> OnProcessLineTags;
-
-		/// <summary>
-		/// Action invoked when the current speaker changes
-		/// </summary>
-		public Action<SpeakerInfo> OnSpeakerChange;
-
-		/// <summary>
-		/// Action invoked when attempting to get user input.
-		/// </summary>
-		public Action<InputRequest> OnGetInput;
-
-		/// <summary>
-		/// Invoked when we have the next line of story dialogue.
-		/// </summary>
-		public Action<string> OnNextDialogueLine;
 
 		/// <summary>
 		/// Allow external listeners to contribute the the weight of a storylet instance.
@@ -133,18 +114,18 @@ namespace Anansi
 
 		#region Constructors
 
-		public AnansiStory(string storyJson)
+		public Story(string storyJson)
 		{
 			DB = new RePraxisDatabase();
 			m_storylets = new Dictionary<string, Storylet>();
 			m_story = new Ink.Runtime.Story( storyJson );
-			IsDisplayingDialogue = false;
-			IsWaitingForInput = false;
+			m_dynamicChoices = new List<Choice>();
 			m_currentStorylet = null;
 			m_storyletOnDeck = null;
 			m_boundStoryletInstance = null;
 
 			LoadStorylets();
+			RegisterExternalFunctions();
 		}
 
 		#endregion
@@ -152,79 +133,32 @@ namespace Anansi
 		#region Public Methods
 
 		/// <summary>
-		/// Run all setup-tasks before starting the story.
+		/// Progresses the story to the next line of content.
 		/// </summary>
-		public void Initialize()
-		{
-			RegisterExternalFunctions();
-		}
-
-		/// <summary>
-		/// Show the next line of dialogue or close if at the end
-		/// </summary>
-		public void AdvanceDialogue()
-		{
-			if ( CanContinue() )
-			{
-				string text = GetNextLine().Trim();
-
-				// Sometimes on navigation, we don't show any text. If this is the case,
-				// do not even show the dialogue panel and try to get another line
-				if ( text == "" )
-				{
-					// Hide();
-					AdvanceDialogue();
-					return;
-				}
-
-				OnNextDialogueLine?.Invoke( text );
-			}
-			else if ( IsWaitingForInput )
-			{
-				return;
-			}
-			else
-			{
-				EndDialogue();
-			}
-		}
-
-		/// <summary>
-		/// Get the next line of dialogue
-		/// </summary>
-		/// <returns></returns>
-		private string GetNextLine()
+		/// <returns>The next line of content</returns>
+		public string Continue()
 		{
 			// Follow the current storylet until it is exhausted
-			if ( m_currentStorylet.Story.canContinue )
+			if ( m_currentStorylet.InkStory.canContinue )
 			{
 				// Get the next line of text from Ink
-				string line = m_currentStorylet.Story.Continue().Trim();
-
-				line = PreProcessDialogueLine( line );
+				string line = m_currentStorylet.InkStory.Continue();
 
 				// Process tags
-				ProcessTags( m_currentStorylet.Story.currentTags );
-
-				IsDisplayingDialogue = true;
+				ExtractLineTags( m_currentStorylet.InkStory.currentTags );
 
 				return line;
 			}
 
 			if ( m_storyletOnDeck != null )
 			{
-				RunStoryletInstance( m_storyletOnDeck );
+				GoToStoryletInstance( m_storyletOnDeck );
 				m_storyletOnDeck = null;
 
 				// Get the next line of text from Ink
-				string line = m_currentStorylet.Story.Continue();
+				string line = m_currentStorylet.InkStory.Continue();
 
-				line = PreProcessDialogueLine( line );
-
-				// Process tags
-				ProcessTags( m_currentStorylet.Story.currentTags );
-
-				IsDisplayingDialogue = true;
+				ExtractLineTags( m_currentStorylet.InkStory.currentTags );
 
 				return line;
 			}
@@ -233,21 +167,31 @@ namespace Anansi
 		}
 
 		/// <summary>
-		/// Get the current choices for this dialogue
-		/// </summary>
-		/// <returns></returns>
-		public string[] GetChoices()
-		{
-			return m_currentStorylet.Story.currentChoices.Select( choice => choice.text ).ToArray();
-		}
-
-		/// <summary>
 		/// Make a choice
 		/// </summary>
 		/// <param name="choiceIndex"></param>
-		public void MakeChoice(int choiceIndex)
+		public void ChooseChoiceIndex(int choiceIndex)
 		{
-			m_currentStorylet.Story.ChooseChoiceIndex( choiceIndex );
+			// This method makes assumptions about where the choice index should be routed.
+			// Since we always return ink-native choices first, we will try to send it to
+			// ink first
+			if ( m_story.currentChoices.Count() > 0 )
+			{
+				m_currentStorylet.InkStory.ChooseChoiceIndex( choiceIndex );
+			}
+			else if ( m_dynamicChoices.Count() > 0 )
+			{
+				var choice = m_dynamicChoices[choiceIndex];
+
+				if ( choice.StoryletInstance == null )
+				{
+					throw new NullReferenceException( "Choice is missing storylet instance" );
+				}
+
+				GoToStoryletInstance( choice.StoryletInstance );
+				m_dynamicChoices.Clear();
+				m_dynamicChoiceIds.Clear();
+			}
 		}
 
 		/// <summary>
@@ -256,7 +200,7 @@ namespace Anansi
 		/// <returns></returns>
 		public bool HasChoices()
 		{
-			return m_currentStorylet.Story.currentChoices.Count > 0;
+			return CurrentChoices.Count > 0;
 		}
 
 		/// <summary>
@@ -265,16 +209,13 @@ namespace Anansi
 		/// <returns></returns>
 		public bool CanContinue()
 		{
-			// Cannot continue if waiting for input
-			if ( IsWaitingForInput ) return false;
-
 			// The story can continue if the current storylet can continue
-			if ( m_currentStorylet.Story.canContinue ) return true;
+			if ( m_currentStorylet.InkStory.canContinue ) return true;
 
 			// We cannot continue if there are choices.
 			if ( HasChoices() ) return false;
 
-			// If the current story can continue and it does not have any choices,
+			// If the current story cannot continue and it does not have any choices,
 			// check if there is a storylet on deck to transition to
 			if ( !HasChoices() && m_storyletOnDeck != null ) return true;
 
@@ -285,7 +226,7 @@ namespace Anansi
 		/// Attempt to instantiate and run a storylet.
 		/// </summary>
 		/// <param name="storylet"></param>
-		public void RunStorylet(Storylet storylet)
+		public void GoToStorylet(Storylet storylet)
 		{
 			// Generally, the starting storylet should not contain a query, but if it does, then
 			// there is the possibility that we will fail to create any storylet instances.
@@ -297,7 +238,7 @@ namespace Anansi
 
 			if ( startInstances.Count == 0 )
 			{
-				throw new Exception( $"Failed to create instance of storylet: {storylet.KnotID}." );
+				throw new Exception( $"Failed to create instance of storylet: {storylet.ID}." );
 			}
 
 			// These should all be weighted the same, but this code will remain incase future
@@ -305,14 +246,14 @@ namespace Anansi
 			StoryletInstance selectedInstance = startInstances
 				.RandomElementByWeight( s => s.Weight );
 
-			RunStoryletInstance( selectedInstance );
+			GoToStoryletInstance( selectedInstance );
 		}
 
 		/// <summary>
 		/// Progress the story from the given storylet instance.
 		/// </summary>
 		/// <param name="instance"></param>
-		public void RunStoryletInstance(StoryletInstance instance)
+		public void GoToStoryletInstance(StoryletInstance instance)
 		{
 			m_currentStorylet = instance;
 
@@ -328,38 +269,14 @@ namespace Anansi
 
 			m_currentStorylet.Storylet.ResetCooldown();
 
-			m_currentStorylet.BindInstanceVariables();
-
-			m_currentStorylet.Story.ChoosePathString( m_currentStorylet.KnotID );
-
-			if ( !IsDisplayingDialogue )
+			// Set the variables from the preconditionBindings
+			foreach ( var substitution in instance.Storylet.VariableSubstitutions )
 			{
-				IsDisplayingDialogue = true;
-
-				OnDialogueStart?.Invoke();
+				m_story.variablesState[substitution.Key] =
+					instance.PreconditionBindings[substitution.Value];
 			}
-		}
 
-		/// <summary>
-		/// End the current dialogue and let the player select another action or location.
-		/// </summary>
-		public void EndDialogue()
-		{
-			IsDisplayingDialogue = false;
-			IsWaitingForInput = false;
-
-			OnDialogueEnd?.Invoke();
-		}
-
-		/// <summary>
-		/// Provide input if the system is waiting for input.
-		/// </summary>
-		public void SetInput(string variableName, object input)
-		{
-			IsWaitingForInput = false;
-			InputRequest = null;
-			this.m_story.state.variablesState[variableName] = input;
-			AdvanceDialogue();
+			m_currentStorylet.InkStory.ChoosePathString( m_currentStorylet.KnotID );
 		}
 
 		/// <summary>
@@ -447,9 +364,7 @@ namespace Anansi
 		/// </summary>
 		/// <param name="storylet"></param>
 		/// <returns></returns>
-		public List<StoryletInstance> CreateStoryletInstances(
-			Storylet storylet
-		)
+		public List<StoryletInstance> CreateStoryletInstances(Storylet storylet)
 		{
 			return CreateStoryletInstances( storylet, new Dictionary<string, object>() );
 		}
@@ -528,11 +443,21 @@ namespace Anansi
 			return instances;
 		}
 
+		/// <summary>
+		/// Queue a storylet instance as a choice to present to the player after the
+		/// current dialogue line.
+		/// </summary>
+		/// <param name="instance"></param>
 		public void AddDynamicChoice(StoryletInstance instance)
 		{
 			if ( !m_dynamicChoiceIds.Contains( instance.KnotID ) )
 			{
-				m_dynamicChoices.Add( instance );
+				m_dynamicChoices.Add( new Choice(
+					index: m_dynamicChoices.Count,
+					text: instance.ChoiceLabel,
+					tags: new string[0],
+					storyletInstance: instance
+				) );
 				m_dynamicChoiceIds.Add( instance.KnotID );
 			}
 		}
@@ -542,7 +467,7 @@ namespace Anansi
 		#region Private Methods
 
 		/// <summary>
-		/// Extract all the storylets from the controller's story instance.
+		/// Extract all the storylets from the ink story instance.
 		/// </summary>
 		private void LoadStorylets()
 		{
@@ -566,7 +491,7 @@ namespace Anansi
 
 				Storylet storylet = CreateStorylet( knotID );
 
-				m_storylets.Add( storylet.KnotID, storylet );
+				m_storylets.Add( storylet.ID, storylet );
 			}
 		}
 
@@ -576,11 +501,15 @@ namespace Anansi
 		/// <param name="story"></param>
 		/// <param name="knotID"></param>
 		/// <returns></returns>
-		private Storylet CreateStorylet(
-			string knotID
-		)
+		private Storylet CreateStorylet(string knotID)
 		{
+
 			Storylet storylet = new Storylet( knotID, m_story );
+
+			// All storylet metadata is contained within the knot-level tags. The content between
+			// the "---" and the "===" are called the storylet header. We need to parse each line
+			// of the header and set the appropriate metadata values on the storylet instance we
+			// just created.
 
 			List<string> knotTags = m_story.TagsForContentAtPath( knotID );
 
@@ -799,7 +728,11 @@ namespace Anansi
 		/// <returns></returns>
 		/// <exception cref="ArgumentException"></exception>
 		private static DBQuery PreconditionQueryFromTags(
-			string knotID, List<string> tags, int startingIndex, out int lineIndex)
+			string knotID,
+			List<string> tags,
+			int startingIndex,
+			out int lineIndex
+		)
 		{
 			List<string> queryLines = new List<string>();
 			bool endReached = false;
@@ -823,7 +756,7 @@ namespace Anansi
 			if ( !endReached )
 			{
 				throw new ArgumentException(
-					$"Missing 'end >>' statement in precondition query for knot '{knotID}'"
+					$"Missing '@end' statement in precondition query for knot '{knotID}'"
 				);
 			}
 
@@ -860,40 +793,12 @@ namespace Anansi
 		}
 
 		/// <summary>
-		/// PreProcess the dialogue line
-		/// </summary>
-		/// <param name="line"></param>
-		private string PreProcessDialogueLine(string line)
-		{
-			Match match = Regex.Match( line, @"^(\w+[\.\w+]*):(.*)$" );
-
-			if ( match.Value == "" )
-			{
-				OnSpeakerChange?.Invoke( null );
-				return line;
-			}
-			else
-			{
-				List<string> speakerSpec = match.Groups[1].Value
-					.Split( "." ).Select( s => s.Trim() ).ToList();
-
-				string speakerId = speakerSpec[0];
-				speakerSpec.RemoveAt( 0 );
-				string[] speakerTags = speakerSpec.ToArray();
-
-				OnSpeakerChange?.Invoke( new SpeakerInfo( speakerId, speakerTags ) );
-
-				string dialogueText = match.Groups[2].Value.Trim();
-
-				return dialogueText;
-			}
-		}
-
-		/// <summary>
-		/// Process a list of Ink tags
+		/// Removes any potential storylet header tags from a dialogue line. This is only relevant
+		/// to the first dialogue line in a storylet. However, we have no may of knowing which are
+		/// which. So, we run this on every dialogue line.
 		/// </summary>
 		/// <param name="tags"></param>
-		private void ProcessTags(IList<string> tags)
+		private void ExtractLineTags(IList<string> tags)
 		{
 			bool foundOpeningTag = false;
 			bool foundClosingTag = false;
@@ -902,6 +807,7 @@ namespace Anansi
 			// lines tags are mixed with the knots tags. We have to ignore all tags
 			// that come between the opening and closing markers.
 			List<string> filteredTags = new List<string>();
+
 			if ( tags != null )
 			{
 				foreach ( string line in tags )
@@ -911,13 +817,13 @@ namespace Anansi
 						continue;
 					}
 
-					if ( line.StartsWith( "---" ) )
+					if ( line.StartsWith( "---" ) && !foundOpeningTag )
 					{
 						foundOpeningTag = true;
 						continue;
 					}
 
-					if ( line.StartsWith( "===" ) )
+					if ( line.StartsWith( "===" ) && !foundClosingTag )
 					{
 						foundClosingTag = true;
 						continue;
@@ -927,8 +833,7 @@ namespace Anansi
 				}
 			}
 
-			LineTags = filteredTags;
-			OnProcessLineTags?.Invoke( filteredTags );
+			CurrentTags = filteredTags;
 		}
 
 		/// <summary>
@@ -1047,42 +952,6 @@ namespace Anansi
 			);
 
 			m_story.BindExternalFunction(
-				"GetInput",
-				(string dataTypeName, string prompt, string varName) =>
-				{
-					IsWaitingForInput = true;
-					InputDataType dataType = InputDataType.String;
-
-					switch ( dataTypeName )
-					{
-						case "int":
-							dataType = InputDataType.Int;
-							break;
-						case "float":
-							dataType = InputDataType.Float;
-							break;
-						case "number":
-							dataType = InputDataType.Float;
-							break;
-						case "text":
-							dataType = InputDataType.String;
-							break;
-						default:
-							dataType = InputDataType.String;
-							break;
-					}
-
-					InputRequest = new InputRequest(
-						prompt, varName, dataType
-					);
-
-					OnGetInput?.Invoke(
-						InputRequest
-					);
-				}
-			);
-
-			m_story.BindExternalFunction(
 				"GetBindingVar",
 				(string variableName) =>
 				{
@@ -1106,8 +975,7 @@ namespace Anansi
 					StoryletInstance selectedInstance = instances
 						.RandomElementByWeight( s => s.Weight );
 
-					m_dynamicChoices.Add( selectedInstance );
-					m_dynamicChoiceIds.Add( selectedInstance.KnotID );
+					AddDynamicChoice( selectedInstance );
 				}
 			);
 
@@ -1125,7 +993,7 @@ namespace Anansi
 
 					foreach ( Storylet storylet in storyletsWithTags )
 					{
-						if ( m_dynamicChoiceIds.Contains( storylet.KnotID ) ) continue;
+						if ( m_dynamicChoiceIds.Contains( storylet.ID ) ) continue;
 
 						List<StoryletInstance> instances = CreateStoryletInstances(
 							storylet,
@@ -1148,57 +1016,19 @@ namespace Anansi
 						StoryletInstance selectedInstance = mandatoryStorylets
 							.RandomElementByWeight( s => s.Weight );
 
-						m_dynamicChoices.Add( selectedInstance );
-						m_dynamicChoiceIds.Add( selectedInstance.KnotID );
+						AddDynamicChoice( selectedInstance );
 					}
 					else if ( storyletInstances.Count > 0 )
 					{
 						StoryletInstance selectedInstance = storyletInstances
 							.RandomElementByWeight( s => s.Weight );
 
-						m_dynamicChoices.Add( selectedInstance );
-						m_dynamicChoiceIds.Add( selectedInstance.KnotID );
+						AddDynamicChoice( selectedInstance );
 					}
 				}
 			);
-
-			// Load functions from external classes.
-			OnRegisterExternalFunctions?.Invoke( m_story );
 		}
 
 		#endregion
-	}
-
-	public enum InputDataType
-	{
-		String,
-		Int,
-		Float
-	}
-
-	public class InputRequest
-	{
-		public string Prompt { get; }
-		public string VariableName { get; }
-		public InputDataType DataType { get; }
-
-		public InputRequest(string prompt, string variableName, InputDataType dataType)
-		{
-			Prompt = prompt;
-			VariableName = variableName;
-			DataType = dataType;
-		}
-	}
-
-	public class SpeakerInfo
-	{
-		public string SpeakerId { get; }
-		public string[] Tags { get; }
-
-		public SpeakerInfo(string speakerId, string[] tags)
-		{
-			this.SpeakerId = speakerId;
-			this.Tags = tags;
-		}
 	}
 }

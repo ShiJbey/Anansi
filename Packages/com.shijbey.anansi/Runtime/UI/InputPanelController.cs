@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -19,8 +18,7 @@ namespace Anansi
 		[SerializeField]
 		private TMPro.TMP_InputField m_inputField;
 
-		[SerializeField]
-		private GameManager m_gameManager;
+		private DialogueManager m_dialogueManager;
 
 		private InputDataType m_requestDataType;
 
@@ -31,11 +29,11 @@ namespace Anansi
 
 		private void Start()
 		{
-			m_gameManager = FindObjectOfType<GameManager>();
+			m_dialogueManager = FindObjectOfType<DialogueManager>();
 			m_requestDataType = InputDataType.String;
 			m_requestVariableName = "";
 			m_submitButton.onClick.AddListener( SubmitInput );
-			m_gameManager.Story.OnGetInput += HandleGetInput;
+			m_dialogueManager.OnGetInput += HandleGetInput;
 			Hide();
 		}
 
@@ -67,7 +65,7 @@ namespace Anansi
 			switch ( m_requestDataType )
 			{
 				case InputDataType.String:
-					m_gameManager.Story.SetInput( m_requestVariableName, inputText );
+					m_dialogueManager.SetInput( m_requestVariableName, inputText );
 					m_errorText.text = "";
 					m_inputField.text = "";
 					m_errorText.gameObject.SetActive( false );
@@ -76,7 +74,7 @@ namespace Anansi
 				case InputDataType.Int:
 					if ( int.TryParse( inputText, out var intValue ) )
 					{
-						m_gameManager.Story.SetInput( m_requestVariableName, intValue );
+						m_dialogueManager.SetInput( m_requestVariableName, intValue );
 						m_errorText.text = "";
 						m_inputField.text = "";
 						m_errorText.gameObject.SetActive( false );
@@ -91,7 +89,7 @@ namespace Anansi
 				case InputDataType.Float:
 					if ( float.TryParse( inputText, out var floatValue ) )
 					{
-						m_gameManager.Story.SetInput( m_requestVariableName, floatValue );
+						m_dialogueManager.SetInput( m_requestVariableName, floatValue );
 						m_errorText.text = "";
 						m_inputField.text = "";
 						m_errorText.gameObject.SetActive( false );

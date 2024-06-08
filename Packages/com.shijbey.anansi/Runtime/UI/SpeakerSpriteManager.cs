@@ -8,7 +8,7 @@ namespace Anansi
 	/// Maintains a look-up table of characters that exist in the game and manages what character
 	/// is currently shown on screen.
 	/// </summary>
-	public class CharacterManager : MonoBehaviour
+	public class SpeakerSpriteManager : MonoBehaviour
 	{
 		#region Fields
 
@@ -47,10 +47,7 @@ namespace Anansi
 		/// </summary>
 		private Character m_displayedCharacter;
 
-		/// <summary>
-		/// A look-up table of actor IDs mapped to their instances.
-		/// </summary>
-		private Dictionary<string, Character> m_characterLookupTable;
+		private SimulationController m_simulationController;
 
 		#endregion
 
@@ -61,18 +58,13 @@ namespace Anansi
 		/// </summary>
 		public bool IsSpriteHidden { get; private set; }
 
-		/// <summary>
-		/// All the characters registered with the manager
-		/// </summary>
-		public IEnumerable<Character> Characters => m_characterLookupTable.Values;
-
 		#endregion
 
 		#region Unity Messages
 
 		private void Awake()
 		{
-			m_characterLookupTable = new Dictionary<string, Character>();
+			m_simulationController = FindObjectOfType<SimulationController>();
 		}
 
 		#endregion
@@ -80,48 +72,11 @@ namespace Anansi
 		#region Public Methods
 
 		/// <summary>
-		/// Fills the lookup table using entries from the characters collection.
-		/// </summary>
-		public void InitializeLookUpTable()
-		{
-			var characters = FindObjectsOfType<Character>();
-			foreach ( Character character in characters )
-			{
-				AddCharacter( character );
-			}
-		}
-
-		/// <summary>
-		/// Get a character using their ID.
-		/// </summary>
-		/// <param name="characterID"></param>
-		/// <returns></returns>
-		public Character GetCharacter(string characterID)
-		{
-			if ( m_characterLookupTable.TryGetValue( characterID, out var character ) )
-			{
-				return character;
-			}
-
-			throw new KeyNotFoundException( $"Could not find character with ID: {characterID}" );
-		}
-
-		/// <summary>
-		/// Add a character to the manager
-		/// </summary>
-		/// <param name="character"></param>
-		public void AddCharacter(Character character)
-		{
-			m_characterLookupTable.Add( character.UniqueID, character );
-		}
-
-
-		/// <summary>
 		/// Reset all character sprites to be out of view
 		/// </summary>
 		public void ResetSprites()
 		{
-			foreach ( var character in Characters )
+			foreach ( var character in m_simulationController.Characters )
 			{
 				character.transform.position = m_offScreenPosition.position;
 			}
@@ -194,14 +149,14 @@ namespace Anansi
 					// Slide out the old speaker first then set the character
 					yield return SlideOut( m_displayedCharacter.transform );
 
-					m_displayedCharacter = GetCharacter( speakerID );
+					m_displayedCharacter = m_simulationController.GetCharacter( speakerID );
 					m_displayedCharacter.SetSprite( tags );
 				}
 			}
 			else
 			{
 				// There is not a character displayed so set it
-				m_displayedCharacter = GetCharacter( speakerID );
+				m_displayedCharacter = m_simulationController.GetCharacter( speakerID );
 				m_displayedCharacter.SetSprite( tags );
 			}
 

@@ -5,10 +5,9 @@ using UnityEngine;
 namespace Anansi
 {
 	/// <summary>
-	/// Maintains a look-up table of locations that exist in the game and manages what location
-	/// image is currently shown on screen.
+	/// Manages the presentation of background images in the game.
 	/// </summary>
-	public class LocationManager : MonoBehaviour
+	public class BackgroundManager : MonoBehaviour
 	{
 		#region Fields
 
@@ -47,27 +46,15 @@ namespace Anansi
 		/// </summary>
 		private Location m_displayedLocation;
 
-		/// <summary>
-		/// IDs of locations mapped to their instances.
-		/// </summary>
-		private Dictionary<string, Location> m_locationLookupTable;
-
-		#endregion
-
-		#region Properties
-
-		/// <summary>
-		/// All the locations known by the manager
-		/// </summary>
-		public IEnumerable<Location> Locations => m_locationLookupTable.Values;
+		private SimulationController m_simulationController;
 
 		#endregion
 
 		#region Unity Messages
 
-		private void Awake()
+		private void Start()
 		{
-			m_locationLookupTable = new Dictionary<string, Location>();
+			m_simulationController = FindObjectOfType<SimulationController>();
 		}
 
 		#endregion
@@ -75,47 +62,11 @@ namespace Anansi
 		#region Public Methods
 
 		/// <summary>
-		/// Fills the lookup table using entries from the locations collection.
-		/// </summary>
-		public void InitializeLookUpTable()
-		{
-			var locations = FindObjectsOfType<Location>();
-			foreach ( Location location in locations )
-			{
-				AddLocation( location );
-			}
-		}
-
-		/// <summary>
-		/// Get a location using their ID.
-		/// </summary>
-		/// <param name="locationID"></param>
-		/// <returns></returns>
-		public Location GetLocation(string locationID)
-		{
-			if ( m_locationLookupTable.TryGetValue( locationID, out var location ) )
-			{
-				return location;
-			}
-
-			throw new KeyNotFoundException( $"Could not find location with ID: {locationID}" );
-		}
-
-		/// <summary>
-		/// Add a location to the manager
-		/// </summary>
-		/// <param name="location"></param>
-		public void AddLocation(Location location)
-		{
-			m_locationLookupTable[location.UniqueID] = location;
-		}
-
-		/// <summary>
 		/// Move all location backgrounds out of view
 		/// </summary>
 		public void ResetBackgrounds()
 		{
-			foreach ( var location in Locations )
+			foreach ( var location in m_simulationController.Locations )
 			{
 				location.transform.position = m_offScreenPosition.position;
 			}
@@ -202,7 +153,7 @@ namespace Anansi
 					// Reset its transparency
 					ResetTransparency( m_displayedLocation );
 
-					m_displayedLocation = GetLocation( locationID );
+					m_displayedLocation = m_simulationController.GetLocation( locationID );
 					m_displayedLocation.SetSprite( tags );
 
 					yield return FadeOut( m_displayedLocation );
@@ -214,7 +165,7 @@ namespace Anansi
 			}
 			else
 			{
-				m_displayedLocation = GetLocation( locationID );
+				m_displayedLocation = m_simulationController.GetLocation( locationID );
 				m_displayedLocation.SetSprite( tags );
 
 				yield return FadeOut( m_displayedLocation );

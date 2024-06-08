@@ -14,12 +14,12 @@ namespace Anansi
 		/// <summary>
 		/// The ID of the knot within an Ink Story.
 		/// </summary>
-		public string KnotID { get; }
+		public string ID { get; }
 
 		/// <summary>
 		/// The Ink Story this storylet belongs to.
 		/// </summary>
-		public Ink.Runtime.Story Story { get; }
+		public Ink.Runtime.Story InkStory { get; }
 
 		/// <summary>
 		/// The number of Storylets that must elapse before this storylet may be used again.
@@ -109,8 +109,8 @@ namespace Anansi
 			Ink.Runtime.Story story
 		)
 		{
-			KnotID = knotID;
-			Story = story;
+			ID = knotID;
+			InkStory = story;
 			Cooldown = 0;
 			CooldownTimeRemaining = 0;
 			IsRepeatable = true;

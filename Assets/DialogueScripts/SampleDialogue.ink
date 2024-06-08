@@ -1,3 +1,5 @@
+// This content is borroed from: https://github.com/KlaudiaBronowicka/VisualNovelTutorial
+
 // Global variables
 VAR speaker = "speaker"
 VAR player = "player"

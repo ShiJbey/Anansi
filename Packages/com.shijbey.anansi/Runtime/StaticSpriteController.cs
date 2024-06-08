@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Anansi
 {
@@ -24,7 +25,7 @@ namespace Anansi
 		/// <summary>
 		/// A reference to the GameObjects's animator component
 		/// </summary>
-		private SpriteRenderer m_spriteRenderer;
+		private Image m_image;
 
 		/// <summary>
 		/// The name of the animation to fallback to if none is found
@@ -37,10 +38,10 @@ namespace Anansi
 
 		public void Awake()
 		{
-			m_spriteRenderer = GetComponent<SpriteRenderer>();
+			m_image = GetComponent<Image>();
 			m_spriteLookupTable = new Dictionary<string, SpriteEntry>();
 
-			if ( m_spriteRenderer == null )
+			if ( m_image == null )
 			{
 				throw new System.Exception(
 					$"SpriteRenderer missing for {gameObject.name}" );
@@ -99,7 +100,7 @@ namespace Anansi
 				];
 			}
 
-			m_spriteRenderer.sprite = chosenSprite.sprite;
+			m_image.sprite = chosenSprite.sprite;
 		}
 
 		#endregion

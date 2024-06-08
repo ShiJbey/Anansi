@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using TDRS;
 using System;
-using Ink.Runtime;
 using Anansi.Scheduling;
 using UnityEngine.Events;
 using System.Linq;
@@ -24,28 +23,22 @@ namespace Anansi
 		protected Character m_player;
 
 		/// <summary>
-		/// Manages a lookup table for all characters in the game.
+		/// Manages the underlying world simulation.
 		/// </summary>
 		[SerializeField]
-		private CharacterManager m_characterManager;
-
-		/// <summary>
-		/// Manages a look-up table for all the locations in the game.
-		/// </summary>
-		[SerializeField]
-		private LocationManager m_locationManager;
-
-		/// <summary>
-		/// Manages the current time in the game.
-		/// </summary>
-		[SerializeField]
-		private TimeManager m_timeManager;
+		private SimulationController m_simulationController;
 
 		/// <summary>
 		/// Manages character relationships and all information in the logical database.
 		/// </summary>
 		[SerializeField]
 		private SocialEngineController m_socialEngine;
+
+		/// <summary>
+		/// A reference to the script controlling the dialogue and story progression.
+		/// </summary>
+		[SerializeField]
+		private DialogueManager m_dialogueManager;
 
 		/// <summary>
 		/// All storylets related to locations on the map.
@@ -57,16 +50,11 @@ namespace Anansi
 		/// </summary>
 		private Dictionary<string, Storylet> m_actionStorylets;
 
-		/// <summary>
-		/// A reference to the JSON file containing the compiled Ink story.
-		/// </summary>
 		[SerializeField]
-		private TextAsset m_storyJson;
+		private SpeakerSpriteManager m_speakerSpriteManager;
 
-		/// <summary>
-		/// A reference to the story constructed from the JSON data.
-		/// </summary>
-		private AnansiStory m_story;
+		[SerializeField]
+		private BackgroundManager m_backgroundManager;
 
 		#endregion
 
@@ -80,7 +68,9 @@ namespace Anansi
 		/// <summary>
 		/// A reference to the controller's story instance.
 		/// </summary>
-		public AnansiStory Story => m_story;
+		public Story Story => m_dialogueManager.Story;
+
+		public DialogueManager DialogueManager => m_dialogueManager;
 
 		#endregion
 
@@ -97,13 +87,6 @@ namespace Anansi
 		{
 			m_locationStorylets = new Dictionary<string, Storylet>();
 			m_actionStorylets = new Dictionary<string, Storylet>();
-
-			if ( m_storyJson == null )
-			{
-				throw new NullReferenceException( "GameManager is missing storyJSON" );
-			}
-
-			m_story = new AnansiStory( m_storyJson.text );
 		}
 
 		private void Start()
@@ -111,69 +94,22 @@ namespace Anansi
 
 			SocialEngineController.Instance.Initialize();
 			SocialEngineController.Instance.RegisterAgentsAndRelationships();
+			m_simulationController.Initialize();
+			m_dialogueManager.OnRegisterExternalFunctions += this.RegisterExternalInkFunctions;
+			m_dialogueManager.Story.DB = SocialEngineController.Instance.DB;
+			m_dialogueManager.Initialize();
 
-			m_story.OnRegisterExternalFunctions += this.RegisterExternalInkFunctions;
-			m_story.DB = SocialEngineController.Instance.DB;
-			m_story.Initialize();
-
-			m_story.OnSpeakerChange += (info) =>
-			{
-				if ( info != null )
-				{
-					this.SetSpeaker( info.SpeakerId, info.Tags );
-				}
-				else
-				{
-					m_characterManager.HideSpeaker();
-				}
-			};
-
-			m_story.OnDialogueEnd += () =>
-			{
-				m_characterManager.HideSpeaker();
-			};
-
-			this.m_actionStorylets = m_story
+			this.m_actionStorylets = m_dialogueManager.Story
 				.GetStoryletsWithTags( "action" )
-				.ToDictionary( s => s.KnotID );
+				.ToDictionary( s => s.ID );
 
-			this.m_locationStorylets = m_story
+			this.m_locationStorylets = m_dialogueManager.Story
 				.GetStoryletsWithTags( "location" )
-				.ToDictionary( s => s.KnotID );
-
-			m_characterManager.InitializeLookUpTable();
-			m_locationManager.InitializeLookUpTable();
-
-			// Insert initial character entry into database
-			foreach ( var character in m_characterManager.Characters )
-			{
-				DB.Insert( $"{character.UniqueID}" );
-			}
-
-			// Insert initial location entry into the database
-			foreach ( var location in m_locationManager.Locations )
-			{
-				DB.Insert( $"{location.UniqueID}" );
-			}
+				.ToDictionary( s => s.ID );
 
 			// Reposition character and background sprites
-			m_locationManager.ResetBackgrounds();
-			m_characterManager.ResetSprites();
-
-			// Add the current date to the social engine's database
-			SimDateTime currentDate = m_timeManager.DateTime;
-
-			DB.Insert(
-				$"date.time_of_day!{Enum.GetName( typeof( TimeOfDay ), currentDate.TimeOfDay )}" );
-			DB.Insert(
-				$"date.day!{currentDate.Day}" );
-			DB.Insert(
-				$"date.weekday!{Enum.GetName( typeof( WeekDay ), currentDate.WeekDay )}" );
-			DB.Insert(
-				$"date.week!{currentDate.Week}" );
-
-			// Move NPCs to their starting positions
-			TickCharacterSchedules();
+			m_backgroundManager.ResetBackgrounds();
+			m_speakerSpriteManager.ResetSprites();
 
 			StartStory();
 		}
@@ -187,108 +123,8 @@ namespace Anansi
 		/// </summary>
 		public void StartStory()
 		{
-			Storylet startStorylet = m_story.GetStorylet( "start" );
-			m_story.RunStorylet( startStorylet );
-		}
-
-		/// <summary>
-		/// Tick the simulation
-		/// </summary>
-		public void Tick()
-		{
-			TickTime();
-			TickCharacterSchedules();
-		}
-
-		/// <summary>
-		/// Update advance the current time by one step.
-		/// </summary>
-		public void TickTime()
-		{
-			m_timeManager.AdvanceTime();
-
-			SimDateTime currentDate = m_timeManager.DateTime;
-
-			DB.Insert(
-				$"date.time_of_day!{Enum.GetName( typeof( TimeOfDay ), currentDate.TimeOfDay )}" );
-			DB.Insert(
-				$"date.day!{currentDate.Day}" );
-			DB.Insert(
-				$"date.weekday!{Enum.GetName( typeof( WeekDay ), currentDate.WeekDay )}" );
-			DB.Insert(
-				$"date.week!{currentDate.Week}" );
-		}
-
-		/// <summary>
-		/// Update character states based on what their schedules dictate.
-		/// </summary>
-		public void TickCharacterSchedules()
-		{
-			SimDateTime currentDate = m_timeManager.DateTime;
-
-			foreach ( Character character in m_characterManager.Characters )
-			{
-				if ( character == m_player ) continue;
-
-				var scheduleManager = character.gameObject.GetComponent<ScheduleManager>();
-
-				if ( scheduleManager == null ) continue;
-
-				ScheduleEntry entry = scheduleManager.GetEntry( currentDate );
-
-				if ( entry == null ) continue;
-
-				SetCharacterLocation( character, m_locationManager.GetLocation( entry.Location ) );
-			}
-		}
-
-		/// <summary>
-		/// Sets the games background image to the given location
-		/// </summary>
-		/// <param name="locationID"></param>
-		/// <param name="tags"></param>
-		public void SetStoryLocation(string locationID, params string[] tags)
-		{
-			m_locationManager.SetBackground( locationID, tags );
-			OnStoryLocationChange?.Invoke( m_locationManager.GetLocation( locationID ) );
-		}
-
-		/// <summary>
-		/// Move an Actor to a new location.
-		/// </summary>
-		/// <param name="character"></param>
-		/// <param name="location"></param>
-		public void SetCharacterLocation(Character character, Location location)
-		{
-			// Remove the character from their current location
-			if ( character.Location != null )
-			{
-				character.Location.RemoveCharacter( character );
-				DB.Delete(
-					$"{character.Location.UniqueID}.characters.{character.UniqueID}" );
-				DB.Delete(
-					$"{character.UniqueID}.location!{character.Location.UniqueID}" );
-				character.Location = null;
-			}
-
-			if ( location != null )
-			{
-				location.AddCharacter( character );
-				character.Location = location;
-				DB.Insert( $"{location.UniqueID}.characters.{character.UniqueID}" );
-				DB.Insert( $"{character.UniqueID}.location!{location.UniqueID}" );
-			}
-		}
-
-		/// <summary>
-		/// Set the speaker sprite shown on screen.
-		/// </summary>
-		/// <param name="characterID"></param>
-		/// <param name="tags"></param>
-		public void SetSpeaker(string characterID, params string[] tags)
-		{
-			var character = m_characterManager.GetCharacter( characterID );
-			m_characterManager.SetSpeaker( characterID, tags );
+			Storylet startStorylet = m_dialogueManager.Story.GetStorylet( "start" );
+			m_dialogueManager.RunStorylet( startStorylet );
 		}
 
 		/// <summary>
@@ -298,20 +134,12 @@ namespace Anansi
 		/// <param name="tags"></param>
 		public void SetPlayerLocation(string locationID)
 		{
-			Location location = m_locationManager.GetLocation( locationID );
+			Location location = m_simulationController.GetLocation( locationID );
 
 			if ( m_player.Location != location )
 			{
-				SetCharacterLocation( m_player, location );
+				m_simulationController.SetCharacterLocation( m_player, location );
 			}
-
-			if ( location == null )
-			{
-				m_characterManager.HideSpeaker();
-				return;
-			}
-
-			SetStoryLocation( locationID );
 		}
 
 		/// <summary>
@@ -333,7 +161,7 @@ namespace Anansi
 				// Skip storylets that are not repeatable
 				if ( !storylet.IsRepeatable && storylet.TimesPlayed > 0 ) continue;
 
-				if ( !eligibleLocations.Contains( storylet.KnotID ) ) continue;
+				if ( !eligibleLocations.Contains( storylet.ID ) ) continue;
 
 				// Query the social engine database
 				if ( storylet.Precondition != null )
@@ -431,35 +259,13 @@ namespace Anansi
 
 		#region Private Methods
 
-		private void RegisterExternalInkFunctions(Story story)
+		private void RegisterExternalInkFunctions(Ink.Runtime.Story story)
 		{
 			story.BindExternalFunction(
 				"AdvanceTime",
 				() =>
 				{
-					Tick();
-				}
-			);
-
-			story.BindExternalFunction(
-				"AvailableActionChoices",
-				() =>
-				{
-					foreach ( var storyletInstance in GetEligibleActionStorylets() )
-					{
-						m_story.AddDynamicChoice( storyletInstance );
-					}
-				}
-			);
-
-			story.BindExternalFunction(
-				"AvailableLocationChoices",
-				() =>
-				{
-					foreach ( var storyletInstance in GetEligibleLocationStorylets() )
-					{
-						m_story.AddDynamicChoice( storyletInstance );
-					}
+					m_simulationController.Tick();
 				}
 			);
 
@@ -472,19 +278,6 @@ namespace Anansi
 			);
 		}
 
-
 		#endregion
-	}
-
-	public class SpeakerChangeInfo
-	{
-		public Character Character { get; }
-		public string[] SpeakerTags { get; }
-
-		public SpeakerChangeInfo(Character character, string[] tags)
-		{
-			this.Character = character;
-			this.SpeakerTags = tags;
-		}
 	}
 }

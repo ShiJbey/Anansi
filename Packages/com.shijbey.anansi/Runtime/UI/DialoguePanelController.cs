@@ -4,6 +4,7 @@ using UnityEngine.UI;
 using TMPro;
 using UnityEngine.Events;
 using System;
+using System.Linq;
 
 namespace Anansi
 {
@@ -17,7 +18,9 @@ namespace Anansi
 		/// <summary>
 		/// A reference to the game manager
 		/// </summary>
-		private GameManager m_gameManager;
+		private DialogueManager m_dialogueManager;
+
+		private SimulationController m_simulationController;
 
 		/// <summary>
 		/// A reference to the button that advances to the next set of dialogue
@@ -152,7 +155,8 @@ namespace Anansi
 		private void Awake()
 		{
 			m_rectTransform = gameObject.transform as RectTransform;
-			m_gameManager = FindObjectOfType<GameManager>();
+			m_dialogueManager = FindObjectOfType<DialogueManager>();
+			m_simulationController = FindObjectOfType<SimulationController>();
 		}
 
 		private void Start()
@@ -168,10 +172,10 @@ namespace Anansi
 
 			m_advanceDialogueButton.onClick.AddListener( HandleAdvanceDialogueButtonClick );
 			m_choiceDialog.OnChoiceSelected.AddListener( HandleChoiceSelection );
-			m_gameManager.Story.OnDialogueStart += HandleOnDialogueStart;
-			m_gameManager.Story.OnDialogueEnd += HandleOnDialogueEnd;
-			m_gameManager.Story.OnSpeakerChange += HandleSpeakerChange;
-			m_gameManager.Story.OnNextDialogueLine += HandleDialogueLine;
+			m_dialogueManager.OnDialogueStart += HandleOnDialogueStart;
+			m_dialogueManager.OnDialogueEnd += HandleOnDialogueEnd;
+			m_dialogueManager.OnSpeakerChange += HandleSpeakerChange;
+			m_dialogueManager.OnNextDialogueLine += HandleDialogueLine;
 
 			Hide();
 		}
@@ -180,10 +184,10 @@ namespace Anansi
 		{
 			m_advanceDialogueButton.onClick.RemoveListener( HandleAdvanceDialogueButtonClick );
 			m_choiceDialog.OnChoiceSelected.RemoveListener( HandleChoiceSelection );
-			m_gameManager.Story.OnDialogueStart -= HandleOnDialogueStart;
-			m_gameManager.Story.OnDialogueEnd -= HandleOnDialogueEnd;
-			m_gameManager.Story.OnSpeakerChange -= HandleSpeakerChange;
-			m_gameManager.Story.OnNextDialogueLine -= HandleDialogueLine;
+			m_dialogueManager.OnDialogueStart -= HandleOnDialogueStart;
+			m_dialogueManager.OnDialogueEnd -= HandleOnDialogueEnd;
+			m_dialogueManager.OnSpeakerChange -= HandleSpeakerChange;
+			m_dialogueManager.OnNextDialogueLine -= HandleDialogueLine;
 		}
 
 		#endregion
@@ -252,7 +256,7 @@ namespace Anansi
 		/// </summary>
 		public void AdvanceDialogue()
 		{
-			m_gameManager.Story.AdvanceDialogue();
+			m_dialogueManager.AdvanceDialogue();
 		}
 
 		#endregion
@@ -291,6 +295,7 @@ namespace Anansi
 
 		private void HandleOnDialogueStart()
 		{
+			Show();
 			AdvanceDialogue();
 		}
 
@@ -307,7 +312,7 @@ namespace Anansi
 			}
 			else
 			{
-				SetSpeakerName( info.SpeakerId );
+				SetSpeakerName( info.SpeakerName );
 			}
 		}
 
@@ -333,28 +338,28 @@ namespace Anansi
 				yield return new WaitForSeconds( m_typingSpeed );
 			}
 
-			if ( m_gameManager.Story.IsWaitingForInput )
+			if ( m_dialogueManager.IsWaitingForInput )
 			{
-				m_inputPanel.HandleGetInput( m_gameManager.Story.InputRequest );
+				m_inputPanel.HandleGetInput( m_dialogueManager.InputRequest );
 
-				yield return new WaitUntil( () => !m_gameManager.Story.IsWaitingForInput );
+				yield return new WaitUntil( () => !m_dialogueManager.IsWaitingForInput );
 
 				m_inputPanel.Hide();
 
 				AdvanceDialogue();
 			}
 
-			if ( m_gameManager.Story.HasChoices() )
+			if ( m_dialogueManager.Story.HasChoices() )
 			{
-				var choices = m_gameManager.Story.GetChoices();
+				var choices = m_dialogueManager.Story.CurrentChoices;
 				m_choiceDialog.gameObject.SetActive( true );
-				m_choiceDialog.SetChoices( choices );
+				m_choiceDialog.SetChoices( choices.Select( c => c.Text ).ToArray() );
 
 				yield return new WaitUntil( () => m_userChoiceIndex != -1 );
 
 				m_choiceDialog.gameObject.SetActive( false );
 
-				m_gameManager.Story.MakeChoice( m_userChoiceIndex );
+				m_dialogueManager.Story.ChooseChoiceIndex( m_userChoiceIndex );
 
 				m_userChoiceIndex = -1;
 
