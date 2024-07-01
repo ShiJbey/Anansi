@@ -2,8 +2,8 @@
 === storylet_evelyn_a ===
 # ---
 # tags: evelyn, convo
-# @using speaker as ?speaker 
-# @query 
+# @using speaker as ?speaker
+# @query
 # ?speaker.relationships.player.stats.Friendship!?friendship
 # gte ?friendship 10
 # lt ?friendship 30
@@ -17,7 +17,7 @@
 === storylet_evelyn_b ===
 # ---
 # tags: evelyn, convo
-# @using speaker as ?speaker 
+# @using speaker as ?speaker
 # @query
 # ?speaker.relationships.player.stats.Friendship!?val
 # eq ?val 0
@@ -32,24 +32,24 @@
 
 -> DONE
 
-=== storylet_evelyn_c ===
+=== storylet_evelyn_c(friendship) ===
 # ---
 # tags: evelyn, convo
-# @using speaker as ?speaker 
-# @query
+# @using speaker as ?speaker
+# @query ?friendship
 # ?speaker.relationships.player.stats.Friendship!?friendship
 # gte ?friendship 30
 # @end
 # ===
 
-{speaker}: Yooooooo! What up??
+{speaker}: Yooooooo! What up?? (Our friendship level is {friendship})
 
 -> DONE
 
 === storylet_evelyn_d ===
 # ---
 # tags: evelyn, convo
-# @using speaker as ?speaker 
+# @using speaker as ?speaker
 # @query
 # ?speaker.relationships.player.stats.Friendship!?friendship
 # lt ?friendship 0

@@ -55,7 +55,7 @@ namespace Anansi
 		/// <summary>
 		/// A query that needs to pass before the storylet is allowed to run.
 		/// </summary>
-		public RePraxis.DBQuery Precondition { get; set; }
+		public StoryletPrecondition Precondition { get; set; }
 
 		/// <summary>
 		/// Bindings to input into the precondition query.
@@ -115,7 +115,7 @@ namespace Anansi
 			CooldownTimeRemaining = 0;
 			IsRepeatable = true;
 			IsMandatory = false;
-			Precondition = null;
+			Precondition = new StoryletPrecondition();
 			ChoiceLabel = "";
 			Tags = new HashSet<string>();
 			VariableSubstitutions = new Dictionary<string, string>();

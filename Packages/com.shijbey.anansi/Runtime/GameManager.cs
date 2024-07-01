@@ -173,7 +173,7 @@ namespace Anansi
 				// Query the social engine database
 				if ( storylet.Precondition != null )
 				{
-					var results = storylet.Precondition.Run( DB );
+					var results = storylet.Precondition.Query.Run( DB );
 
 					if ( !results.Success ) continue;
 
@@ -218,7 +218,7 @@ namespace Anansi
 				// Query the social engine database
 				if ( storylet.Precondition != null )
 				{
-					var results = storylet.Precondition.Run( DB );
+					var results = storylet.Precondition.Query.Run( DB );
 
 					if ( !results.Success ) continue;
 

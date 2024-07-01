@@ -269,14 +269,23 @@ namespace Anansi
 
 			m_currentStorylet.Storylet.ResetCooldown();
 
-			// Set the variables from the preconditionBindings
+			// Set global variables from the preconditionBindings
 			foreach ( var substitution in instance.Storylet.VariableSubstitutions )
 			{
 				m_story.variablesState[substitution.Key] =
 					instance.PreconditionBindings[substitution.Value];
 			}
 
-			m_currentStorylet.InkStory.ChoosePathString( m_currentStorylet.KnotID );
+			// Set get the knot arguments to the query output variables
+			object[] knotArgs = new object[instance.Storylet.Precondition.OutputVars.Count];
+			for ( int i = 0; i < instance.Storylet.Precondition.OutputVars.Count; i++ )
+			{
+				string varName = instance.Storylet.Precondition.OutputVars[i];
+				knotArgs[i] = instance.PreconditionBindings[varName];
+			}
+
+			m_currentStorylet.InkStory.ChoosePathString(
+				m_currentStorylet.KnotID, false, knotArgs );
 		}
 
 		/// <summary>
@@ -344,7 +353,7 @@ namespace Anansi
 
 			if ( storylet.Precondition != null )
 			{
-				var results = storylet.Precondition.Run( this.DB, inputBindings );
+				var results = storylet.Precondition.Query.Run( this.DB, inputBindings );
 
 				if ( results.Success )
 				{
@@ -430,7 +439,7 @@ namespace Anansi
 			// them based on basic storylets, actions, and locations.
 			foreach ( string knotID in knotIDs )
 			{
-				List<string> knotTags = m_story.TagsForContentAtPath( knotID );
+				List<string> knotTags = GetKnotTags( knotID );
 
 				// Storylets need to start with a storylet header
 				if (
@@ -464,7 +473,7 @@ namespace Anansi
 			// of the header and set the appropriate metadata values on the storylet instance we
 			// just created.
 
-			List<string> knotTags = m_story.TagsForContentAtPath( knotID );
+			List<string> knotTags = GetKnotTags( knotID );
 
 			if ( knotTags == null ) return storylet;
 
@@ -660,8 +669,17 @@ namespace Anansi
 				// This is the first line declaring a query
 				if ( line.StartsWith( "@query" ) )
 				{
-					storylet.Precondition = PreconditionQueryFromTags(
+					RePraxis.DBQuery query = PreconditionQueryFromTags(
 						knotID, knotTags, lineIndex, out lineIndex );
+
+					List<string> outputVars = line.Split( " " )[1..^0].ToList();
+
+					storylet.Precondition = new StoryletPrecondition(
+						query
+					)
+					{
+						OutputVars = outputVars
+					};
 				}
 
 				lineIndex++;
@@ -744,6 +762,71 @@ namespace Anansi
 
 			return knotList;
 		}
+
+		/// <summary>
+		/// Get the tags for an Ink knot. This is a replacement method that fixes an error
+		/// in Ink that prevents knots with parameters from having tags.
+		/// </summary>
+		/// <param name="path"></param>
+		/// <returns></returns>
+		public List<string> GetKnotTags(string pathString)
+		{
+			var path = new Ink.Runtime.Path( pathString );
+
+			// Expected to be global story, knot or stitch
+			var flowContainer = m_story.ContentAtPath( path ).container;
+			while ( true )
+			{
+				var firstContent = flowContainer.content[0];
+				if ( firstContent is Ink.Runtime.Container )
+					flowContainer = (Ink.Runtime.Container)firstContent;
+				else break;
+			}
+
+			// Any initial tag objects count as the "main tags" associated with that story/knot/stitch
+			bool inTag = false;
+			List<string> tags = null;
+			foreach ( var c in flowContainer.content )
+			{
+				var v = c as Ink.Runtime.VariableAssignment; if ( v != null ) { continue; }
+				var command = c as Ink.Runtime.ControlCommand;
+				if ( command != null )
+				{
+					if ( command.commandType == Ink.Runtime.ControlCommand.CommandType.BeginTag )
+					{
+						inTag = true;
+					}
+					else if ( command.commandType == Ink.Runtime.ControlCommand.CommandType.EndTag )
+					{
+						inTag = false;
+					}
+				}
+
+				else if ( inTag )
+				{
+					var str = c as Ink.Runtime.StringValue;
+					if ( str != null )
+					{
+						if ( tags == null ) tags = new List<string>();
+						tags.Add( str.value );
+					}
+					else
+					{
+						m_story.Error( "Tag contained non-text content. Only plain text is allowed when using globalTags or TagsAtContentPath. If you want to evaluate dynamic content, you need to use story.Continue()." );
+					}
+				}
+
+				// Any other content - we're done
+				// We only recognise initial text-only tags
+				else
+				{
+					break;
+				}
+			}
+
+			return tags;
+		}
+
 
 		/// <summary>
 		/// Removes any potential storylet header tags from a dialogue line. This is only relevant
@@ -844,8 +927,9 @@ namespace Anansi
 				{
 					IEnumerable<string> tagList = tags.Split( "," ).Select( t => t.Trim() );
 
-					IEnumerable<Storylet> storyletsWithTags = GetStoryletsWithTags( tagList )
-						.Where( storylet => storylet.IsEligible );
+					List<Storylet> storyletsWithTags = GetStoryletsWithTags( tagList )
+						.Where( storylet => storylet.IsEligible )
+						.ToList();
 
 					List<StoryletInstance> storyletInstances = new List<StoryletInstance>();
 					List<StoryletInstance> mandatoryStorylets = new List<StoryletInstance>();
