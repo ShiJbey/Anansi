@@ -6,6 +6,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on <https://common-changelog.org/>, and this project adheres mostly to Semantic Versioning.
 
+## [0.4.1] - 2024-07-15
+
+### Fixed
+
+- Updated VNUI prefab
+
 ## [0.4.0] - 2024-07-01
 
 ### Added
@@ -48,3 +54,4 @@ _Initial release._
 [0.2.0]: https://github.com/ShiJbey/Anansi/releases/tag/v0.2.0
 [0.3.0]: https://github.com/ShiJbey/Anansi/releases/tag/v0.3.0
 [0.4.0]: https://github.com/ShiJbey/Anansi/releases/tag/v0.4.0
+[0.4.1]: https://github.com/ShiJbey/Anansi/releases/tag/v0.4.1
