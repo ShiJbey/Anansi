@@ -1,3 +1,5 @@
+EXTERNAL IncrementRelationshipStat(a, b, stat, value)
+EXTERNAL DispatchSocialEvent(eventId, args)
 
 === storylet_evelyn_a ===
 # ---
@@ -42,7 +44,8 @@
 # @end
 # ===
 
-{speaker}: Yooooooo! What up?? (Our friendship level is {friendship})
+{speaker}: Yooooooo! What up?? (Our friendship level is {friendship}) {IncrementRelationshipStat(speaker, "player", "Friendship", -2)} {DispatchSocialEvent("BecomeBros", "player, {speaker}")}
+
 
 -> DONE
 

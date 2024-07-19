@@ -83,8 +83,9 @@ namespace Anansi
 						choices.Add( new Choice( inkChoice ) );
 					}
 				}
+
 				// Then try to return dynamic choices.
-				else if ( m_dynamicChoices.Count() > 0 )
+				if ( m_dynamicChoices.Count() > 0 )
 				{
 					foreach ( var storyletChoice in m_dynamicChoices )
 					{
@@ -123,6 +124,8 @@ namespace Anansi
 			m_currentStorylet = null;
 			m_storyletOnDeck = null;
 			m_boundStoryletInstance = null;
+			m_dynamicChoiceIds = new HashSet<string>();
+			m_dynamicChoices = new List<Choice>();
 
 			LoadStorylets();
 			RegisterExternalFunctions();
@@ -172,26 +175,19 @@ namespace Anansi
 		/// <param name="choiceIndex"></param>
 		public void ChooseChoiceIndex(int choiceIndex)
 		{
-			// This method makes assumptions about where the choice index should be routed.
-			// Since we always return ink-native choices first, we will try to send it to
-			// ink first
-			if ( m_story.currentChoices.Count() > 0 )
+			var choice = CurrentChoices[choiceIndex];
+
+			if ( choice.InkChoice != null )
 			{
-				m_currentStorylet.InkStory.ChooseChoiceIndex( choiceIndex );
+				m_currentStorylet.InkStory.ChooseChoiceIndex( choice.InkChoice.index );
 			}
-			else if ( m_dynamicChoices.Count() > 0 )
+			else if ( choice.StoryletInstance != null )
 			{
-				var choice = m_dynamicChoices[choiceIndex];
-
-				if ( choice.StoryletInstance == null )
-				{
-					throw new NullReferenceException( "Choice is missing storylet instance" );
-				}
-
 				GoToStoryletInstance( choice.StoryletInstance );
-				m_dynamicChoices.Clear();
-				m_dynamicChoiceIds.Clear();
 			}
+
+			m_dynamicChoices.Clear();
+			m_dynamicChoiceIds.Clear();
 		}
 
 		/// <summary>
@@ -1062,6 +1058,18 @@ namespace Anansi
 
 						AddDynamicChoice( selectedInstance );
 					}
+				}
+			);
+
+			m_story.BindExternalFunction(
+				"TotalChoiceCount",
+				() =>
+				{
+					int count = m_story.currentChoices.Count;
+
+					count += m_dynamicChoices.Count;
+
+					return count;
 				}
 			);
 		}

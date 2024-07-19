@@ -116,6 +116,11 @@ namespace Anansi
 		public Action<string> OnNextDialogueLine;
 
 		/// <summary>
+		/// Invoked when we have the next line of story dialogue.
+		/// </summary>
+		public Action OnNewChoices;
+
+		/// <summary>
 		/// Action invoked when loading external functions to register with the story.
 		/// </summary>
 		public Action<Ink.Runtime.Story> OnRegisterExternalFunctions;
@@ -209,6 +214,11 @@ namespace Anansi
 				ProcessLineTags();
 				OnNextDialogueLine( text );
 
+				if ( Story.HasChoices() )
+				{
+					OnNewChoices?.Invoke();
+				}
+
 				// Sometimes on navigation, we don't show any text. If this is the case,
 				// do not even show the dialogue panel and try to get another line
 				if ( text == "" )
@@ -219,6 +229,10 @@ namespace Anansi
 				}
 			}
 			else if ( IsWaitingForInput )
+			{
+				return;
+			}
+			else if ( Story.CurrentChoices.Count() > 0 )
 			{
 				return;
 			}

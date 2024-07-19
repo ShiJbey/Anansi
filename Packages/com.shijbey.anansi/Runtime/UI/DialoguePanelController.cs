@@ -20,8 +20,6 @@ namespace Anansi
 		/// </summary>
 		private DialogueManager m_dialogueManager;
 
-		private SimulationController m_simulationController;
-
 		/// <summary>
 		/// A reference to the button that advances to the next set of dialogue
 		/// </summary>
@@ -156,7 +154,6 @@ namespace Anansi
 		{
 			m_rectTransform = gameObject.transform as RectTransform;
 			m_dialogueManager = FindObjectOfType<DialogueManager>();
-			m_simulationController = FindObjectOfType<SimulationController>();
 		}
 
 		private void Start()
@@ -331,19 +328,23 @@ namespace Anansi
 		private IEnumerator DisplayTextCoroutine(string text)
 		{
 			m_advanceDialogueButton.interactable = false;
-			m_dialogueText.text = "";
 
-			foreach ( char letter in text.ToCharArray() )
+			if ( text != "" )
 			{
-				if ( m_skipTypewriterEffect )
-				{
-					m_dialogueText.text = text;
-					m_skipTypewriterEffect = false;
-					break;
-				}
+				m_dialogueText.text = "";
 
-				m_dialogueText.text += letter;
-				yield return new WaitForSeconds( m_typingSpeed );
+				foreach ( char letter in text.ToCharArray() )
+				{
+					if ( m_skipTypewriterEffect )
+					{
+						m_dialogueText.text = text;
+						m_skipTypewriterEffect = false;
+						break;
+					}
+
+					m_dialogueText.text += letter;
+					yield return new WaitForSeconds( m_typingSpeed );
+				}
 			}
 
 			if ( m_dialogueManager.IsWaitingForInput )

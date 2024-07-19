@@ -1,0 +1,10 @@
+# social events YAML (replace the data below)
+- name: BecomeBros
+  roles:
+      - '?character_a'
+      - '?character_b'
+  description: '[character_a] and [character_b] became bros.'
+  responses:
+      - effects:
+            - 'AddRelationshipTrait ?character_a ?character_b bros'
+            - 'AddRelationshipTrait ?character_b ?character_a bros'

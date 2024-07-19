@@ -177,13 +177,19 @@ namespace Anansi
 
 					if ( !results.Success ) continue;
 
-					foreach ( var bindingDict in results.Bindings )
+					if ( results.Bindings.Length > 0 )
 					{
-						instances.Add( new StoryletInstance(
-						storylet,
-						bindingDict,
-						storylet.Weight
-					) );
+						foreach ( var bindingDict in results.Bindings )
+						{
+							instances.Add(
+								new StoryletInstance( storylet, bindingDict, storylet.Weight ) );
+						}
+					}
+					else
+					{
+						instances.Add(
+							new StoryletInstance(
+								storylet, new Dictionary<string, object>(), storylet.Weight ) );
 					}
 				}
 				else
@@ -222,28 +228,19 @@ namespace Anansi
 
 					if ( !results.Success ) continue;
 
-					if ( results.Bindings.Length == 0 )
-					{
-						instances.Add(
-							new StoryletInstance(
-								storylet,
-								new Dictionary<string, object>(),
-								storylet.Weight
-							)
-						);
-					}
-					else
+					if ( results.Bindings.Length > 0 )
 					{
 						foreach ( var bindingDict in results.Bindings )
 						{
 							instances.Add(
-								new StoryletInstance(
-									storylet,
-									bindingDict,
-									storylet.Weight
-								)
-							);
+								new StoryletInstance( storylet, bindingDict, storylet.Weight ) );
 						}
+					}
+					else
+					{
+						instances.Add(
+							new StoryletInstance(
+								storylet, new Dictionary<string, object>(), storylet.Weight ) );
 					}
 				}
 				else
@@ -280,6 +277,155 @@ namespace Anansi
 				(string locationID) =>
 				{
 					this.SetPlayerLocation( locationID );
+				}
+			);
+
+			story.BindExternalFunction(
+				"GetEligibleActions",
+				() =>
+				{
+					foreach ( var entry in GetEligibleActionStorylets() )
+					{
+						m_dialogueManager.Story.AddDynamicChoice( entry );
+					}
+
+					return false;
+				}
+			);
+
+			story.BindExternalFunction(
+				"GetEligibleLocations",
+				() =>
+				{
+					foreach ( var entry in GetEligibleLocationStorylets() )
+					{
+						m_dialogueManager.Story.AddDynamicChoice( entry );
+					}
+
+					return false;
+				}
+			);
+
+			story.BindExternalFunction(
+				"IncrementStat",
+				(string entityId, string statName, float value) =>
+				{
+					var stat = SocialEngineController.Instance.State
+						.GetAgent( entityId )
+						.Stats
+						.GetStat( statName );
+
+					stat.BaseValue += value;
+				}
+			);
+
+			story.BindExternalFunction(
+				"GetStat",
+				(string entityId, string statName) =>
+				{
+					var stat = SocialEngineController.Instance.State
+						.GetAgent( entityId )
+						.Stats
+						.GetStat( statName );
+
+					return stat.Value;
+				}
+			);
+
+			story.BindExternalFunction(
+				"IncrementRelationshipStat",
+				(string ownerId, string targetId, string statName, float value) =>
+				{
+					var stat = SocialEngineController.Instance.State
+						.GetRelationship( ownerId, targetId )
+						.Stats
+						.GetStat( statName );
+
+					stat.BaseValue += value;
+				}
+			);
+
+			story.BindExternalFunction(
+				"GetRelationshipStat",
+				(string ownerId, string targetId, string statName) =>
+				{
+					var stat = SocialEngineController.Instance.State
+						.GetRelationship( ownerId, targetId )
+						.Stats
+						.GetStat( statName );
+
+					return stat.Value;
+				}
+			);
+
+			story.BindExternalFunction(
+				"AddTrait",
+				(string entityId, string traitId) =>
+				{
+					SocialEngineController.Instance.State
+						.GetAgent( entityId )
+						.AddTrait( traitId );
+				}
+			);
+
+			story.BindExternalFunction(
+				"AddTempTrait",
+				(string entityId, string traitId, int duration) =>
+				{
+					SocialEngineController.Instance.State
+						.GetAgent( entityId )
+						.AddTrait( traitId, duration: duration );
+				}
+			);
+
+			story.BindExternalFunction(
+				"RemoveTrait",
+				(string entityId, string traitId) =>
+				{
+					SocialEngineController.Instance.State
+						.GetAgent( entityId )
+						.RemoveTrait( traitId );
+				}
+			);
+
+			story.BindExternalFunction(
+				"AddRelationshipTrait",
+				(string ownerId, string targetId, string traitId) =>
+				{
+					SocialEngineController.Instance.State
+						.GetRelationship( ownerId, targetId )
+						.AddTrait( traitId );
+				}
+			);
+
+			story.BindExternalFunction(
+				"AddTempRelationshipTrait",
+				(string ownerId, string targetId, string traitId, int duration) =>
+				{
+					SocialEngineController.Instance.State
+						.GetRelationship( ownerId, targetId )
+						.AddTrait( traitId, duration: duration );
+				}
+			);
+
+			story.BindExternalFunction(
+				"RemoveRelationshipTrait",
+				(string ownerId, string targetId, string traitId) =>
+				{
+					SocialEngineController.Instance.State
+						.GetRelationship( ownerId, targetId )
+						.RemoveTrait( traitId );
+				}
+			);
+
+			story.BindExternalFunction(
+				"DispatchSocialEvent",
+				(string eventId, string args) =>
+				{
+					string[] argsArr = args.Split( "," ).Select( s => s.Trim() ).ToArray();
+
+					SocialEngineController.Instance.State
+						.DispatchEvent( eventId, argsArr );
 				}
 			);
 		}

@@ -21,14 +21,14 @@ INCLUDE ./SampleDialogue.ink
 Accessing External Functions
 ============================
 
-Anansi provides various external functions to assist with communicating with 
+Anansi provides various external functions to assist with communicating with
 external systems such as the GUI, Story Database, and Time System. By default,
-users are provided with functions for database operations (DbInsert, DbDelete, 
+users are provided with functions for database operations (DbInsert, DbDelete,
 DbAssert), queueing storylets using an ID, and queueing storylets using tags.
 
 Since the full Anansi library is for creating location-based visual novels
 with simulated characters, the game manager provides additional external
-functions for changing the location of the player, forwarding time, and 
+functions for changing the location of the player, forwarding time, and
 requesting user input.
 
  ----------------------------------*/
@@ -41,6 +41,9 @@ EXTERNAL AdvanceTime()
 EXTERNAL QueueStorylet(storyletId)
 EXTERNAL QueueStoryletWithTags(tags, fallback)
 EXTERNAL GetInput(dataType, prompt, variableName)
+EXTERNAL DivertToStorylet(knot)
+EXTERNAL GetEligibleActions()
+EXTERNAL GetEligibleLocations()
 
 
 /* ---------------------------------
@@ -79,6 +82,8 @@ content under this knot to help introduce the player to the game.
 
 // Place initial state setup here.
 
+// {DivertToStorylet(-> library)}
+
 -> library
 
 -> DONE
@@ -109,7 +114,27 @@ the "hidden: true" command.
 
 {SetPlayerLocation("library")}
 
--> DONE
+- What do you want to do?
+    <- get_actions
+    + [Look around] -> examine_library -> library
+- -> DONE
+
+=== examine_library
+
+There are a lot of books in here.
+
+->->
+
+=== get_actions
+    + [Get Pizza] -> library
+    + {test()} [Eat Waffles] -> library
+    + {GetEligibleActions()} [Storylet Options]
+    + {GetEligibleLocations()} [Storylet Options]
+    - -> DONE
+
+
+=== function test()
+    ~return true
 
 /* ---------------------------------
 
@@ -162,7 +187,7 @@ a dialog box containing a prompt and a text entry box. When users
 click "submit" the value in the text entry box is stored in the
 provided variable name. This is one of the cases where you will
 probably want to declare the Ink variable beforehand and give it
-a default value. 
+a default value.
 
 The "GetInput" function takes three parameters: the data type of
 the input, a text prompt, and the name of a variable to store the
@@ -295,9 +320,9 @@ Queuing Storylets
 When you want to dynamically instantiate and jump to another
 storylet in the story, you can use the "QueueStorylet" or
 "QueueStoryletWithTags" external functions included with the
-base Anansi.Story class. 
+base Anansi.Story class.
 
-The examples below looks for all storylets that are tagged 
+The examples below looks for all storylets that are tagged
 as conversations (convo) for specific characters. If no
 storylet content is available to jump to, we provide the
 ink knot name of a fallback storylet to use. Notice, the

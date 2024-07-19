@@ -7,3 +7,8 @@
   traitType: relationship
   displayName: Rival
   description: '[owner] considers [target] to be a rival'
+
+- traitID: bros
+  traitType: relationship
+  displayName: Bros
+  description: '[owner] and [target] are bros.'
