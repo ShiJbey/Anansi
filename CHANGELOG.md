@@ -16,6 +16,7 @@ The format is based on <https://common-changelog.org/>, and this project adheres
 ## Added
 
 - Added external ink functions for incrementing stats, retrieving stats, adding traits, removing traits, dispatching social events, and retrieving the total number of storylet and Ink-native choices.
+- Added external ink functions for working directly with queries.
 
 ## [0.4.1] - 2024-07-15
 

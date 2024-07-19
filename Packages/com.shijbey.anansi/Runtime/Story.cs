@@ -50,6 +50,16 @@ namespace Anansi
 		/// </summary>
 		private StoryletInstance m_boundStoryletInstance;
 
+		/// <summary>
+		/// Query results generated from within Ink.
+		/// </summary>
+		private Dictionary<int, QueryHandle> m_queryHandles;
+
+		/// <summary>
+		/// The ID assigned to the next query handle created.
+		/// </summary>
+		private int m_nextQueryHandleId;
+
 		#endregion
 
 		#region Properties
@@ -126,6 +136,7 @@ namespace Anansi
 			m_boundStoryletInstance = null;
 			m_dynamicChoiceIds = new HashSet<string>();
 			m_dynamicChoices = new List<Choice>();
+			m_queryHandles = new Dictionary<int, QueryHandle>();
 
 			LoadStorylets();
 			RegisterExternalFunctions();
@@ -1072,8 +1083,96 @@ namespace Anansi
 					return count;
 				}
 			);
+
+			m_story.BindExternalFunction(
+				"DbQuery",
+				(string queryStatements) =>
+				{
+					string[] statements = queryStatements
+						.Split( ";" )
+						.Select( s => s.Trim() )
+						.ToArray();
+
+					DBQuery query = new DBQuery( statements );
+
+					QueryResult result = query.Run( DB );
+
+					int queryHandleId = m_nextQueryHandleId;
+
+					m_queryHandles.Add( queryHandleId, new QueryHandle( result ) );
+
+					m_nextQueryHandleId++;
+
+					return queryHandleId;
+				}
+			);
+
+			m_story.BindExternalFunction(
+				"DisposeDbQuery",
+				(int handle) =>
+				{
+					m_queryHandles.Remove( handle );
+				}
+			);
+
+			m_story.BindExternalFunction(
+				"DisposeAllQueries",
+				(int handle) =>
+				{
+					m_queryHandles.Clear();
+				}
+			);
+
+
+			m_story.BindExternalFunction(
+				"NextQueryResult",
+				(int handleId) =>
+				{
+					var handle = m_queryHandles[handleId];
+					handle.resultIndex++;
+				}
+			);
+
+			m_story.BindExternalFunction(
+				"QueryHasResult",
+				(int handleId) =>
+				{
+					var handle = m_queryHandles[handleId];
+					return handle.resultIndex < handle.result.Bindings.Length;
+				}
+			);
+
+			m_story.BindExternalFunction(
+				"QuerySuccessful",
+				(int handleId) =>
+				{
+					var handle = m_queryHandles[handleId];
+					return handle.result.Success;
+				}
+			);
+
+			m_story.BindExternalFunction(
+				"GetQueryBinding",
+				(int handleId, string variable) =>
+				{
+					var handle = m_queryHandles[handleId];
+					return handle.result.Bindings[handle.resultIndex][variable];
+				}
+			);
 		}
 
 		#endregion
+
+		public struct QueryHandle
+		{
+			public QueryResult result;
+			public int resultIndex;
+
+			public QueryHandle(QueryResult result)
+			{
+				this.result = result;
+				resultIndex = 0;
+			}
+		}
 	}
 }
