@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Text;
+using System.Security.Cryptography;
 
 namespace Anansi
 {
@@ -40,6 +42,11 @@ namespace Anansi
 		/// </summary>
 		public Dictionary<string, object> PreconditionBindings { get; }
 
+		/// <summary>
+		/// A Hash ID for this storylet
+		/// </summary>
+		public string HashID { get; private set; }
+
 		#endregion
 
 		#region Constructors
@@ -53,6 +60,46 @@ namespace Anansi
 			Storylet = storylet;
 			PreconditionBindings = new Dictionary<string, object>( preconditionBindings );
 			Weight = weight;
+
+			RecalculateHashId();
+		}
+
+		#endregion
+
+		#region Public Methods
+
+		/// <summary>
+		/// This method should only be called when the hash has not been used previously. Updating
+		/// might cause errors with object lookups.
+		/// </summary>
+		public void RecalculateHashId()
+		{
+			StringBuilder dataString = new StringBuilder();
+
+			dataString.Append( $"{Storylet.ID}(" );
+
+			foreach ( var (variableName, obj) in PreconditionBindings )
+			{
+				dataString.Append( $"{variableName}:{obj}" );
+			}
+
+			dataString.Append( ")" );
+
+			using ( SHA256 mySHA256 = SHA256.Create() )
+			{
+				byte[] bytes = Encoding.UTF8.GetBytes( dataString.ToString() );
+
+				byte[] hash = mySHA256.ComputeHash( bytes );
+
+				string hashString = string.Empty;
+
+				foreach ( byte x in hash )
+				{
+					hashString += string.Format( "{0:x2}", x );
+				}
+
+				HashID = hashString;
+			}
 		}
 
 		#endregion
