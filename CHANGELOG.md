@@ -8,12 +8,12 @@ The format is based on <https://common-changelog.org/>, and this project adheres
 
 ## [0.5.0] - 2024-07-22
 
-## Fixed
+### Fixed
 
 - Updated `Story` class to allow mix of Ink-native and storylet choices
 - Updated dialogue panel to not clear text on empty dialogue lines
 
-## Added
+### Added
 
 - Added external ink functions for incrementing stats, retrieving stats, adding traits, removing traits, dispatching social events, and retrieving the total number of storylet and Ink-native choices.
 - Added external ink functions for working directly with queries.
