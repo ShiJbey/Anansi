@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on <https://common-changelog.org/>, and this project adheres mostly to Semantic Versioning.
 
-## [0.5.0] - Unreleased
+## [0.5.0] - 2024-07-22
 
 ## Fixed
 
@@ -68,3 +68,4 @@ _Initial release._
 [0.3.0]: https://github.com/ShiJbey/Anansi/releases/tag/v0.3.0
 [0.4.0]: https://github.com/ShiJbey/Anansi/releases/tag/v0.4.0
 [0.4.1]: https://github.com/ShiJbey/Anansi/releases/tag/v0.4.1
+[0.5.0]: https://github.com/ShiJbey/Anansi/releases/tag/v0.5.0

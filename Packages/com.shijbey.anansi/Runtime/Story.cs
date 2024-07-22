@@ -70,6 +70,11 @@ namespace Anansi
 		public Ink.Runtime.Story InkStory => m_story;
 
 		/// <summary>
+		/// The current line of dialogue text.
+		/// </summary>
+		public string CurrentText { get; private set; }
+
+		/// <summary>
 		/// All tags belonging to the current line of dialogue.
 		/// </summary>
 		public List<string> CurrentTags { get; private set; }
@@ -137,6 +142,8 @@ namespace Anansi
 			m_dynamicChoiceIds = new HashSet<string>();
 			m_dynamicChoices = new List<Choice>();
 			m_queryHandles = new Dictionary<int, QueryHandle>();
+			CurrentText = "";
+			CurrentTags = new List<string>();
 
 			LoadStorylets();
 			RegisterExternalFunctions();
@@ -161,6 +168,8 @@ namespace Anansi
 				// Process tags
 				ExtractLineTags( m_currentStorylet.InkStory.currentTags );
 
+				CurrentText = line;
+
 				return line;
 			}
 
@@ -174,10 +183,14 @@ namespace Anansi
 
 				ExtractLineTags( m_currentStorylet.InkStory.currentTags );
 
+				CurrentText = line;
+
 				return line;
 			}
 
-			throw new Exception( "Cannot get next line of dialogue that ended." );
+			CurrentText = "";
+
+			return "";
 		}
 
 		/// <summary>
