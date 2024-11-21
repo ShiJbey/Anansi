@@ -1,5 +1,3 @@
-using GluonGui.WorkspaceWindow.Views.WorkspaceExplorer.Configuration;
-
 namespace Anansi.Sim
 {
 	/// <summary>

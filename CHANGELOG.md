@@ -6,6 +6,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on <https://common-changelog.org/>, and this project adheres mostly to Semantic Versioning.
 
+## [0.5.1] - 2024-11-21
+
+### Fixed
+
+- Unused using statement causing builds to fail (issue #13)
+
 ## [0.5.0] - 2024-07-22
 
 ### Fixed
