@@ -15,6 +15,13 @@
 
 ![calypso-screenshot](https://github.com/ShiJbey/Calypso/assets/11076525/810faa96-66f1-45d8-869d-94a0d7a4ecfc)
 
+> [!Note]
+> I am currently porting changes to this repository that were made in other, vendorized versions. Anansi versions 0.6.0+ will have breaking changes to almost all the APIs.
+>
+> I am also working on a proper technical demo to better showcase how Anansi integrates within a larger game. Thank you to everyone who has stared the repo thus far. 
+>
+> As always, if you have questions, feel free to create a GitHub issue and ask. 👍
+
 **Anansi** is a Unity extension for creating social simulation-driven visual novels. It combines the [Ink](https://www.inklestudios.com/ink/) narrative scripting language, a storylet architecture, and a social simulation that manages non-player character (NPC) schedules, emotions, personality traits, and relationships. Interactions with NPCs affect their feelings toward the player and other NPCs. Additionally, NPCs can reason about their relationship with the player and respond to events that happen to other characters in their social circle. For example, betraying a character will make their friends and family like you less. In short, adding this element of social simulation to visual novels should allow game developers to create dynamic and reactive interactive storytelling experiences more quickly than starting from scratch. Anansi draws most of its inspiration from _Persona 5's_ use of life simulation, time, and character relationships to drive narrative progression.
 
 Anansi is a good solution for people who want to quickly port their Ink games to Unity. Setting up UI and dialogue management can be cumbersome. Anansi provides starting UI prefabs to help with this. Also, since Anansi is built on top of Ink, users can start with a normal Ink story and incrementally add Anansi-specific features into their games. While Anansi can handle almost any Ink story, it really shines with stories that revolve around character relationships and navigation from one location to another.
@@ -81,7 +88,7 @@ This project is [MIT](./LICENSE.md) licensed.
 
 If you built a game using Anansi, we would love to hear about it. Please get in touch with us, and we will add an image and link to your game below. Also, remember to credit Anansi in your projects. More exposure helps the project grow.
 
-- TBD
+- [Academical 3](https://github.com/ExpressiveIntelligence/Academical3)
 
 ## ❓Frequently Asked Questions
 
