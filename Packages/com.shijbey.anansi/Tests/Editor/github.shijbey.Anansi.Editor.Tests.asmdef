@@ -1,12 +1,10 @@
 {
-    "name": "github.shijbey.calypso.Editor.Tests",
+    "name": "github.shijbey.Anansi.Editor.Tests",
     "rootNamespace": "",
     "references": [
-        "github.shijbey.calypso.Runtime",
-        "github.shijbey.calypso.Editor",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
-        "RePraxis"
+        "github.shijbey.Anansi.Runtime"
     ],
     "includePlatforms": [
         "Editor"
