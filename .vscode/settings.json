@@ -1,17 +1,15 @@
 {
-    "dotnet.defaultSolution": "Anansi.sln",
-    "files.exclude": {
-        ".vs": true,
-        ".vsconfig": true,
-        "**/*.asmdef": true,
-        "**/*.csproj*": true,
-        "**/*.meta": true,
-        "Library/": true,
-        "Logs/": true,
-        "obj/": true,
-        "ProjectSettings/": true,
-        "Temp/": true,
-        "UserSettings/": true
-    },
-    "cSpell.words": ["cooldown","Cooldowns","Storylets","VNUI"]
+  "dotnet.defaultSolution": "Anansi.sln",
+  "files.exclude": {
+    ".vs": true,
+    ".vsconfig": true,
+    "**/*.meta": true,
+    "Library/": true,
+    "Logs/": true,
+    "obj/": true,
+    "ProjectSettings/": true,
+    "Temp/": true,
+    "UserSettings/": true
+  },
+  "cSpell.words": ["cooldown", "Cooldowns", "Storylets", "VNUI"]
 }
