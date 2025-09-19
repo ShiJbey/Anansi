@@ -13,12 +13,19 @@
       "source": "embedded",
       "dependencies": {}
     },
-    "com.shijbey.tdrs": {
-      "version": "https://github.com/ShiJbey/TDRS.git?path=/Packages/com.shijbey.tdrs#v2.0.0",
+    "com.shijbey.repraxis": {
+      "version": "https://github.com/ShiJbey/RePraxis-For-Unity.git?path=/Packages/com.shijbey.repraxis#v1.4.0",
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "a392188deef1b26787e970581f3aaab18015dcc5"
+      "hash": "cc1a89fe20dd389d5a9635c5314b10df81c91718"
+    },
+    "com.shijbey.tdrs": {
+      "version": "https://github.com/ShiJbey/TDRS.git?path=/Packages/com.shijbey.tdrs",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "816ae2ec9f34680dbfaec1a4de6e9802edf6f27b"
     },
     "com.unity.2d.animation": {
       "version": "9.1.3",

@@ -1,7 +1,8 @@
 {
   "dependencies": {
     "com.inkle.ink-unity-integration": "https://github.com/inkle/ink-unity-integration.git#upm",
-    "com.shijbey.tdrs": "https://github.com/ShiJbey/TDRS.git?path=/Packages/com.shijbey.tdrs#v2.0.0",
+    "com.shijbey.repraxis": "https://github.com/ShiJbey/RePraxis-For-Unity.git?path=/Packages/com.shijbey.repraxis#v1.4.0",
+    "com.shijbey.tdrs": "https://github.com/ShiJbey/TDRS.git?path=/Packages/com.shijbey.tdrs",
     "com.unity.collab-proxy": "2.6.0",
     "com.unity.feature.2d": "2.0.1",
     "com.unity.ide.rider": "3.0.34",
